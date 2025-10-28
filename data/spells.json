@@ -1,0 +1,59 @@
+[
+	{
+		"name": "Magic Missile",
+		"cost": 20,
+		"uses": 5,
+		"effect": "Shoots magic missiles"
+	},
+	{
+		"name": "Weakness",
+		"cost": 50,
+		"uses": 2,
+		"effect": "Lowers enemy's strength"
+	},
+	{
+		"name": "Slowness",
+		"cost": 30,
+		"uses": 2,
+		"effect": "Lowers enemy's dexterity"
+	},
+	{
+		"name": "Lightning Bolt",
+		"cost": 40,
+		"uses": 2,
+		"effect": "Lightning bolt dealing full or half damage",
+		"damage_full": "6d6",
+		"damage_half": "3d6"
+	},
+	{
+		"name": "Vulnerability",
+		"cost": 55,
+		"uses": 2,
+		"effect": "Lowers enemy's armor class"
+	},
+	{
+		"name": "Fireball",
+		"cost": 75,
+		"uses": 2,
+		"effect": "Shoots fireball"
+	},
+	{
+		"name": "Teleport to Town",
+		"cost": 80,
+		"uses": 1,
+		"effect": "Teleports character back to town"
+	},
+	{
+		"name": "Heal",
+		"cost": 90,
+		"uses": 2,
+		"effect": "Heals character"
+	},
+	{
+		"name": "Summon Creature",
+		"cost": 0,
+		"uses": 1,
+		"effect": "Summon a companion to fight for you",
+		"availability": "labyrinth"
+	}
+]

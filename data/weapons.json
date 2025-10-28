@@ -1,0 +1,132 @@
+[
+	{
+		"name": "Dagger",
+		"damage_die": "1d4",
+		"price": 5,
+		"availability": "shop"
+	},
+	{
+		"name": "Shortsword",
+		"damage_die": "2d3",
+		"price": 20,
+		"availability": "shop"
+	},
+	{
+		"name": "Axe",
+		"damage_die": "2d4",
+		"price": 50,
+		"availability": "shop"
+	},
+	{
+		"name": "Mace",
+		"damage_die": "3d4",
+		"price": 100,
+		"availability": "shop"
+	},
+	{
+		"name": "Longsword",
+		"damage_die": "4d4",
+		"price": 180,
+		"availability": "shop"
+	},
+	{
+		"name": "Spear",
+		"damage_die": "4d5",
+		"price": 300,
+		"availability": "shop"
+	},
+	{
+		"name": "Halberd",
+		"damage_die": "6d4",
+		"price": 450,
+		"availability": "shop"
+	},
+	{
+		"name": "Battleaxe",
+		"damage_die": "7d4",
+		"price": 600,
+		"availability": "shop"
+	},
+	{
+		"name": "Warhammer",
+		"damage_die": "8d4",
+		"price": 800,
+		"availability": "shop"
+	},
+	{
+		"name": "Greatsword",
+		"damage_die": "9d4",
+		"price": 1000,
+		"availability": "shop"
+	},
+	{
+		"name": "Mithril Dagger",
+		"damage_die": "2d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 21
+	},
+	{
+		"name": "Arcane Shortsword",
+		"damage_die": "3d3",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 19
+	},
+	{
+		"name": "Runed Axe",
+		"damage_die": "3d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 17
+	},
+	{
+		"name": "Ethereal Mace",
+		"damage_die": "4d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 14
+	},
+	{
+		"name": "Adamantine Longsword",
+		"damage_die": "5d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 10
+	},
+	{
+		"name": "Crystal Spear",
+		"damage_die": "5d5",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 8
+	},
+	{
+		"name": "Obsidian Halberd",
+		"damage_die": "7d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 5
+	},
+	{
+		"name": "Bloodstone Battleaxe",
+		"damage_die": "8d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 3
+	},
+	{
+		"name": "Dragonbone Warhammer",
+		"damage_die": "9d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 2
+	},
+	{
+		"name": "Sunforged Greatsword",
+		"damage_die": "10d4",
+		"price": 0,
+		"availability": "labyrinth",
+		"chance": 1
+	}
+]

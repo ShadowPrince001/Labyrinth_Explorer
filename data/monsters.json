@@ -1,0 +1,467 @@
+[
+	{
+		"name": "Dragon",
+		"base_hp": 135,
+		"base_ac": 31,
+		"base_strength": 22,
+		"damage_die": "8d7",
+		"base_dex": 18,
+		"xp": 250,
+		"gold_range": [
+			200,
+			300
+		],
+		"wander_chance": 0.005,
+		"difficulty": 11
+	},
+	{
+		"name": "Death Knight",
+		"base_hp": 105,
+		"base_ac": 28,
+		"base_strength": 19,
+		"damage_die": "8d6",
+		"base_dex": 16,
+		"xp": 220,
+		"gold_range": [
+			131,
+			190
+		],
+		"wander_chance": 0.0093,
+		"difficulty": 10
+	},
+	{
+		"name": "Archlich",
+		"base_hp": 125,
+		"base_ac": 30,
+		"base_strength": 17,
+		"damage_die": "7d7",
+		"base_dex": 17,
+		"xp": 240,
+		"gold_range": [
+			153,
+			210
+		],
+		"wander_chance": 0.0093,
+		"difficulty": 10
+	},
+	{
+		"name": "Leviathan",
+		"base_hp": 135,
+		"base_ac": 29,
+		"base_strength": 21,
+		"damage_die": "8d6",
+		"base_dex": 15,
+		"xp": 260,
+		"gold_range": [
+			163,
+			230
+		],
+		"wander_chance": 0.0093,
+		"difficulty": 10
+	},
+	{
+		"name": "Hydra",
+		"base_hp": 115,
+		"base_ac": 28,
+		"base_strength": 20,
+		"damage_die": "7d6",
+		"base_dex": 14,
+		"xp": 200,
+		"gold_range": [
+			123,
+			180
+		],
+		"wander_chance": 0.0139,
+		"difficulty": 9
+	},
+	{
+		"name": "Chimera",
+		"base_hp": 100,
+		"base_ac": 26,
+		"base_strength": 18,
+		"damage_die": "6d6",
+		"base_dex": 15,
+		"xp": 180,
+		"gold_range": [
+			113,
+			160
+		],
+		"wander_chance": 0.0139,
+		"difficulty": 9
+	},
+	{
+		"name": "Hell Knight",
+		"base_hp": 60,
+		"base_ac": 24,
+		"base_strength": 19,
+		"damage_die": "8d6",
+		"base_dex": 14,
+		"xp": 105,
+		"gold_range": [
+			73,
+			140
+		],
+		"wander_chance": 0.0139,
+		"difficulty": 8
+	},
+	{
+		"name": "Wyvern",
+		"base_hp": 52,
+		"base_ac": 22,
+		"base_strength": 15,
+		"damage_die": "6d5",
+		"base_dex": 16,
+		"xp": 95,
+		"gold_range": [
+			71,
+			120
+		],
+		"wander_chance": 0.0139,
+		"difficulty": 7
+	},
+	{
+		"name": "Manticore",
+		"base_hp": 58,
+		"base_ac": 23,
+		"base_strength": 17,
+		"damage_die": "8d5",
+		"base_dex": 14,
+		"xp": 100,
+		"gold_range": [
+			73,
+			130
+		],
+		"wander_chance": 0.0093,
+		"difficulty": 7
+	},
+	{
+		"name": "Golem",
+		"base_hp": 57,
+		"base_ac": 25,
+		"base_strength": 18,
+		"damage_die": "6d5",
+		"base_dex": 10,
+		"xp": 95,
+		"gold_range": [
+			73,
+			135
+		],
+		"wander_chance": 0.0185,
+		"difficulty": 7
+	},
+	{
+		"name": "Frost Troll",
+		"base_hp": 62,
+		"base_ac": 23,
+		"base_strength": 17,
+		"damage_die": "6d6",
+		"base_dex": 11,
+		"xp": 100,
+		"gold_range": [
+			79,
+			135
+		],
+		"wander_chance": 0.0185,
+		"difficulty": 7
+	},
+	{
+		"name": "Vampire",
+		"base_hp": 90,
+		"base_ac": 26,
+		"base_strength": 18,
+		"damage_die": "6d5",
+		"base_dex": 16,
+		"xp": 150,
+		"gold_range": [
+			113,
+			170
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 8
+	},
+	{
+		"name": "Dark Elf",
+		"base_hp": 45,
+		"base_ac": 21,
+		"base_strength": 14,
+		"damage_die": "6d4",
+		"base_dex": 17,
+		"xp": 80,
+		"gold_range": [
+			73,
+			120
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 6
+	},
+	{
+		"name": "Wraith",
+		"base_hp": 50,
+		"base_ac": 22,
+		"base_strength": 15,
+		"damage_die": "6d5",
+		"base_dex": 16,
+		"xp": 85,
+		"gold_range": [
+			79,
+			130
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 6
+	},
+	{
+		"name": "Banshee",
+		"base_hp": 40,
+		"base_ac": 19,
+		"base_strength": 13,
+		"damage_die": "6d4",
+		"base_dex": 18,
+		"xp": 75,
+		"gold_range": [
+			61,
+			100
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 5
+	},
+	{
+		"name": "Shadow Fiend",
+		"base_hp": 42,
+		"base_ac": 20,
+		"base_strength": 13,
+		"damage_die": "6d4",
+		"base_dex": 17,
+		"xp": 78,
+		"gold_range": [
+			67,
+			110
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 6
+	},
+	{
+		"name": "Succubus",
+		"base_hp": 38,
+		"base_ac": 21,
+		"base_strength": 12,
+		"damage_die": "4d4",
+		"base_dex": 18,
+		"xp": 70,
+		"gold_range": [
+			53,
+			100
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 5
+	},
+	{
+		"name": "Gargoyle",
+		"base_hp": 36,
+		"base_ac": 22,
+		"base_strength": 14,
+		"damage_die": "4d4",
+		"base_dex": 14,
+		"xp": 35,
+		"gold_range": [
+			37,
+			60
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 4
+	},
+	{
+		"name": "Minotaur",
+		"base_hp": 37,
+		"base_ac": 21,
+		"base_strength": 13,
+		"damage_die": "4d4",
+		"base_dex": 13,
+		"xp": 35,
+		"gold_range": [
+			27,
+			50
+		],
+		"wander_chance": 0.0231,
+		"difficulty": 4
+	},
+	{
+		"name": "Troll",
+		"base_hp": 18,
+		"base_ac": 20,
+		"base_strength": 11,
+		"damage_die": "3d4",
+		"base_dex": 12,
+		"xp": 25,
+		"gold_range": [
+			17,
+			35
+		],
+		"wander_chance": 0.0278,
+		"difficulty": 3
+	},
+	{
+		"name": "Giant Spider",
+		"base_hp": 19,
+		"base_ac": 20,
+		"base_strength": 11,
+		"damage_die": "5d4",
+		"base_dex": 12,
+		"xp": 32,
+		"gold_range": [
+			17,
+			40
+		],
+		"wander_chance": 0.0278,
+		"difficulty": 3
+	},
+	{
+		"name": "Ghost",
+		"base_hp": 25,
+		"base_ac": 20,
+		"base_strength": 10,
+		"damage_die": "3d4",
+		"base_dex": 10,
+		"xp": 30,
+		"gold_range": [
+			27,
+			50
+		],
+		"wander_chance": 0.0278,
+		"difficulty": 3
+	},
+	{
+		"name": "Werewolf",
+		"base_hp": 17,
+		"base_ac": 20,
+		"base_strength": 13,
+		"damage_die": "4d4",
+		"base_dex": 14,
+		"xp": 40,
+		"gold_range": [
+			23,
+			45
+		],
+		"wander_chance": 0.0278,
+		"difficulty": 3
+	},
+	{
+		"name": "Hobgoblin",
+		"base_hp": 12,
+		"base_ac": 19,
+		"base_strength": 10,
+		"damage_die": "2d4",
+		"base_dex": 12,
+		"xp": 15,
+		"gold_range": [
+			13,
+			20
+		],
+		"wander_chance": 0.037,
+		"difficulty": 2
+	},
+	{
+		"name": "Green Slime",
+		"base_hp": 14,
+		"base_ac": 20,
+		"base_strength": 10,
+		"damage_die": "3d4",
+		"base_dex": 9,
+		"xp": 15,
+		"gold_range": [
+			7,
+			15
+		],
+		"wander_chance": 0.037,
+		"difficulty": 2
+	},
+	{
+		"name": "Orc",
+		"base_hp": 26,
+		"base_ac": 22,
+		"base_strength": 11,
+		"damage_die": "3d4",
+		"base_dex": 10,
+		"xp": 10,
+		"gold_range": [
+			7,
+			15
+		],
+		"wander_chance": 0.037,
+		"difficulty": 2
+	},
+	{
+		"name": "Hellhound",
+		"base_hp": 13,
+		"base_ac": 19,
+		"base_strength": 11,
+		"damage_die": "3d4",
+		"base_dex": 14,
+		"xp": 20,
+		"gold_range": [
+			15,
+			25
+		],
+		"wander_chance": 0.037,
+		"difficulty": 2
+	},
+	{
+		"name": "Ghoul",
+		"base_hp": 9,
+		"base_ac": 17,
+		"base_strength": 10,
+		"damage_die": "2d4",
+		"base_dex": 9,
+		"xp": 20,
+		"gold_range": [
+			9,
+			15
+		],
+		"wander_chance": 0.0463,
+		"difficulty": 1
+	},
+	{
+		"name": "Zombie",
+		"base_hp": 19,
+		"base_ac": 17,
+		"base_strength": 10,
+		"damage_die": "2d4",
+		"base_dex": 7,
+		"xp": 15,
+		"gold_range": [
+			4,
+			8
+		],
+		"wander_chance": 0.0463,
+		"difficulty": 1
+	},
+	{
+		"name": "Goblin",
+		"base_hp": 17,
+		"base_ac": 18,
+		"base_strength": 10,
+		"damage_die": "2d3",
+		"base_dex": 11,
+		"xp": 15,
+		"gold_range": [
+			5,
+			10
+		],
+		"wander_chance": 0.0463,
+		"difficulty": 1
+	},
+	{
+		"name": "Skeleton",
+		"base_hp": 4,
+		"base_ac": 17,
+		"base_strength": 10,
+		"damage_die": "2d3",
+		"base_dex": 12,
+		"xp": 10,
+		"gold_range": [
+			3,
+			5
+		],
+		"wander_chance": 0.0556,
+		"difficulty": 0
+	}
+]

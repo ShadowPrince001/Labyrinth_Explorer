@@ -1,0 +1,1080 @@
+{
+  "generated_at": "2025-10-21T22:07:04",
+  "method": "conservative-literal-scan",
+  "dialogues": {
+    "town": [
+      "quest_menu_options",
+      "quest_commands",
+      "quest_accepted",
+      "quest_declined",
+      "town_menu",
+      "gate_guard",
+      "healer_elwen",
+      "bartender_roth",
+      "cook_hera",
+      "gambler_seth",
+      "priestess_eira",
+      "town_bulletin",
+      "invalid_donation",
+      "donation_token_received",
+      "donation_accepted",
+      "no_completed_quests",
+      "which_completed_quest",
+      "quest_turnin_success",
+      "train_success",
+      "rest_again_fail",
+      "rest_heal",
+      "rest_fail",
+      "no_damaged_equipment",
+      "damaged_weapons",
+      "damaged_weapon_option",
+      "damaged_armors",
+      "damaged_armor_option",
+      "back_option",
+      "repair_costs",
+      "repair_success_weapon",
+      "repair_success_armor",
+      "invalid_bet",
+      "bet_range",
+      "gamble_win",
+      "gamble_lose",
+      "gamble_target",
+      "veteran_garron",
+      "rest_short",
+      "companion_lines",
+      "weaponsmith_thorin",
+      "remove_curses_elwen",
+      "curse_removed",
+      "remove_curse_cost"
+    ],
+    "labyrinth": [
+      "room_entry",
+      "examine_room",
+      "rooms"
+    ],
+    "traps": [
+      "trap_alert",
+      "dodge_roll",
+      "avoid_trap",
+      "trap_damage",
+      "gold_dust",
+      "poisoned",
+      "rust_weapon",
+      "dex_down"
+    ],
+    "chest": [
+      "before_opening",
+      "triggered",
+      "disarmed"
+    ],
+    "monster": [
+      "taunt_entry",
+      "hurt_reaction",
+      "enraged",
+      "dying"
+    ],
+    "items": [
+      "examine",
+      "equip_blessed",
+      "equip_cursed",
+      "equip_passive",
+      "stat_increase",
+      "stat_decrease",
+      "noise_cursed",
+      "not_a_wand",
+      "wand_fireball",
+      "wand_lightning",
+      "wand_water",
+      "wand_fail",
+      "remove_cursed",
+      "no_cursed_found",
+      "unknown_item",
+      "auto_equip",
+      "auto_equip_locked"
+    ],
+    "shop": [
+      "shop_welcome",
+      "shop_categories",
+      "buy",
+      "no_gold",
+      "sell",
+      "haggle",
+      "haggle_success",
+      "shop_header",
+      "choose_category",
+      "cat_weapons",
+      "cat_armor",
+      "cat_potions",
+      "cat_spells",
+      "cat_sell",
+      "cat_leave",
+      "no_weapons",
+      "weapons_header",
+      "back_main",
+      "weapon_entry",
+      "no_armors",
+      "armor_header",
+      "armor_entry",
+      "no_potions",
+      "potions_header",
+      "potion_entry",
+      "no_spells",
+      "spells_header",
+      "sell_header",
+      "no_sellable",
+      "sellable_items",
+      "cannot_sell_damaged",
+      "haggle_confirm",
+      "haggle_info",
+      "cannot_sell_equipped",
+      "sale_cancelled",
+      "sold_item"
+    ],
+    "quests": [
+      "quest_menu",
+      "offer",
+      "accept",
+      "complete",
+      "fail"
+    ],
+    "companion": [
+      "companion_options",
+      "companion_menu",
+      "encourage",
+      "low_hp",
+      "post_kill",
+      "summon_already",
+      "summon_familiar",
+      "summon_success",
+      "attack_hit",
+      "attack_miss",
+      "name_success",
+      "name_no_companion",
+      "heal_no_companion",
+      "heal_no_potions",
+      "heal_success"
+    ],
+    "world": [
+      "rumors",
+      "festival",
+      "seasonal"
+    ],
+    "system": [
+      "death",
+      "level_up",
+      "startup",
+      "story_intro",
+      "ask_name",
+      "creation_complete",
+      "creation_name_line",
+      "creation_hp_line",
+      "creation_gold_line",
+      "starting_note",
+      "attribute_roll_intro",
+      "attribute_roll",
+      "you_rolled",
+      "choose_attribute",
+      "enter_number",
+      "calc_hp_gold",
+      "your_constitution",
+      "rolling_hp_bonus",
+      "hp_result",
+      "rolling_gold",
+      "cha_high_roll",
+      "cha_good_roll",
+      "low_hp_roll",
+      "standard_gold_roll",
+      "gold_result",
+      "main_menu_header",
+      "main_menu_new",
+      "main_menu_load",
+      "main_menu_quit",
+      "no_saved_game",
+      "invalid_choice"
+    ],
+    "combat": [
+      "target_zones",
+      "height_options",
+      "combat_actions",
+      "combat_menu",
+      "examine_attempt",
+      "examine_fail",
+      "choose_weapon",
+      "no_potions",
+      "potions_menu",
+      "potion_heal",
+      "potion_focus",
+      "potion_speed",
+      "potion_strength",
+      "potion_protection",
+      "potion_invisibility",
+      "potion_antidote",
+      "nothing_happens",
+      "no_spells",
+      "spells_menu",
+      "summon_attempt",
+      "magic_missile",
+      "spell_fizzle",
+      "choose_aim",
+      "choose_defend",
+      "divine_attempt",
+      "divine_success",
+      "divine_fail",
+      "poison_dot",
+      "charm_attempt",
+      "charm_success",
+      "charm_fail",
+      "run_attempt",
+      "run_success",
+      "run_fail",
+      "your_turn",
+      "attack_roll",
+      "monster_brace",
+      "natural_one_self",
+      "critical_hit",
+      "crippled",
+      "weapon_damaged",
+      "attack_blocked",
+      "hit_message",
+      "extra_attack",
+      "monster_frozen",
+      "invisibility_miss",
+      "prepare_guard",
+      "brace_defend",
+      "monster_attack_roll",
+      "monster_natural_one",
+      "monster_critical",
+      "armor_damaged",
+      "defend_success",
+      "player_hit",
+      "monster_miss",
+      "examine_intro",
+      "examine_result",
+      "examine_dex",
+      "examine_abilities",
+      "weapon_option",
+      "potion_option",
+      "spell_option",
+      "weakness_effect",
+      "slowness_effect",
+      "full_power_option",
+      "half_power_option",
+      "lightning_bolt",
+      "freeze_effect",
+      "vulnerability_effect",
+      "teleport_to_town",
+      "magic_portal",
+      "initiative",
+      "town_header",
+      "town_menu_options",
+      "rest_recover_full",
+      "not_enough_gold",
+      "monster_appears",
+      "you_were_defeated",
+      "monster_defeated_xp",
+      "you_loot_gold",
+      "find_healing_potion",
+      "find_scroll_of_spell",
+      "labyrinth_header",
+      "vision_monster",
+      "vision_empty",
+      "no_vision",
+      "listen_roll",
+      "you_hear",
+      "sounds_quiet",
+      "hear_nothing",
+      "no_chest",
+      "open_chest_gold",
+      "find_magic_item",
+      "no_magic_items",
+      "magic_items_list",
+      "hesitate_return"
+    ]
+  },
+  "dialogue_usage": {
+    "town::quest_menu_options": [],
+    "town::quest_commands": [],
+    "town::quest_accepted": [],
+    "town::quest_declined": [],
+    "town::town_menu": [],
+    "town::gate_guard": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "town::healer_elwen": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::bartender_roth": [],
+    "town::cook_hera": [],
+    "town::gambler_seth": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::priestess_eira": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::town_bulletin": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::invalid_donation": [],
+    "town::donation_token_received": [],
+    "town::donation_accepted": [],
+    "town::no_completed_quests": [],
+    "town::which_completed_quest": [],
+    "town::quest_turnin_success": [],
+    "town::train_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::rest_again_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::rest_heal": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::rest_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::no_damaged_equipment": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::damaged_weapons": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::damaged_weapon_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::damaged_armors": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::damaged_armor_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::back_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::repair_costs": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::repair_success_weapon": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::repair_success_armor": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::invalid_bet": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::bet_range": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::gamble_win": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::gamble_lose": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::gamble_target": [],
+    "town::veteran_garron": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::rest_short": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::companion_lines": [],
+    "town::weaponsmith_thorin": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::remove_curses_elwen": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "town::curse_removed": [],
+    "town::remove_curse_cost": [],
+    "labyrinth::room_entry": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\labyrinth.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\labyrinth.py"
+    ],
+    "labyrinth::examine_room": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\labyrinth.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "labyrinth::rooms": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\labyrinth.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\labyrinth.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\labyrinth.py"
+    ],
+    "traps::trap_alert": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::dodge_roll": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::avoid_trap": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::trap_damage": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::gold_dust": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::poisoned": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::rust_weapon": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "traps::dex_down": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\traps.py"
+    ],
+    "chest::before_opening": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "chest::triggered": [],
+    "chest::disarmed": [],
+    "monster::taunt_entry": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "monster::hurt_reaction": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "monster::enraged": [],
+    "monster::dying": [],
+    "items::examine": [],
+    "items::equip_blessed": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::equip_cursed": [],
+    "items::equip_passive": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::stat_increase": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::stat_decrease": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::noise_cursed": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::not_a_wand": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::wand_fireball": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::wand_lightning": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::wand_water": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::wand_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::remove_cursed": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::no_cursed_found": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::unknown_item": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::auto_equip": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "items::auto_equip_locked": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\magic_items.py"
+    ],
+    "shop::shop_welcome": [],
+    "shop::shop_categories": [],
+    "shop::buy": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::no_gold": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::sell": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::haggle": [],
+    "shop::haggle_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::shop_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::choose_category": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cat_weapons": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cat_armor": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cat_potions": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cat_spells": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cat_sell": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cat_leave": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::no_weapons": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::weapons_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::back_main": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::weapon_entry": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::no_armors": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::armor_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::armor_entry": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::no_potions": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::potions_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::potion_entry": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::no_spells": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::spells_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::sell_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::no_sellable": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::sellable_items": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cannot_sell_damaged": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::haggle_confirm": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::haggle_info": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::cannot_sell_equipped": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::sale_cancelled": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "shop::sold_item": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py"
+    ],
+    "quests::quest_menu": [],
+    "quests::offer": [],
+    "quests::accept": [],
+    "quests::complete": [],
+    "quests::fail": [],
+    "companion::companion_options": [],
+    "companion::companion_menu": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py"
+    ],
+    "companion::encourage": [],
+    "companion::low_hp": [],
+    "companion::post_kill": [],
+    "companion::summon_already": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::summon_familiar": [],
+    "companion::summon_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::attack_hit": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::attack_miss": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::name_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::name_no_companion": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::heal_no_companion": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::heal_no_potions": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "companion::heal_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\companion.py"
+    ],
+    "world::rumors": [],
+    "world::festival": [],
+    "world::seasonal": [],
+    "system::death": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::level_up": [],
+    "system::startup": [],
+    "system::story_intro": [],
+    "system::ask_name": [],
+    "system::creation_complete": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::creation_name_line": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::creation_hp_line": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::creation_gold_line": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::starting_note": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::attribute_roll_intro": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::attribute_roll": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::you_rolled": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::choose_attribute": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::enter_number": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::calc_hp_gold": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::your_constitution": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::rolling_hp_bonus": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::hp_result": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::rolling_gold": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::cha_high_roll": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::cha_good_roll": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::low_hp_roll": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::standard_gold_roll": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::gold_result": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::main_menu_header": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::main_menu_new": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::main_menu_load": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::main_menu_quit": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::no_saved_game": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "system::invalid_choice": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\shop.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\town.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "combat::target_zones": [],
+    "combat::height_options": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::combat_actions": [],
+    "combat::combat_menu": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::examine_attempt": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::examine_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::choose_weapon": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::no_potions": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potions_menu": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_heal": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_focus": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_speed": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_strength": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_protection": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_invisibility": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_antidote": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::nothing_happens": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::no_spells": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::spells_menu": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::summon_attempt": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::magic_missile": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::spell_fizzle": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::choose_aim": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::choose_defend": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::divine_attempt": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "combat::divine_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::divine_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::poison_dot": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::charm_attempt": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::charm_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::charm_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::run_attempt": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::run_success": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::run_fail": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::your_turn": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::attack_roll": [],
+    "combat::monster_brace": [],
+    "combat::natural_one_self": [],
+    "combat::critical_hit": [],
+    "combat::crippled": [],
+    "combat::weapon_damaged": [],
+    "combat::attack_blocked": [],
+    "combat::hit_message": [],
+    "combat::extra_attack": [],
+    "combat::monster_frozen": [],
+    "combat::invisibility_miss": [],
+    "combat::prepare_guard": [],
+    "combat::brace_defend": [],
+    "combat::monster_attack_roll": [],
+    "combat::monster_natural_one": [],
+    "combat::monster_critical": [],
+    "combat::armor_damaged": [],
+    "combat::defend_success": [],
+    "combat::player_hit": [],
+    "combat::monster_miss": [],
+    "combat::examine_intro": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::examine_result": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::examine_dex": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::examine_abilities": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::weapon_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::potion_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::spell_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::weakness_effect": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::slowness_effect": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::full_power_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::half_power_option": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::lightning_bolt": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::freeze_effect": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::vulnerability_effect": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::teleport_to_town": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py",
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\__main__.py"
+    ],
+    "combat::magic_portal": [
+      "c:\\Users\\Maheeyan Saha\\Downloads\\DnD\\game\\combat.py"
+    ],
+    "combat::initiative": [],
+    "combat::town_header": [],
+    "combat::town_menu_options": [],
+    "combat::rest_recover_full": [],
+    "combat::not_enough_gold": [],
+    "combat::monster_appears": [],
+    "combat::you_were_defeated": [],
+    "combat::monster_defeated_xp": [],
+    "combat::you_loot_gold": [],
+    "combat::find_healing_potion": [],
+    "combat::find_scroll_of_spell": [],
+    "combat::labyrinth_header": [],
+    "combat::vision_monster": [],
+    "combat::vision_empty": [],
+    "combat::no_vision": [],
+    "combat::listen_roll": [],
+    "combat::you_hear": [],
+    "combat::sounds_quiet": [],
+    "combat::hear_nothing": [],
+    "combat::no_chest": [],
+    "combat::open_chest_gold": [],
+    "combat::find_magic_item": [],
+    "combat::no_magic_items": [],
+    "combat::magic_items_list": [],
+    "combat::hesitate_return": []
+  },
+  "unused_dialogue_candidates": [
+    "town::quest_menu_options",
+    "town::quest_commands",
+    "town::quest_accepted",
+    "town::quest_declined",
+    "town::town_menu",
+    "town::bartender_roth",
+    "town::cook_hera",
+    "town::invalid_donation",
+    "town::donation_token_received",
+    "town::donation_accepted",
+    "town::no_completed_quests",
+    "town::which_completed_quest",
+    "town::quest_turnin_success",
+    "town::gamble_target",
+    "town::companion_lines",
+    "town::curse_removed",
+    "town::remove_curse_cost",
+    "chest::triggered",
+    "chest::disarmed",
+    "monster::enraged",
+    "monster::dying",
+    "items::examine",
+    "items::equip_cursed",
+    "shop::shop_welcome",
+    "shop::shop_categories",
+    "shop::haggle",
+    "quests::quest_menu",
+    "quests::offer",
+    "quests::accept",
+    "quests::complete",
+    "quests::fail",
+    "companion::companion_options",
+    "companion::encourage",
+    "companion::low_hp",
+    "companion::post_kill",
+    "companion::summon_familiar",
+    "world::rumors",
+    "world::festival",
+    "world::seasonal",
+    "system::level_up",
+    "system::startup",
+    "system::story_intro",
+    "system::ask_name",
+    "combat::target_zones",
+    "combat::combat_actions",
+    "combat::attack_roll",
+    "combat::monster_brace",
+    "combat::natural_one_self",
+    "combat::critical_hit",
+    "combat::crippled",
+    "combat::weapon_damaged",
+    "combat::attack_blocked",
+    "combat::hit_message",
+    "combat::extra_attack",
+    "combat::monster_frozen",
+    "combat::invisibility_miss",
+    "combat::prepare_guard",
+    "combat::brace_defend",
+    "combat::monster_attack_roll",
+    "combat::monster_natural_one",
+    "combat::monster_critical",
+    "combat::armor_damaged",
+    "combat::defend_success",
+    "combat::player_hit",
+    "combat::monster_miss",
+    "combat::initiative",
+    "combat::town_header",
+    "combat::town_menu_options",
+    "combat::rest_recover_full",
+    "combat::not_enough_gold",
+    "combat::monster_appears",
+    "combat::you_were_defeated",
+    "combat::monster_defeated_xp",
+    "combat::you_loot_gold",
+    "combat::find_healing_potion",
+    "combat::find_scroll_of_spell",
+    "combat::labyrinth_header",
+    "combat::vision_monster",
+    "combat::vision_empty",
+    "combat::no_vision",
+    "combat::listen_roll",
+    "combat::you_hear",
+    "combat::sounds_quiet",
+    "combat::hear_nothing",
+    "combat::no_chest",
+    "combat::open_chest_gold",
+    "combat::find_magic_item",
+    "combat::no_magic_items",
+    "combat::magic_items_list",
+    "combat::hesitate_return"
+  ]
+}

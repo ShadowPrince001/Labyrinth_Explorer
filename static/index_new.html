@@ -1,0 +1,267 @@
+<!-- LEGACY FILE: Not used by web_app.py. Kept for reference only. Use static/index.html instead. -->
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Labyrinth Adventure - Web</title>
+    <style>
+        :root {
+            --panel-height: 100vh;
+            --accent: #2ecc71;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0
+        }
+
+        body {
+            background: #000;
+            color: #ddd;
+            font-family: Inter, Roboto, Arial, Helvetica, sans-serif;
+            display: flex;
+            flex-direction: column
+        }
+
+        .game-panel {
+            height: var(--panel-height);
+            padding: 18px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column
+        }
+
+        #output {
+            flex: 1 1 auto;
+            color: #e6e6e6;
+            padding: 8px;
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: Consolas, 'Courier New', monospace
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px
+        }
+
+        .option-btn {
+            background: #2ecc71;
+            color: #042;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer
+        }
+
+        .option-btn:hover {
+            background: #27ae60;
+        }
+
+        .option-btn:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .text-input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #222;
+            background: #111;
+            color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .character-summary {
+            background: #111;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .loading {
+            opacity: 0.5;
+        }
+
+        .error {
+            color: #ff6b6b;
+            background: #2d1b1b;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+    <div class="game-panel">
+        <div id="root"></div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function App() {
+            const [gameState, setGameState] = useState(null);
+            const [character, setCharacter] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [inputValue, setInputValue] = useState('');
+            const inputRef = useRef(null);
+
+            // Initialize game on first load
+            useEffect(() => {
+                startGame();
+            }, []);
+
+            // Focus input when it becomes visible
+            useEffect(() => {
+                if (gameState?.show_input && inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, [gameState?.show_input]);
+
+            async function startGame() {
+                setLoading(true);
+                setError('');
+                try {
+                    const response = await fetch('/api/start_game', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        setGameState(data.state);
+                        setCharacter(data.character);
+                    } else {
+                        setError('Failed to start game');
+                    }
+                } catch (err) {
+                    setError('Failed to connect to game server');
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            async function sendInput(input) {
+                if (loading) return;
+
+                setLoading(true);
+                setError('');
+                try {
+                    const response = await fetch('/api/input', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ input: String(input) })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        setGameState(data.state);
+                        setCharacter(data.character);
+                        setInputValue(''); // Clear input after sending
+                    } else {
+                        setError('Failed to process input');
+                    }
+                } catch (err) {
+                    setError('Failed to send input to server');
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            function handleInputSubmit(e) {
+                e.preventDefault();
+                if (inputValue.trim()) {
+                    sendInput(inputValue.trim());
+                }
+            }
+
+            function handleOptionClick(optionNum) {
+                sendInput(optionNum);
+            }
+
+            if (!gameState) {
+                return (
+                    <div style={{ padding: 20, textAlign: 'center' }}>
+                        <div>Loading game...</div>
+                        {error && <div className="error">{error}</div>}
+                    </div>
+                );
+            }
+
+            return (
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    {/* Minimal status line (toggleable) */}
+                    {error && (
+                        <div className="error" style={{ marginBottom: 8 }}>{error}</div>
+                    )}
+
+                    {/* Game output */}
+                    <div id="output" style={{ flex: '1 1 auto' }} className={loading ? 'loading' : ''}>
+                        {gameState.message.split('\n').map((line, i) => (
+                            <div key={i}>{line}</div>
+                        ))}
+                    </div>
+
+                    {/* Options */}
+                    {gameState.options && gameState.options.length > 0 && (
+                        <div className="options">
+                            {gameState.options.map((option, i) => (
+                                <button
+                                    key={i}
+                                    className="option-btn"
+                                    onClick={() => handleOptionClick(option.num)}
+                                    disabled={loading}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Text input */}
+                    {gameState.show_input && (
+                        <form onSubmit={handleInputSubmit} style={{ marginTop: 8 }}>
+                            <input
+                                ref={inputRef}
+                                className="text-input"
+                                placeholder={gameState.input_prompt || 'Type response...'}
+                                value={inputValue}
+                                onChange={e => setInputValue(e.target.value)}
+                                disabled={loading}
+                            />
+                        </form>
+                    )}
+
+                    {/* Control buttons */}
+                    <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                        <button
+                            className="option-btn"
+                            onClick={startGame}
+                            disabled={loading}
+                            style={{ background: '#e74c3c' }}
+                        >
+                            Restart Game
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Simple Dragon Image Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1;
+        }
+
+        .text-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            min-height: 200px;
+            backdrop-filter: blur(2px);
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ff6b6b;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #ff5252;
+        }
+
+        #debug {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            margin: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls">
+        <h3 style="margin: 0 0 10px 0; color: #ff6b6b;">🐉 Dragon Test</h3>
+        <button onclick="showDragon()">Show Dragon</button>
+        <button onclick="hideDragon()">Hide Dragon</button>
+        <button onclick="testImageLoad()">Test Image Load</button>
+    </div>
+
+    <div id="background" class="background-image" style="display: none;"></div>
+
+    <div class="text-overlay">
+        <div id="debug">
+            <strong>Debug Info:</strong><br>
+            <span id="status">Ready to test...</span>
+        </div>
+
+        <div id="text-content">
+            <h2>🐉 Dragon Background Test</h2>
+            <p>This is a simple test to verify the dragon image loads correctly as a background.</p>
+            <p>Click "Show Dragon" to see your dragon.png image as a fullscreen background.</p>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            document.getElementById('status').innerHTML += '<br>' + message;
+            console.log(message);
+        }
+
+        function showDragon() {
+            log('🐉 Attempting to show dragon background...');
+            const bg = document.getElementById('background');
+            bg.style.backgroundImage = 'url(/static/images/dragon.png)';
+            bg.style.display = 'block';
+
+            document.getElementById('text-content').innerHTML = `
+                <h2>🐉 A MIGHTY DRAGON EMERGES!</h2>
+                <p>The ancient beast rises from the depths, its scales glinting like obsidian in the flickering torchlight.</p>
+                <p>Steam rises from its nostrils as it fixes you with eyes that burn like molten gold.</p>
+                <p><em>"Who dares disturb my slumber?"</em> the dragon rumbles, its voice shaking the very foundations of the dungeon.</p>
+            `;
+            log('✅ Dragon background should now be visible!');
+        }
+
+        function hideDragon() {
+            log('🚫 Hiding dragon background...');
+            const bg = document.getElementById('background');
+            bg.style.display = 'none';
+
+            document.getElementById('text-content').innerHTML = `
+                <h2>🐉 Dragon Background Test</h2>
+                <p>This is a simple test to verify the dragon image loads correctly as a background.</p>
+                <p>Click "Show Dragon" to see your dragon.png image as a fullscreen background.</p>
+            `;
+            log('✅ Dragon background hidden');
+        }
+
+        function testImageLoad() {
+            log('🔍 Testing image load...');
+            const img = new Image();
+            img.onload = function () {
+                log(`✅ Image loaded successfully! Dimensions: ${this.width}x${this.height}`);
+            };
+            img.onerror = function () {
+                log('❌ Image failed to load! Check if dragon.png exists in static/images/');
+            };
+            img.src = '/static/images/dragon.png';
+        }
+
+        // Test image load on page load
+        window.addEventListener('load', testImageLoad);
+    </script>
+</body>
+
+</html>

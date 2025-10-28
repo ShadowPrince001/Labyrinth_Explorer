@@ -1,0 +1,15 @@
+{
+    "name": "labyrinth-adventure-web",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Web UI for Labyrinth Adventure — precompile JSX to static/app.js",
+    "scripts": {
+        "build": "npx babel static/app.jsx --presets @babel/preset-react -o static/app.js",
+        "build:watch": "npx babel static/app.jsx --presets @babel/preset-react -o static/app.js --watch"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.26.0",
+        "@babel/core": "^7.26.0",
+        "@babel/preset-react": "^7.25.9"
+    }
+}

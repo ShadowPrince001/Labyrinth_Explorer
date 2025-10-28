@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dragon Background Test - DnD Game</title>
+    <style>
+        :root {
+            --panel-height: 100vh;
+            --accent: #2ecc71;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0
+        }
+
+        body {
+            background: #000;
+            color: #ddd;
+            font-family: Inter, Roboto, Arial, Helvetica, sans-serif;
+            display: flex;
+            flex-direction: column
+        }
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+        }
+
+        .game-panel {
+            height: var(--panel-height);
+            padding: 18px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column
+        }
+
+        .hud {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 8px;
+            font-family: Consolas, 'Courier New', monospace;
+        }
+
+        .hud .pill {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 999px;
+            padding: 6px 10px;
+        }
+
+        .text-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(2px);
+            border-radius: 12px 12px 0 0;
+            padding: 20px;
+            margin: 0 10px 10px 10px;
+            min-height: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #output {
+            color: #e6e6e6;
+            padding: 8px 0;
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: Consolas, 'Courier New', monospace;
+            max-height: 300px;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px
+        }
+
+        .option-btn {
+            background: #2ecc71;
+            color: #042;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer
+        }
+
+        .text-input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: rgba(17, 17, 17, 0.9);
+            color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #2ecc71;
+        }
+
+        .test-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            display: block;
+            width: 100%;
+        }
+
+        .test-btn:hover {
+            background: #c0392b;
+        }
+
+        .status {
+            color: #27ae60;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <script>
+        (function () {
+            function loadScript(src, onload, onerror) {
+                var s = document.createElement('script');
+                s.src = src; s.async = false; s.onload = onload; s.onerror = onerror; document.head.appendChild(s);
+            }
+            function finish() {
+                window.__socketio_loader_done = true;
+                if (typeof window.initApp === 'function') {
+                    try { window.initApp(); } catch (e) { console.error('initApp error', e); }
+                }
+            }
+            loadScript('/static/socket.io.js', function () { console.log('Loaded socket.io from /static/socket.io.js'); finish(); }, function () {
+                loadScript('/socket.io/socket.io.js', function () { console.log('Loaded socket.io from /socket.io/socket.io.js'); finish(); }, function () { console.warn('socket.io client not available'); finish(); });
+            });
+        })();
+    </script>
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+    <div class="test-controls">
+        <h3 style="color: #2ecc71; margin: 0 0 10px 0;">🎮 Background Test</h3>
+        <button class="test-btn" onclick="testDragonScene()">Show Dragon</button>
+        <button class="test-btn" onclick="testVaultScene()" style="background: #f39c12;">Show Vault</button>
+        <button class="test-btn" onclick="clearBackground()" style="background: #34495e;">Clear Background</button>
+        <div class="status" id="status">Ready to test...</div>
+    </div>
+
+    <div class="game-panel">
+        <div id="root"></div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        let socket = null;
+
+        function testDragonScene() {
+            if (socket && socket.connected) {
+                document.getElementById('status').textContent = 'Showing dragon scene...';
+                socket.emit('test_dragon');
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Dragon scene loaded! ✓';
+                }, 500);
+            } else {
+                document.getElementById('status').textContent = 'Not connected to server';
+            }
+        }
+
+        function testVaultScene() {
+            if (socket && socket.connected) {
+                document.getElementById('status').textContent = 'Showing vault scene...';
+                socket.emit('test_vault');
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Vault scene loaded! ✓';
+                }, 500);
+            } else {
+                document.getElementById('status').textContent = 'Not connected to server';
+            }
+        }
+
+        function clearBackground() {
+            if (socket && socket.connected) {
+                document.getElementById('status').textContent = 'Clearing background...';
+                socket.emit('scene', { background: null, text: 'Background cleared.' });
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Background cleared ✓';
+                }, 500);
+            }
+        }
+
+        // Store socket reference for test functions
+        window.addEventListener('load', function () {
+            setTimeout(() => {
+                if (typeof io !== 'undefined') {
+                    socket = io();
+                    socket.on('connect', () => {
+                        document.getElementById('status').textContent = 'Connected! Ready to test 🚀';
+                    });
+                    socket.on('disconnect', () => {
+                        document.getElementById('status').textContent = 'Disconnected ❌';
+                    });
+                }
+            }, 1000);
+        });
+
+        // If socket.io has already loaded, initialize immediately after app bundle loads
+        if (window.__socketio_loader_done) {
+            try { window.initApp(); } catch (e) { console.error('initApp failed', e); }
+        }
+    </script>
+</body>
+
+</html>

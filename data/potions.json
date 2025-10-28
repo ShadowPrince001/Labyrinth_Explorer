@@ -1,0 +1,44 @@
+[
+	{
+		"name": "Healing",
+		"cost": 15,
+		"uses": 3,
+		"effect": "Heals character"
+	},
+	{
+		"name": "Charisma",
+		"cost": 30,
+		"uses": 2,
+		"effect": "Temporarily increases charisma"
+	},
+	{
+		"name": "Intelligence",
+		"cost": 45,
+		"uses": 2,
+		"effect": "Temporarily increases intelligence"
+	},
+	{
+		"name": "Speed",
+		"cost": 55,
+		"uses": 2,
+		"effect": "Temporarily increases speed"
+	},
+	{
+		"name": "Protection",
+		"cost": 75,
+		"uses": 2,
+		"effect": "Temporarily increases armor class"
+	},
+	{
+		"name": "Strength",
+		"cost": 100,
+		"uses": 2,
+		"effect": "Temporarily increases strength"
+	},
+	{
+		"name": "Antidote",
+		"cost": 25,
+		"uses": 1,
+		"effect": "Cures poison"
+	}
+]

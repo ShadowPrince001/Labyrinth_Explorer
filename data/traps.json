@@ -1,0 +1,101 @@
+[
+	{
+		"key": "mist_sleep",
+		"name": "Sleep gas",
+		"dc": 15,
+		"damage": "0d0",
+		"effects": [
+			{
+				"type": "dex_down",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"key": "mist_poison",
+		"name": "Poison Mist",
+		"dc": 14,
+		"damage": "2d8",
+		"effects": [
+			{
+				"type": "poison",
+				"duration": 3
+			}
+		]
+	},
+	{
+		"key": "blade_swing",
+		"name": "Swinging Blade",
+		"dc": 13,
+		"damage": "3d6",
+		"effects": []
+	},
+	{
+		"key": "blade_spin",
+		"name": "Large Spinning Blade",
+		"dc": 14,
+		"damage": "3d6",
+		"effects": []
+	},
+	{
+		"key": "spikes",
+		"name": "Spike Trap",
+		"dc": 10,
+		"damage": "2d6",
+		"effects": []
+	},
+	{
+		"key": "arrow",
+		"name": "Arrow Trap",
+		"dc": 11,
+		"damage": "1d8",
+		"effects": [
+			{
+				"type": "poison",
+				"chance": 0.3,
+				"duration": 2
+			}
+		]
+	},
+	{
+		"key": "fire",
+		"name": "Fire Trap",
+		"dc": 11,
+		"damage": "2d8",
+		"effects": []
+	},
+	{
+		"key": "darts",
+		"name": "Dart Trap",
+		"dc": 10,
+		"damage": "2d6",
+		"effects": [
+			{
+				"type": "poison",
+				"chance": 0.5,
+				"duration": 2
+			}
+		]
+	},
+	{
+		"key": "boulder",
+		"name": "Boulder Trap",
+		"dc": 12,
+		"damage": "2d6",
+		"effects": []
+	},
+	{
+		"key": "spear",
+		"name": "Spear Trap",
+		"dc": 12,
+		"damage": "0d0",
+		"effects": []
+	},
+	{
+		"key": "pit",
+		"name": "Pit Trap",
+		"dc": 12,
+		"damage": "2d4",
+		"effects": []
+	}
+]

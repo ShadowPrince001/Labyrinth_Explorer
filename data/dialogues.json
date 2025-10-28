@@ -1,0 +1,2920 @@
+{
+    "town": {
+        "quest_menu_options": {
+            "name": "Quest Menu Options",
+            "role": "System",
+            "dialogues": [
+                "Current side quests:",
+                "Your active quests:"
+            ],
+            "charisma_high": [
+                "Your noble undertakings:",
+                "The tales you're weaving:"
+            ],
+            "charisma_low": [
+                "Stuff you gotta do:",
+                "Work list:"
+            ]
+        },
+        "rest_short": {
+            "name": "System",
+            "role": "Narration",
+            "dialogues": [
+                "You take a short rest. The sounds of the town fade.",
+                "A quiet moment under the inn’s eaves restores your focus.",
+                "You breathe deep, letting fatigue slip away.",
+                "Not all wounds are healed by sleep — but some are."
+            ]
+        },
+        "too_many_quests": {
+            "name": "Too Many Quests",
+            "role": "System",
+            "dialogues": [
+                "You already have 3 active side quests. Complete some before asking for more.",
+                "You're juggling the maximum number of side quests (3). Finish some first."
+            ]
+        },
+        "town_bulletin": {
+            "name": "Town Bulletin",
+            "role": "System",
+            "dialogues": [
+                "Town Bulletin: \n=== Side Quests ===",
+                "Town Board: \n=== Side Quests ==="
+            ],
+            "none_available": [
+                "You have no active side quests.",
+                "No side quests are currently active."
+            ]
+        },
+        "veteran_garron": {
+            "name": "Garron",
+            "role": "Veteran",
+            "dialogues": [
+                "Garron: Choose an attribute to train:",
+                "Garron: Training sharpens both body and mind. Which attribute?"
+            ],
+            "no_gold": [
+                "Garron: Training costs {cost}g; you don't have enough.",
+                "Garron: You'll need {cost} gold to train. Come back later."
+            ]
+        },
+        "train_success": {
+            "name": "Training Success",
+            "role": "System",
+            "dialogues": [
+                "You train {name}. It increases by 1. ({times}/7)",
+                "Training complete: {name} +1 ({times}/7)."
+            ]
+        },
+        "refresh_used": {
+            "name": "Refresh Used",
+            "role": "System",
+            "dialogues": [
+                "You've already refreshed in town this visit.",
+                "You've already used this service during this visit."
+            ]
+        },
+        "rest_again_fail": {
+            "name": "Rest Again Fail",
+            "role": "System",
+            "dialogues": [
+                "You try to rest again but fail to get a good rest.",
+                "Another attempt at rest fails to soothe your fatigue."
+            ]
+        },
+        "rest_heal": {
+            "name": "Rest Heal",
+            "role": "System",
+            "dialogues": [
+                "You rest well and heal {heal} HP.",
+                "A calm rest restores {heal} HP."
+            ]
+        },
+        "rest_fail": {
+            "name": "Rest Fail",
+            "role": "System",
+            "dialogues": [
+                "You fail to get a good rest.",
+                "Sleep evades you; no recovery this time."
+            ]
+        },
+        "sleep_success": {
+            "name": "Sleep Success",
+            "role": "System",
+            "dialogues": [
+                "You sleep soundly and feel reinvigorated.",
+                "Deep sleep restores your strength."
+            ]
+        },
+        "sleep_fail": {
+            "name": "Sleep Fail",
+            "role": "System",
+            "dialogues": [
+                "You toss and turn and gain little rest.",
+                "Sleep eludes you; no meaningful rest."
+            ]
+        },
+        "weaponsmith_thorin": {
+            "name": "Thorin",
+            "role": "Blacksmith",
+            "dialogues": [
+                "Your blade’s chipped again, huh? Let’s fix that.",
+                "A weapon’s only as good as its keeper.",
+                "Steel sings when it’s treated right.",
+                "I’ll have it good as new — for a price.",
+                "That blade’s seen some fights. Respect."
+            ],
+            "no_gold": [
+                "No gold, no spark. Come back when you can pay.",
+                "Metal doesn’t mend itself, and I don’t work for free."
+            ],
+            "no_damaged": [
+                "All your gear looks sharp already.",
+                "No cracks, no chips — you’re set."
+            ],
+            "charisma_high": [
+                "Your reputation rings like fine steel! What can I forge for you?",
+                "Ah, someone who appreciates true craftsmanship!",
+                "The forge burns brighter at your approach."
+            ],
+            "charisma_low": [
+                "Try not to scratch yourself with the pointy end.",
+                "What broke this time? Your weapon or your pride?",
+                "Keep your fingers away from the sharp bits."
+            ]
+        },
+        "no_damaged_equipment": {
+            "name": "No Damaged Equipment",
+            "role": "System",
+            "dialogues": [
+                "All your equipment is in good condition.",
+                "Nothing needs repair — everything looks solid."
+            ]
+        },
+        "damaged_weapons": {
+            "name": "Damaged Weapons Header",
+            "role": "System",
+            "dialogues": [
+                "Damaged weapons:",
+                "Weapons needing repair:"
+            ]
+        },
+        "damaged_weapon_option": {
+            "name": "Damaged Weapon Option",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} (Repair {cost}g)",
+                "{idx}) {name} — Repair cost: {cost}g"
+            ]
+        },
+        "damaged_armors": {
+            "name": "Damaged Armors Header",
+            "role": "System",
+            "dialogues": [
+                "Damaged armor:",
+                "Armors needing repair:"
+            ]
+        },
+        "damaged_armor_option": {
+            "name": "Damaged Armor Option",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} (Repair {cost}g)",
+                "{idx}) {name} — Repair cost: {cost}g"
+            ]
+        },
+        "back_option": {
+            "name": "Back Option",
+            "role": "System",
+            "dialogues": [
+                "{idx}) Back",
+                "{idx}) Return"
+            ]
+        },
+        "repair_costs": {
+            "name": "Repair Costs",
+            "role": "System",
+            "dialogues": [
+                "Repairing will cost {cost}g.",
+                "Required payment: {cost} gold to repair."
+            ]
+        },
+        "repair_success_weapon": {
+            "name": "Repair Success Weapon",
+            "role": "System",
+            "dialogues": [
+                "{name} has been repaired.",
+                "Your weapon {name} is restored."
+            ]
+        },
+        "repair_success_armor": {
+            "name": "Repair Success Armor",
+            "role": "System",
+            "dialogues": [
+                "{name} has been repaired.",
+                "Your armor {name} is restored."
+            ]
+        },
+        "remove_curses_elwen": {
+            "name": "Sister Elwen",
+            "role": "Healer",
+            "dialogues": [
+                "Cursed items found:",
+                "I can purge the darkness, but the rite isn’t cheap."
+            ],
+            "no_gold": [
+                "Faith can’t buy candles. Come back richer.",
+                "You want salvation, but your purse disagrees."
+            ],
+            "no_curses": [
+                "You’re clean of all corruption. Keep it that way.",
+                "The gods smile on you — no darkness found."
+            ]
+        },
+        "healer_elwen": {
+            "name": "Sister Elwen",
+            "role": "Healer",
+            "dialogues": [
+                "The townsfolk heal your wounds and cleanse harmful effects.",
+                "Be still — let the light mend what the maze has marred."
+            ]
+        },
+        "gambler_seth": {
+            "name": "Seth",
+            "role": "Gambler",
+            "dialogues": [
+                "Fancy your luck? Place a bet and let's see.",
+                "Luck’s a coin — flip it and find out."
+            ]
+        },
+        "bartender_roth": {
+            "name": "Roth",
+            "role": "Bartender",
+            "dialogues": [
+                "A stout for courage? Or a story to pass the time?",
+                "Take a load off — first sip’s always the best."
+            ]
+        },
+        "priestess_eira": {
+            "name": "Eira",
+            "role": "Priestess",
+            "dialogues": [
+                "Kneel and be heard — the gods are kinder in the quiet.",
+                "Offer your prayer; the altar is listening."
+            ]
+        },
+        "gate_guard": {
+            "name": "Gate Guard",
+            "role": "Guard",
+            "dialogues": [
+                "Halt and be welcome. Keep your blade sheathed in town.",
+                "Eyes up — the labyrinth has a way of spilling into the streets."
+            ]
+        },
+        "eat_meal": {
+            "name": "Eat Meal",
+            "role": "System",
+            "dialogues": [
+                "You eat a hearty meal and feel better. You heal 10 HP.",
+                "A warm meal restores you (+10 HP)."
+            ]
+        },
+        "eat_fail": {
+            "name": "Eat Fail",
+            "role": "System",
+            "dialogues": [
+                "Despite the meal, you don't feel much better.",
+                "You eat, but feel no real improvement."
+            ]
+        },
+        "drink_heal": {
+            "name": "Drink Heal",
+            "role": "System",
+            "dialogues": [
+                "You share a restorative brew and recover {heal} HP.",
+                "The drink soothes you — {heal} HP restored."
+            ]
+        },
+        "drink_talk": {
+            "name": "Drink Talk",
+            "role": "System",
+            "dialogues": [
+                "You trade stories with the locals.",
+                "You swap tales as the tavern hums around you."
+            ]
+        },
+        "praying_heal": {
+            "name": "Praying Heal",
+            "role": "System",
+            "dialogues": [
+                "Your prayer is answered. You feel renewed.",
+                "A calm warmth answers your prayer."
+            ]
+        },
+        "praying_fail": {
+            "name": "Praying Fail",
+            "role": "System",
+            "dialogues": [
+                "Your prayer goes unanswered.",
+                "Silence answers your devotion."
+            ]
+        },
+        "haggle_info": {
+            "name": "Gamble Bet Info",
+            "role": "System",
+            "dialogues": [
+                "Which bet would you like? Minimum {min_bet}g.",
+                "Place your wager (min {min_bet}g)."
+            ]
+        },
+        "bet_range": {
+            "name": "Bet Range",
+            "role": "System",
+            "dialogues": [
+                "Choose a winning range (e.g., 1-3).",
+                "Pick a number range that wins."
+            ]
+        },
+        "invalid_bet": {
+            "name": "Invalid Bet",
+            "role": "System",
+            "dialogues": [
+                "Invalid bet. Minimum is {min_bet}g.",
+                "That wager won't do — minimum {min_bet} gold."
+            ]
+        },
+        "pick_number": {
+            "name": "Pick Number",
+            "role": "System",
+            "dialogues": [
+                "Which number (1-{sides})?",
+                "Pick a number between 1 and {sides}."
+            ]
+        },
+        "gamble_win": {
+            "name": "Gamble Win",
+            "role": "System",
+            "dialogues": [
+                "You win!",
+                "Luck smiles on you — you win."
+            ]
+        },
+        "gamble_lose": {
+            "name": "Gamble Lose",
+            "role": "System",
+            "dialogues": [
+                "You lose!",
+                "Luck abandons you — you lose."
+            ]
+        },
+        "choose_die": {
+            "name": "Choose Die",
+            "role": "System",
+            "dialogues": [
+                "Choose die size (e.g., d6, d12):",
+                "Pick a die to roll (d6/d12)."
+            ]
+        },
+        "choose_range": {
+            "name": "Choose Range",
+            "role": "System",
+            "dialogues": [
+                "Pick a winning range (low-high):",
+                "Enter your winning range (e.g., 1-3)."
+            ]
+        },
+        "current_bet": {
+            "name": "Current Bet",
+            "role": "System",
+            "dialogues": [
+                "Current bet: {bet}g",
+                "You have wagered {bet} gold."
+            ]
+        },
+        "cook_hera": {
+            "name": "Hera",
+            "role": "Cook",
+            "dialogues": [
+                "Fresh stew today — best in Darsen!",
+                "Eat well, fight better."
+            ]
+        },
+        "quest_turnin_success": {
+            "name": "Quest Turn-in Success",
+            "role": "System",
+            "dialogues": [
+                "Quest turned in. You receive your reward.",
+                "Well done — reward claimed for your completed quest."
+            ]
+        },
+        "new_quests_posted": {
+            "name": "New Quests Posted",
+            "role": "System",
+            "dialogues": [
+                "New side quest offers have been posted.",
+                "Fresh notices appear on the board."
+            ]
+        }
+    },
+    "labyrinth": {
+        "room_entry": {
+            "name": "Labyrinth Ambience",
+            "role": "Narration",
+            "dialogues": [
+                "The air thickens as you step inside. The walls pulse faintly — alive, somehow.",
+                "Your torchlight flickers; shadows move before you do.",
+                "The scent of damp stone and blood clings to the air.",
+                "The ground crunches — bones or gravel, you can’t tell.",
+                "A whisper rides the draft: ‘Go deeper...’"
+            ],
+            "charisma_high": [
+                "The shadows dip as if to bow — they know you mean business.",
+                "A hush falls; even the stones seem to lean in to watch you pass."
+            ],
+            "charisma_low": [
+                "The corridor snickers as you pass. You smell faintly of failure.",
+                "You get the sense the labyrinth has higher standards than you do."
+            ]
+        },
+        "examine_room": {
+            "name": "Examine Room",
+            "role": "Narration",
+            "dialogues": [
+                "You scan the room — broken relics, scattered bones, faint symbols.",
+                "There’s something etched into the wall, worn but deliberate.",
+                "The silence feels staged. Something’s watching.",
+                "You kneel to inspect a mark — claw, not tool.",
+                "You find a bloodstain leading nowhere. Old, yet fresh."
+            ]
+        },
+        "rooms": {
+            "1": {
+                "name": "Circular Chamber",
+                "role": "Narration",
+                "dialogues": [
+                    "A wide circular chamber with rough stone walls covered in faded ancient runes, bathed in a dim bluish glow from cracks in the ceiling."
+                ]
+            },
+            "2": {
+                "name": "Rectangular Hall",
+                "role": "Narration",
+                "dialogues": [
+                    "A narrow rectangular hall cluttered with broken weapons and shattered armor, its air heavy with dust and the faint scent of old blood."
+                ]
+            },
+            "3": {
+                "name": "Hexagonal Pillared Room",
+                "role": "Narration",
+                "dialogues": [
+                    "A vast hexagonal room lined with towering pillars of black marble, the floor etched with intricate geometric patterns that shimmer faintly."
+                ]
+            },
+            "4": {
+                "name": "Triangular Chamber",
+                "role": "Narration",
+                "dialogues": [
+                    "A cramped triangular chamber where the walls close in tightly, lit by flickering torches that cast twisted shadows on the cracked stone floor."
+                ]
+            },
+            "5": {
+                "name": "Oval Gallery",
+                "role": "Narration",
+                "dialogues": [
+                    "An expansive oval gallery adorned with murals of forgotten gods, where a strange humming resonates from unseen sources within the thickened fog."
+                ]
+            },
+            "6": {
+                "name": "Square Vault",
+                "role": "Narration",
+                "dialogues": [
+                    "A small square room with low vaulted ceilings, its walls slick with moss and dripping water into a shallow pool pooling on the ancient flagstones below."
+                ]
+            }
+        },
+        "dragon_chamber": {
+            "name": "Dragon Chamber",
+            "role": "Narration",
+            "dialogues": [
+                "A massive chamber opens before you, its ceiling lost in shadow. Ancient runes pulse with malevolent energy along the walls, and the air itself seems to writhe with dark power. At the chamber's heart, a massive Dragon raises its terrible head, eyes blazing with corrupted fire. This is the fallen guardian—the source of the labyrinth's twisted reality.",
+                "You enter a colossal hall, its vastness dwarfing anything you've seen in the labyrinth. Twisted pillars of dark stone rise like the ribs of some ancient beast, and the very air crackles with unstable magic. In the center of this apocalyptic chamber, the Dragon awaits—once a guardian of reality, now a creature of pure corruption and rage."
+            ]
+        }
+    },
+    "dungeon": {
+        "room_entry": {
+            "name": "Labyrinth Room Entry",
+            "role": "Narration",
+            "dialogues": [
+                "A damp chamber with flickering torchlight.",
+                "Bones scatter the floor. A shadow moves.",
+                "Cold air spills from a cracked archway; something old breathes within.",
+                "Scratched runes glow faintly on the walls—fresh claw marks score the stone.",
+                "Candles gutter in a circle, recently lit. You are not alone."
+            ]
+        },
+        "examine_room": {
+            "name": "Labyrinth Examine Room",
+            "role": "Narration",
+            "dialogues": [
+                "An empty corridor lined with ancient carvings.",
+                "A collapsed hallway. You squeeze through.",
+                "Dust hangs in the air; distant water drips in a steady rhythm.",
+                "A shrine long-abandoned: cracked statue, scattered offerings."
+            ]
+        }
+    },
+    "traps": {
+        "trap_alert": {
+            "name": "Trap Alert",
+            "role": "System",
+            "dialogues": [
+                "Trap! {name}!",
+                "You notice a trap: {name}!"
+            ]
+        },
+        "dodge_roll": {
+            "name": "Dodge Roll",
+            "role": "System",
+            "dialogues": [
+                "Dodge roll: {roll} vs DC {dc}",
+                "You attempt to dodge — roll {roll} (need {dc})."
+            ]
+        },
+        "avoid_trap": {
+            "name": "Avoid Trap",
+            "role": "System",
+            "dialogues": [
+                "You avoid the trap!",
+                "Quick reflexes — the trap misses you."
+            ]
+        },
+        "trap_damage": {
+            "name": "Trap Damage",
+            "role": "System",
+            "dialogues": [
+                "You are hit for {dmg} damage. HP: {hp}",
+                "The trap strikes — {dmg} damage. Remaining HP: {hp}"
+            ]
+        },
+        "gold_dust": {
+            "name": "Gold Dust",
+            "role": "System",
+            "dialogues": [
+                "Some of your gold turns to dust — you lose {amount}g.",
+                "Gold crumbles away: -{amount} gold."
+            ]
+        },
+        "poisoned": {
+            "name": "Poisoned",
+            "role": "System",
+            "dialogues": [
+                "You have been poisoned! (Duration: {duration} turns)",
+                "Toxic residue—poisoned for {duration} turns."
+            ]
+        },
+        "rust_weapon": {
+            "name": "Rust Weapon",
+            "role": "System",
+            "dialogues": [
+                "Your {name} is splattered with corrosive dust, but it holds for now.",
+                "Corrosive dust soils your {name}; it survives but looks worse for wear."
+            ]
+        },
+        "dex_down": {
+            "name": "Dexterity Down",
+            "role": "System",
+            "dialogues": [
+                "Your dexterity is sapped by the mist.",
+                "A choking fog dulls your reflexes — Dexterity reduced."
+            ]
+        }
+    },
+    "chest": {
+        "before_opening": {
+            "name": "Trapped Chest",
+            "role": "Narration",
+            "dialogues": [
+                "The lock glints unnaturally. Too clean for this place.",
+                "You notice tiny runes carved around the latch.",
+                "The air near the chest feels charged, like static before lightning.",
+                "It’s oddly untouched — suspiciously so.",
+                "You sense something coiled beneath the wood."
+            ]
+        },
+        "triggered": {
+            "name": "Trapped Chest Triggered",
+            "role": "Trap",
+            "dialogues": [
+                "A dart whistles — too fast to react!",
+                "The lid snaps open with a hiss — gas fills your lungs.",
+                "The chest detonates in a flash of flame and metal shards.",
+                "A dark pulse knocks you backward. Pain floods your body.",
+                "You hear laughter echo from nowhere: ‘Greed has a price.’"
+            ]
+        },
+        "disarmed": {
+            "name": "Trapped Chest Disarmed",
+            "role": "Trap",
+            "dialogues": [
+                "A soft click — the trap disarms. You grin.",
+                "The rune flickers and dies. Safe… for now.",
+                "Your steady hands save you from disaster.",
+                "The chest breathes out a sigh — almost grateful."
+            ]
+        }
+    },
+    "monster": {
+        "taunt_entry": {
+            "name": "Monster Taunts",
+            "role": "Monster",
+            "dialogues": [
+                "Fresh meat!",
+                "Another fool to feed the maze!",
+                "Your bones will decorate my den!",
+                "You shouldn’t have come, little hero!",
+                "The labyrinth hungers!"
+            ],
+            "charisma_high": [
+                "You glow with very bad ideas. Let me be your cautionary tale.",
+                "The pride drains from you like oil — tasty."
+            ],
+            "charisma_low": [
+                "Sad little thing. Struggle for a bit, then stop.",
+                "Oh look, another mouth to fill."
+            ]
+        },
+        "hurt_reaction": {
+            "name": "Monster Hurt",
+            "role": "Monster",
+            "dialogues": [
+                "Grr… You’ll pay for that!",
+                "You think that hurts me?",
+                "I’ve bled worse from scratches!",
+                "You dare!",
+                "Still standing… barely!"
+            ]
+        },
+        "enraged": {
+            "name": "Monster Enraged",
+            "role": "Monster",
+            "dialogues": [
+                "ENOUGH! I’LL TEAR YOU APART!",
+                "You’ll regret that strike!",
+                "I’ll crush your hope!",
+                "You’ve awakened my wrath!"
+            ]
+        },
+        "dying": {
+            "name": "Monster Dying",
+            "role": "Monster",
+            "dialogues": [
+                "The Dragon's rage... it feeds us all...",
+                "This maze reshapes... but never truly dies...",
+                "Another will take my place... the betrayal demands it...",
+                "Three days... that's all you have left...",
+                "You'll never be... a true Explorer..."
+            ]
+        }
+    },
+    "items": {
+        "examine": {
+            "name": "Item Examine",
+            "role": "System",
+            "dialogues": [
+                "You feel a faint hum of power from it.",
+                "The metal glows faintly when touched.",
+                "Your reflection wavers in its surface — as if judging you.",
+                "It feels too light. Too eager.",
+                "You sense whispers — not hostile, just old."
+            ]
+        },
+        "equip_blessed": {
+            "name": "Equip Blessed",
+            "role": "System",
+            "dialogues": [
+                "Warmth spreads through your arm as you equip it.",
+                "It fits your grip like destiny itself.",
+                "Your pulse synchronizes with the item’s faint aura.",
+                "The air crackles as you draw it."
+            ]
+        },
+        "equip_cursed": {
+            "name": "Equip Cursed",
+            "role": "System",
+            "dialogues": [
+                "Pain lances up your arm — the weapon clings to you!",
+                "You hear a whisper: ‘Mine now.’",
+                "You try to drop it, but your fingers won’t obey.",
+                "Dark energy coils around your wrist."
+            ]
+        },
+        "equip_passive": {
+            "name": "Equip Passive",
+            "role": "System",
+            "dialogues": [
+                "You feel stronger… or maybe just bolder.",
+                "Something unseen approves.",
+                "You feel a subtle shift — like gravity obeys you differently."
+            ]
+        },
+        "stat_increase": {
+            "name": "Stat Increase",
+            "role": "System",
+            "dialogues": [
+                "Your {stat} increases by {bonus}!",
+                "You feel improved — {stat} +{bonus}."
+            ]
+        },
+        "stat_decrease": {
+            "name": "Stat Decrease",
+            "role": "System",
+            "dialogues": [
+                "Your {stat} decreases by {penalty}!",
+                "A draining chill hits — {stat} -{penalty}."
+            ]
+        },
+        "noise_cursed": {
+            "name": "Cursed Noise",
+            "role": "System",
+            "dialogues": [
+                "The item emits a soft, constant clatter as you move.",
+                "You hear jingling; the item betrays your steps."
+            ]
+        },
+        "not_a_wand": {
+            "name": "Not A Wand",
+            "role": "System",
+            "dialogues": [
+                "That is not a wand.",
+                "You can't use that as a wand."
+            ]
+        },
+        "wand_fireball": {
+            "name": "Wand Fireball",
+            "role": "System",
+            "dialogues": [
+                "You wave the wand and a fireball erupts!",
+                "A fiery orb shoots forth from the wand, hissing through the air."
+            ]
+        },
+        "wand_lightning": {
+            "name": "Wand Lightning",
+            "role": "System",
+            "dialogues": [
+                "The wand crackles — a bolt of lightning arcs outward!",
+                "Electric energy lashes from the wand, bright and loud."
+            ]
+        },
+        "wand_water": {
+            "name": "Wand Water",
+            "role": "System",
+            "dialogues": [
+                "A jet of water blasts from the wand, slamming into the target!",
+                "Water bursts forth — a wet, forceful spray from the wand."
+            ]
+        },
+        "wand_fail": {
+            "name": "Wand Fail",
+            "role": "System",
+            "dialogues": [
+                "The wand fizzles and nothing happens.",
+                "The magic sputters out — the wand seems spent."
+            ]
+        },
+        "remove_cursed": {
+            "name": "Remove Cursed",
+            "role": "System",
+            "dialogues": [
+                "You remove the cursed {name}.",
+                "The curse leaves as you remove the {name}."
+            ]
+        },
+        "no_cursed_found": {
+            "name": "No Cursed Found",
+            "role": "System",
+            "dialogues": [
+                "No such cursed item found.",
+                "You find no cursed item by that name."
+            ]
+        },
+        "unknown_item": {
+            "name": "Unknown Item",
+            "role": "System",
+            "dialogues": [
+                "Unknown item: {name}",
+                "There is no item called {name}."
+            ]
+        },
+        "auto_equip": {
+            "name": "Auto Equip",
+            "role": "System",
+            "dialogues": [
+                "The {name} is automatically equipped!",
+                "{name} fits itself to you and locks in place."
+            ]
+        },
+        "auto_equip_locked": {
+            "name": "Auto Equip Locked",
+            "role": "System",
+            "dialogues": [
+                "The {name} becomes fixed and cannot be removed.",
+                "{name} bonds to you — it cannot be taken off."
+            ]
+        },
+        "weapon_damaged": {
+            "name": "Weapon Damaged",
+            "role": "System",
+            "dialogues": [
+                "Your {name} is damaged and its effectiveness is reduced!",
+                "A harsh blow mars your {name} — it’s now damaged."
+            ]
+        }
+    },
+    "inventory": {
+        "no_weapons": {
+            "name": "Inventory No Weapons",
+            "role": "System",
+            "dialogues": [
+                "You have no spare weapons.",
+                "No other weapons in your pack."
+            ]
+        },
+        "menu_back": {
+            "name": "Inventory Back",
+            "role": "System",
+            "dialogues": [
+                "1) Back",
+                "1) Return"
+            ]
+        },
+        "equipped_weapon": {
+            "name": "Inventory Equipped Weapon Line",
+            "role": "System",
+            "dialogues": [
+                "Equipped: {name} ({damage} dmg)",
+                "Using: {name} — Damage {damage}"
+            ]
+        },
+        "no_armor": {
+            "name": "Inventory No Armor",
+            "role": "System",
+            "dialogues": [
+                "You have no spare armor.",
+                "No other armor in your pack."
+            ]
+        },
+        "equipped_armor": {
+            "name": "Inventory Equipped Armor Line",
+            "role": "System",
+            "dialogues": [
+                "Equipped: {name} (AC {ac})",
+                "Wearing: {name} — AC {ac}"
+            ]
+        },
+        "no_potions": {
+            "name": "Inventory No Potions",
+            "role": "System",
+            "dialogues": [
+                "You have no potions in your inventory.",
+                "No potions carried."
+            ]
+        },
+        "potions_header": {
+            "name": "Inventory Potions Header",
+            "role": "System",
+            "dialogues": [
+                "Potions:",
+                "Your potions:"
+            ]
+        },
+        "potion_heal_legacy": {
+            "name": "Inventory Potion Heal Legacy",
+            "role": "System",
+            "dialogues": [
+                "Healing Potion (legacy)",
+                "Old-style Healing Potion"
+            ]
+        },
+        "potion_uses": {
+            "name": "Inventory Potion Uses",
+            "role": "System",
+            "dialogues": [
+                "{uses} uses",
+                "Uses left: {uses}"
+            ]
+        },
+        "unequipped_weapon": {
+            "name": "Inventory Unequipped Weapon",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} ({damage} dmg)",
+                "{idx}) {name} — Damage {damage}"
+            ]
+        },
+        "no_weapon_equipped": {
+            "name": "Inventory No Weapon Equipped",
+            "role": "System",
+            "dialogues": [
+                "No weapon equipped.",
+                "You're not wielding a weapon."
+            ]
+        },
+        "unequipped_armor": {
+            "name": "Inventory Unequipped Armor",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} (AC {ac})",
+                "{idx}) {name} — AC {ac}"
+            ]
+        },
+        "no_armor_equipped": {
+            "name": "Inventory No Armor Equipped",
+            "role": "System",
+            "dialogues": [
+                "No armor equipped.",
+                "You're not wearing armor."
+            ]
+        }
+    },
+    "shop": {
+        "shop_welcome": {
+            "name": "Shop Welcome",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Welcome to my humble shop. What can I interest you in?",
+                "Always good to see a customer. What'll it be?"
+            ],
+            "charisma_high": [
+                "Ah, my favorite patron! Your discerning eye honors my wares.",
+                "The very items seem to shine brighter in your presence!"
+            ],
+            "charisma_low": [
+                "Try not to break anything you can't afford.",
+                "Just... be careful with the merchandise."
+            ]
+        },
+        "shop_categories": {
+            "name": "Shop Categories",
+            "role": "System",
+            "dialogues": [
+                "1) Weapons\n2) Armor\n3) Potions\n4) Spells\n5) Sell items\n6) Leave Shop",
+                "Choose your interest:\n1) Arms\n2) Protection\n3) Potions\n4) Magic\n5) Sell\n6) Exit"
+            ],
+            "charisma_high": [
+                "Your options await:\n1) Fine Weaponry\n2) Noble Armor\n3) Mystic Elixirs\n4) Arcane Knowledge\n5) Trade Treasures\n6) Bid Farewell",
+                "What catches your discerning eye?\n1) Master-crafted Arms\n2) Protective Regalia\n3) Alchemical Wonders\n4) Mystical Arts\n5) Merchant's Trade\n6) Take Leave"
+            ],
+            "charisma_low": [
+                "Pick stuff:\n1) Sharp things\n2) Metal clothes\n3) Drinks\n4) Magic stuff\n5) Sell junk\n6) Go away",
+                "What you want:\n1) Weapons\n2) Armor\n3) Bottles\n4) Spells\n5) Sell\n6) Leave"
+            ]
+        },
+        "buy": {
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Good choice! That one’s saved many lives.",
+                "Always a pleasure doing business.",
+                "Spend it before the labyrinth takes it.",
+                "You’ve got taste, explorer."
+            ]
+        },
+        "no_gold": {
+            "name": "Shopkeeper No Gold",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Gold first, talk later.",
+                "You’re charming, but I don’t take promises.",
+                "Can’t pay? Then don’t play."
+            ]
+        },
+        "sell": {
+            "name": "Shopkeeper Sell",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Nice find! I can resell this for a tidy profit.",
+                "Always bringing me the good stuff, huh?",
+                "I’ll take it. Try not to miss it later."
+            ]
+        },
+        "haggle": {
+            "name": "Shopkeeper Haggle",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "I’ll give you 30 gold. What? You think it’s worth 50?",
+                "Hmm… 25 seems fair, but I could stretch to 30.",
+                "You drive a hard bargain. Fine — 10% more, final offer.",
+                "If you can convince me it’s rare, maybe I’ll pay more."
+            ]
+        },
+        "haggle_success": {
+            "name": "Shopkeeper Haggle Success",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Alright, alright — you win. {price} gold.",
+                "You talk too well for an adventurer.",
+                "Fine! You bleed me dry every time."
+            ]
+        },
+        "item_bought": {
+            "name": "Item Bought",
+            "role": "System",
+            "dialogues": [
+                "You purchased {item} for {amount} gold.",
+                "Transaction complete: {item} bought for {amount}g.",
+                "{item} acquired for {amount} gold pieces."
+            ]
+        },
+        "item_sold": {
+            "name": "Item Sold",
+            "role": "System",
+            "dialogues": [
+                "You sold {item} for {amount} gold.",
+                "Transaction complete: {item} sold for {amount}g.",
+                "{item} exchanged for {amount} gold pieces."
+            ]
+        },
+        "shop_header": {
+            "role": "System",
+            "dialogues": [
+                "=== Shop ===",
+                "Welcome to the shop."
+            ]
+        },
+        "choose_category": {
+            "name": "Choose Category",
+            "role": "System",
+            "dialogues": [
+                "Choose a category:",
+                "Select category:"
+            ]
+        },
+        "cat_weapons": {
+            "name": "Category Weapons",
+            "role": "System",
+            "dialogues": [
+                "1) Weapons"
+            ]
+        },
+        "cat_armor": {
+            "name": "Category Armor",
+            "role": "System",
+            "dialogues": [
+                "2) Armor"
+            ]
+        },
+        "cat_potions": {
+            "name": "Category Potions",
+            "role": "System",
+            "dialogues": [
+                "3) Potions"
+            ]
+        },
+        "cat_spells": {
+            "name": "Category Spells",
+            "role": "System",
+            "dialogues": [
+                "4) Spells"
+            ]
+        },
+        "cat_sell": {
+            "name": "Category Sell",
+            "role": "System",
+            "dialogues": [
+                "5) Sell items"
+            ]
+        },
+        "cat_leave": {
+            "name": "Category Leave",
+            "role": "System",
+            "dialogues": [
+                "6) Leave Shop"
+            ]
+        },
+        "no_weapons": {
+            "name": "No Weapons",
+            "role": "System",
+            "dialogues": [
+                "No weapons available.",
+                "No weapons in stock."
+            ]
+        },
+        "weapons_header": {
+            "role": "System",
+            "dialogues": [
+                "=== Weapons ==="
+            ]
+        },
+        "back_main": {
+            "name": "Back to Main",
+            "role": "System",
+            "dialogues": [
+                "1) Back to main shop",
+                "1) Back"
+            ]
+        },
+        "weapon_entry": {
+            "name": "Weapon Entry",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} ({damage} damage) ({price}g)"
+            ]
+        },
+        "no_armors": {
+            "name": "No Armors",
+            "role": "System",
+            "dialogues": [
+                "No armor available."
+            ]
+        },
+        "armor_header": {
+            "role": "System",
+            "dialogues": [
+                "=== Armor ==="
+            ]
+        },
+        "armor_entry": {
+            "name": "Armor Entry",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} (AC {ac}) ({price}g)"
+            ]
+        },
+        "no_potions": {
+            "name": "No Potions",
+            "role": "System",
+            "dialogues": [
+                "No potions available."
+            ]
+        },
+        "potions_header": {
+            "role": "System",
+            "dialogues": [
+                "=== Potions ==="
+            ]
+        },
+        "potion_entry": {
+            "name": "Potion Entry",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} ({uses} uses) ({price}g)"
+            ]
+        },
+        "no_spells": {
+            "name": "No Spells",
+            "role": "System",
+            "dialogues": [
+                "No spells available."
+            ]
+        },
+        "spells_header": {
+            "name": "Spells Header",
+            "role": "System",
+            "dialogues": [
+                "=== Spells ==="
+            ]
+        },
+        "sell_header": {
+            "name": "Sell Header",
+            "role": "System",
+            "dialogues": [
+                "=== Sell Items ==="
+            ]
+        },
+        "no_sellable": {
+            "name": "No Sellable",
+            "role": "System",
+            "dialogues": [
+                "You have nothing that can be sold in the shop."
+            ]
+        },
+        "sellable_items": {
+            "name": "Sellable Items",
+            "role": "System",
+            "dialogues": [
+                "Sellable items:"
+            ]
+        },
+        "cannot_sell_damaged": {
+            "name": "Cannot Sell Damaged",
+            "role": "System",
+            "dialogues": [
+                "This item is damaged and cannot be sold. Repair it first at the weaponsmith."
+            ]
+        },
+        "haggle_confirm": {
+            "name": "Haggle Confirm",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Price will be determined based on your Charisma and luck. Confirm sale? (y/n)"
+            ]
+        },
+        "haggle_info": {
+            "name": "Haggle Info",
+            "role": "Shopkeeper",
+            "dialogues": [
+                "Original shop price: {price}g"
+            ]
+        },
+        "cannot_sell_equipped": {
+            "name": "Cannot Sell Equipped",
+            "role": "System",
+            "dialogues": [
+                "You cannot sell an equipped weapon. Unequip it first.",
+                "You cannot sell equipped armor. Unequip it first."
+            ]
+        },
+        "sale_cancelled": {
+            "name": "Sale Cancelled",
+            "role": "System",
+            "dialogues": [
+                "Sale cancelled.",
+                "The sale was cancelled."
+            ]
+        },
+        "sold_item": {
+            "name": "Sold Item",
+            "role": "System",
+            "dialogues": [
+                "Sold {name} for {price}g.",
+                "You sold {name} -> {price}g."
+            ]
+        },
+        "confirm_sale": {
+            "name": "Confirm Sale",
+            "role": "System",
+            "dialogues": [
+                "Confirm sale of {name} for {price}g? (y/n)",
+                "Sell {name} for {price} gold? (y/n)"
+            ]
+        },
+        "none": {
+            "name": "Shop None",
+            "role": "System",
+            "dialogues": [
+                "Nothing to do here.",
+                "No applicable action."
+            ]
+        }
+    },
+    "quests": {
+        "quest_menu": {
+            "name": "Quest Menu",
+            "role": "System",
+            "dialogues": [
+                "1) Ask for new quest\n2) Turn in completed quest\n3) Back",
+                "Quest Options:\n1) New Quest\n2) Complete Quest\n3) Return"
+            ],
+            "charisma_high": [
+                "Your reputation precedes you:\n1) Seek noble endeavor\n2) Claim righteous reward\n3) Take leave",
+                "The quest board brightens at your approach:\n1) Accept challenge\n2) Report triumph\n3) Graceful exit"
+            ],
+            "charisma_low": [
+                "1) Get job\n2) Finish job\n3) Leave",
+                "Pick fast:\n1) New work\n2) Get paid\n3) Go away"
+            ]
+        },
+        "offer": {
+            "name": "Quest Giver",
+            "role": "Citizen",
+            "dialogues": [
+                "Could use some help if you’ve got time — nothing fancy.",
+                "The guards are stretched thin. You interested in earning a bit?",
+                "There’s a problem that needs steel more than prayers.",
+                "You look capable. Or desperate. Either works."
+            ]
+        },
+        "accept": {
+            "name": "Quest Accept",
+            "role": "Citizen",
+            "dialogues": [
+                "Good. I knew I could count on you.",
+                "Thank you — you might actually make a difference.",
+                "You’ll be doing us all a favor."
+            ]
+        },
+        "complete": {
+            "name": "Quest Complete",
+            "role": "Citizen",
+            "dialogues": [
+                "You did it! We’re safe — for now.",
+                "Didn’t think you’d manage it. Color me impressed.",
+                "You’ve earned this. And my respect."
+            ]
+        },
+        "fail": {
+            "name": "Quest Fail",
+            "role": "Citizen",
+            "dialogues": [
+                "You… didn’t make it? I see.",
+                "We’ve lost more than coin today.",
+                "At least you tried. The gods favor effort.",
+                "Next time, maybe go faster than the monsters."
+            ]
+        }
+    },
+    "companion": {
+        "companion_options": {
+            "name": "Companion Options",
+            "role": "System",
+            "dialogues": [
+                "1) Name companion\n2) Heal companion (uses a healing potion)\n3) Back",
+                "1) Give name\n2) Use healing potion\n3) Return"
+            ],
+            "charisma_high": [
+                "1) Bestow a worthy name\n2) Share healing essence\n3) Take leave",
+                "1) Grant a true name\n2) Restore companion\n3) Graceful exit"
+            ],
+            "charisma_low": [
+                "1) Pick name\n2) Fix pet\n3) Go",
+                "1) Name it\n2) Heal it\n3) Leave"
+            ]
+        },
+        "companion_menu": {
+            "name": "Companion Menu",
+            "role": "System",
+            "dialogues": [
+                "1) Name companion\n2) Heal companion\n3) Back",
+                "Companion Options:\n1) Give name\n2) Provide healing\n3) Return"
+            ],
+            "charisma_high": [
+                "Your loyal friend awaits:\n1) Bestow a name\n2) Tend to wounds\n3) Return to town",
+                "Your bond grows stronger:\n1) Grant true name\n2) Share healing\n3) Take leave"
+            ],
+            "charisma_low": [
+                "1) Name pet\n2) Fix pet\n3) Go back",
+                "Quick pick:\n1) New name\n2) Give potion\n3) Leave"
+            ]
+        },
+        "encourage": {
+            "name": "Companion Encourage",
+            "role": "Companion",
+            "dialogues": [
+                "You’ve got this! Keep swinging!",
+                "Don’t let up — it’s weakening!",
+                "I’ll cover you! Strike now!",
+                "You’re bleeding — focus, damn it!"
+            ]
+        },
+        "low_hp": {
+            "name": "Companion Low HP",
+            "role": "Companion",
+            "dialogues": [
+                "You’re fading! Fall back!",
+                "You look half-dead — need a potion?",
+                "Hold on, I’ve got you!",
+                "If you die, I’m taking your gear!"
+            ]
+        },
+        "post_kill": {
+            "name": "Companion Post Kill",
+            "role": "Companion",
+            "dialogues": [
+                "That’s one less nightmare in the world.",
+                "You make killing look easy.",
+                "Nice hit. Messy, but effective.",
+                "Remind me not to make you angry."
+            ]
+        },
+        "summon_already": {
+            "name": "Companion Already",
+            "role": "Companion",
+            "dialogues": [
+                "You already have a companion.",
+                "Another companion would be a crowd — you already have one."
+            ]
+        },
+        "summon_familiar": {
+            "name": "Companion Familiar",
+            "role": "Companion",
+            "dialogues": [
+                "A small familiar answers your call.",
+                "Something small and watchful appears at your side."
+            ]
+        },
+        "summon_success": {
+            "name": "Companion Summon Success",
+            "role": "Companion",
+            "dialogues": [
+                "A {species} joins you!",
+                "Your companion arrives: {name}, a {species} at your service.",
+                "The {species} pads up beside you, ready to fight."
+            ]
+        },
+        "attack_hit": {
+            "name": "Companion Attack Hit",
+            "role": "Companion",
+            "dialogues": [
+                "{comp} attacks for {dmg} damage. Monster HP: {hp}",
+                "{comp} strikes true for {dmg} damage — monster now at {hp} HP."
+            ]
+        },
+        "attack_miss": {
+            "name": "Companion Attack Miss",
+            "role": "Companion",
+            "dialogues": [
+                "{comp} misses.",
+                "{comp} lunges and misses, snarling in frustration."
+            ]
+        },
+        "name_success": {
+            "name": "Companion Name Success",
+            "role": "Companion",
+            "dialogues": [
+                "Your companion is now named {name}.",
+                "From now on, they answer to {name}."
+            ]
+        },
+        "name_no_companion": {
+            "name": "Companion Name Fail",
+            "role": "Companion",
+            "dialogues": [
+                "You have no companion to name.",
+                "There’s no one here to receive a new name."
+            ]
+        },
+        "heal_no_companion": {
+            "name": "Companion Heal Fail",
+            "role": "Companion",
+            "dialogues": [
+                "You have no companion.",
+                "No companion is present to heal."
+            ]
+        },
+        "heal_no_potions": {
+            "name": "Companion Heal No Potions",
+            "role": "Companion",
+            "dialogues": [
+                "You have no healing potions.",
+                "Your satchel is empty of healing draughts."
+            ]
+        },
+        "heal_success": {
+            "name": "Companion Heal Success",
+            "role": "Companion",
+            "dialogues": [
+                "You heal your companion for {heal} HP.",
+                "{heal} HP restored to your companion."
+            ]
+        },
+        "summon_roll": {
+            "name": "Companion Summon Roll",
+            "role": "Companion",
+            "dialogues": [
+                "You rolled {roll}. Bonus from Int+Cha: {bonus}. Final roll: {final}.",
+                "Summoning check — roll {roll}, bonus {bonus}, total {final}."
+            ]
+        },
+        "summon_fail": {
+            "name": "Companion Summon Fail",
+            "role": "Companion",
+            "dialogues": [
+                "The summoning fails; no creature answers your call.",
+                "Silence. Nothing comes to your aid."
+            ]
+        }
+    },
+    "world": {
+        "rumors": {
+            "name": "Town Rumors",
+            "role": "Citizen",
+            "dialogues": [
+                "They say the labyrinth grows when the moon’s red.",
+                "Heard someone vanished near the gate last night.",
+                "A trader saw the Dragon flying overhead — glowing eyes.",
+                "Some fool swears the labyrinth whispered his name."
+            ]
+        },
+        "festival": {
+            "name": "Festival",
+            "role": "Citizen",
+            "dialogues": [
+                "Lanterns everywhere! Even the gloom feels lighter.",
+                "Free ale at the tavern — finally, a blessing worth keeping.",
+                "The healer’s blessing costs half today. Miracles all around."
+            ]
+        },
+        "seasonal": {
+            "name": "Seasonal",
+            "role": "Narration",
+            "dialogues": [
+                "Winter’s creeping in — monsters move slower now.",
+                "The summer heat makes even steel sweat.",
+                "Autumn winds carry strange whispers.",
+                "Spring brings travelers… and trouble."
+            ]
+        }
+    },
+    "system": {
+        "choose_mode_prompt": {
+            "name": "Choose Mode Prompt",
+            "role": "System",
+            "dialogues": [
+                "Choose gambling mode: 1) Exact 2) Range",
+                "Pick a mode: 1) Exact roll 2) Range roll"
+            ]
+        },
+        "prayed_already": {
+            "name": "Prayed Already",
+            "role": "System",
+            "dialogues": [
+                "You've already prayed recently.",
+                "The altar is quiet — you have prayed already."
+            ]
+        },
+        "attribute_assigned": {
+            "name": "Attribute Assigned",
+            "role": "System",
+            "dialogues": [
+                "Assigned {roll} to {attr}!",
+                "{attr} receives {roll}."
+            ]
+        },
+        "save_not_implemented": {
+            "name": "Save Not Implemented",
+            "role": "System",
+            "dialogues": [
+                "Saving is not implemented yet.",
+                "Save/Load will be added in a future update."
+            ]
+        },
+        "companion_header": {
+            "name": "Companion Header",
+            "role": "System",
+            "dialogues": [
+                "=== Companion ===",
+                "=== Companion Options ==="
+            ]
+        },
+        "companion_enter_name": {
+            "name": "Companion Enter Name",
+            "role": "System",
+            "dialogues": [
+                "Enter companion's new name:",
+                "What shall your companion be called?"
+            ]
+        },
+        "inventory_header": {
+            "name": "Inventory Header",
+            "role": "System",
+            "dialogues": [
+                "=== Inventory ===",
+                "=== Your Inventory ==="
+            ]
+        },
+        "inventory_equipped_weapon": {
+            "name": "Inventory Equipped Weapon",
+            "role": "System",
+            "dialogues": [
+                "Equipped weapon: {name} ({damage} dmg)",
+                "Weapon equipped: {name} — Damage {damage}"
+            ]
+        },
+        "inventory_equipped_armor": {
+            "name": "Inventory Equipped Armor",
+            "role": "System",
+            "dialogues": [
+                "Equipped armor: {name} (AC {ac})",
+                "Armor equipped: {name} — AC {ac}"
+            ]
+        },
+        "death": {
+            "name": "Death Messages",
+            "role": "System",
+            "dialogues": [
+                "The labyrinth claims another aspiring Explorer. Darsen's hope dims further.",
+                "As you fall, the maze shifts one last time. Your journey ends here.",
+                "The Dragon's laughter echoes. Another soul lost to ancient vengeance.",
+                "You fade away, your dreams of Explorer status dying with you.",
+                "The labyrinth consumes your final breath. Darsen must wait for another hero."
+            ]
+        },
+        "revival_success": {
+            "name": "Revival Success",
+            "role": "System",
+            "dialogues": [
+                "\\nMIRACULOUS REVIVAL! Your spirit clings to life through {method}!",
+                "\\nAgainst all odds, you return from death's threshold via {method}!",
+                "\\nYour soul refuses to depart — {method} saves you!"
+            ]
+        },
+        "permanent_death": {
+            "name": "Permanent Death",
+            "role": "System",
+            "dialogues": [
+                "\\nPERMANENT DEATH\\nYour spirit departs this world... (Wisdom: {wisdom_roll} < {difficulty}, Luck: {luck_roll}% > {base_chance}%)",
+                "\\nTHE END\\nNo force can return you now... (WIS roll {wisdom_roll} failed vs {difficulty}, luck {luck_roll}% exceeded {base_chance}%)",
+                "\\nFINAL DARKNESS\\nYour essence fades forever... (Wisdom {wisdom_roll} insufficient vs {difficulty}, fortune {luck_roll}% beyond {base_chance}%)"
+            ]
+        },
+        "level_up": {
+            "name": "Level Up",
+            "role": "System",
+            "dialogues": [
+                "Power surges through you — the labyrinth trembles.",
+                "You feel stronger. Sharper. Closer to something greater.",
+                "A faint aura surrounds you — change is tangible.",
+                "You’ve grown… and the maze knows it."
+            ]
+        },
+        "level_up_complete": {
+            "name": "Level Up Complete",
+            "role": "System",
+            "dialogues": [
+                "Level-up allocation complete.",
+                "Your training concludes for now."
+            ]
+        },
+        "final_stats_header": {
+            "name": "Final Stats Header",
+            "role": "System",
+            "dialogues": [
+                "Final stats",
+                "Your final attributes"
+            ]
+        },
+        "dragon_appears": {
+            "name": "Dragon Appears",
+            "role": "System",
+            "dialogues": [
+                "A thunderous wingbeat shakes the cavern. The Dragon emerges from the dark!",
+                "A colossal shadow unfurls — the Dragon reveals itself!"
+            ]
+        },
+        "dragon_victory": {
+            "name": "Dragon Victory",
+            "role": "System",
+            "dialogues": [
+                "The Dragon falls. The labyrinth's hold weakens...",
+                "With the Dragon defeated, the labyrinth begins to unravel."
+            ]
+        },
+        "dragon_epilogue": {
+            "name": "Dragon Epilogue",
+            "role": "System",
+            "dialogues": [
+                "You have conquered the Labyrinth. Peace returns to the realm.",
+                "The breach collapses. For now, the world is safe."
+            ]
+        },
+        "startup": {
+            "name": "Startup",
+            "role": "System",
+            "dialogues": [
+                "So you seek to become an Explorer? Few attempt this path, fewer survive it. Each maze is a test - of skill, of will, of adaptability. The reality-warping corridors show no mercy to the unprepared.",
+                "The art of maze-walking is not just about combat or magic - it's about understanding how reality bends, how time flows differently, how space itself can be both weapon and shield. Each Explorer develops their own techniques, earned through trial and terror.",
+                "The corrupted Dragon that awaits will be your final exam. Survive its wrath, cleanse its corruption, and you may yet join the ranks of those who guard civilization's edge. Your trial begins now - step forward if you dare."
+            ]
+        },
+        "story_intro": {
+            "name": "Story Intro",
+            "role": "System",
+            "dialogues": [
+                "In a world scarred by ancient betrayals, labyrinths now erupt from wounds in reality itself. These ever-shifting mazes twist space and time, appearing suddenly at civilization’s edge. For three days they exist before collapsing, tearing rifts that unleash horrors upon the land.",
+                "To confront them, the Explorers arose—heroes who delve into these warped mazes, defeat their corrupted guardians, and seal the breaches left behind. Their victories keep the borderlands habitable, though their numbers steadily dwindle. Only those who conquer a labyrinth may join their ranks.",
+                "Now, a powerful labyrinth has appeared near Darsen, harboring a fallen guardian: a corrupted Dragon once bound to protect reality. With no Explorer in sight and time slipping away, the town turns to you—an untested hero whose survival may decide the world’s fate."
+            ]
+        },
+        "ask_name": {
+            "name": "Ask Name",
+            "role": "System",
+            "dialogues": [
+                "What is your name?",
+                "Who do they call you?"
+            ]
+        },
+        "creation_complete": {
+            "name": "Creation Complete",
+            "role": "System",
+            "dialogues": [
+                "Your path is chosen. Now, welcome to Darsen - a town that lives in the shadow of the labyrinths. Here you'll find those who survive on civilization's edge: merchants who trade in mystical treasures, healers who mend reality-warped wounds, and veterans who remember what it means to face a maze's fury.",
+                "The townsfolk have adapted to life near the labyrinths, learning to read the signs, to prepare for the dangers, to support those brave or foolish enough to venture inside. Their knowledge might mean the difference between triumph and tragedy - listen well to their tales."
+            ]
+        },
+        "creation_name_line": {
+            "name": "Creation Name Line",
+            "role": "System",
+            "dialogues": [
+                "Name: {name}",
+                "Called: {name}"
+            ]
+        },
+        "creation_hp_line": {
+            "name": "Creation HP Line",
+            "role": "System",
+            "dialogues": [
+                "HP: {hp}",
+                "Hit Points: {hp}"
+            ]
+        },
+        "creation_gold_line": {
+            "name": "Creation Gold Line",
+            "role": "System",
+            "dialogues": [
+                "Gold: {gold}",
+                "Starting gold: {gold}"
+            ]
+        },
+        "starting_note": {
+            "name": "Starting Note",
+            "role": "System",
+            "dialogues": [
+                "You start with no weapons or armor - visit the shop to equip yourself!. Best of luck adventurer",
+                "You begin with basic gear. Visit the shop to prepare."
+            ]
+        },
+        "attribute_roll_intro": {
+            "name": "Attribute Roll Intro",
+            "role": "System",
+            "dialogues": [
+                "Rolling your attributes...",
+                "Let the dice decide your fate — rolling attributes now."
+            ]
+        },
+        "attribute_roll": {
+            "name": "Attribute Roll",
+            "role": "System",
+            "dialogues": [
+                "\nRolling for attribute {i} of {total}...",
+                "Rolling attribute {i}..."
+            ]
+        },
+        "you_rolled": {
+            "name": "You Rolled",
+            "role": "System",
+            "dialogues": [
+                "You rolled a {roll}!",
+                "The die shows {roll}."
+            ]
+        },
+        "choose_attribute": {
+            "name": "Choose Attribute",
+            "role": "System",
+            "dialogues": [
+                "Choose which attribute to assign this value to:",
+                "Pick an attribute to assign this roll to:"
+            ]
+        },
+        "enter_number": {
+            "name": "Enter Number",
+            "role": "System",
+            "dialogues": [
+                "Enter the number:",
+                ">"
+            ]
+        },
+        "calc_hp_gold": {
+            "name": "Calc HP Gold",
+            "role": "System",
+            "dialogues": [
+                "Calculating your starting HP and Gold...",
+                "Determining your starting HP and gold now."
+            ]
+        },
+        "your_constitution": {
+            "name": "Your Constitution",
+            "role": "System",
+            "dialogues": [
+                "Your Constitution is {con}...",
+                "Constitution: {con}"
+            ]
+        },
+        "rolling_hp_bonus": {
+            "name": "Rolling HP Bonus",
+            "role": "System",
+            "dialogues": [
+                "Rolling 3d6 for HP bonus...",
+                "Determining HP bonus (3d6)..."
+            ]
+        },
+        "hp_result": {
+            "name": "HP Result",
+            "role": "System",
+            "dialogues": [
+                "Base HP: {base} + Bonus: {bonus} = {hp} HP!",
+                "Total HP: {hp}"
+            ]
+        },
+        "rolling_gold": {
+            "name": "Rolling Gold",
+            "role": "System",
+            "dialogues": [
+                "Rolling 20d6 for starting gold...",
+                "Determining starting gold (20d6)..."
+            ]
+        },
+        "cha_high_roll": {
+            "name": "CHA High Roll",
+            "role": "System",
+            "dialogues": [
+                "High Charisma ({cha})! Rolling 10d6 bonus gold...",
+                "Your charm grants favor — rolling 10d6 bonus gold..."
+            ]
+        },
+        "cha_good_roll": {
+            "name": "CHA Good Roll",
+            "role": "System",
+            "dialogues": [
+                "Good Charisma ({cha})! Rolling 7d6 bonus gold...",
+                "Rolling 7d6 bonus gold due to decent Charisma..."
+            ]
+        },
+        "low_hp_roll": {
+            "name": "Low HP Roll",
+            "role": "System",
+            "dialogues": [
+                "Low HP ({hp})! Rolling 10d6 bonus gold...",
+                "Low HP detected — rolling 10d6 bonus gold..."
+            ]
+        },
+        "standard_gold_roll": {
+            "name": "Standard Gold Roll",
+            "role": "System",
+            "dialogues": [
+                "Rolling 5d6 bonus gold...",
+                "Rolling 5d6 for a modest bonus..."
+            ]
+        },
+        "gold_result": {
+            "name": "Gold Result",
+            "role": "System",
+            "dialogues": [
+                "Base Gold: {base_minus_bonus} + Bonus: {bonus} = {gold} Gold!",
+                "Starting gold total: {gold}"
+            ]
+        },
+        "gold_result_detailed": {
+            "name": "Gold Result Detailed",
+            "role": "System",
+            "dialogues": [
+                "Base Gold: {base} + CHA Bonus: {cha_b} + Low-HP Bonus: {hp_b} = {gold} Gold!",
+                "Gold: base {base} + CHA {cha_b} + HP {hp_b} → {gold}"
+            ]
+        },
+        "main_menu_header": {
+            "name": "Main Menu Header",
+            "role": "System",
+            "dialogues": [
+                "=== Labyrinth Adventure ==="
+            ]
+        },
+        "main_menu_new": {
+            "name": "Main Menu New",
+            "role": "System",
+            "dialogues": [
+                "1) New Game",
+                "1) Start New Adventure"
+            ]
+        },
+        "main_menu_load": {
+            "name": "Main Menu Load",
+            "role": "System",
+            "dialogues": [
+                "2) Load Game",
+                "2) Continue Saved Game"
+            ]
+        },
+        "main_menu_quit": {
+            "name": "Main Menu Quit",
+            "role": "System",
+            "dialogues": [
+                "3) Quit",
+                "3) Exit"
+            ]
+        },
+        "no_saved_game": {
+            "name": "No Saved Game",
+            "role": "System",
+            "dialogues": [
+                "No saved game found.",
+                "No save file present. Try starting a new game."
+            ]
+        },
+        "invalid_choice": {
+            "name": "Invalid Choice",
+            "role": "System",
+            "dialogues": [
+                "Invalid choice.",
+                "That option is not valid."
+            ]
+        },
+        "town_header": {
+            "name": "Town Header",
+            "role": "System",
+            "dialogues": [
+                "=== Outskirt Town of Darsen ===",
+                "=== Darsen - Edge of the Known ===",
+                "=== Darsen - Where Labyrinths Dance ==="
+            ]
+        },
+        "enter": {
+            "name": "Enter Prompt",
+            "role": "System",
+            "dialogues": [
+                ">",
+                "Enter choice:"
+            ]
+        },
+        "quit_warning": {
+            "name": "Quit Warning",
+            "role": "System",
+            "dialogues": [
+                "Warning: You haven't rested! Your progress may not be saved.",
+                "Careful — without resting, progress may be lost."
+            ]
+        },
+        "quit_confirm": {
+            "name": "Quit Confirm",
+            "role": "System",
+            "dialogues": [
+                "Are you sure you want to quit? (y/n)",
+                "Quit the game now? (y/n)"
+            ]
+        },
+        "confirm_new_game": {
+            "name": "Confirm New Game",
+            "role": "System",
+            "dialogues": [
+                "Start a new game? (y/n)",
+                "Begin a new adventure? (y/n)"
+            ]
+        },
+        "game_saved": {
+            "name": "Game Saved",
+            "role": "System",
+            "dialogues": [
+                "Game saved successfully!",
+                "Your progress has been saved."
+            ]
+        },
+        "not_enough_xp": {
+            "name": "Not Enough XP",
+            "role": "System",
+            "dialogues": [
+                "Not enough XP to level up.",
+                "You need more XP before you can level up."
+            ]
+        },
+        "labyrinth_header": {
+            "name": "Labyrinth Header",
+            "role": "System",
+            "dialogues": [
+                "=== Labyrinth Depth {depth} ===",
+                "Depth {depth} — The labyrinth expands."
+            ]
+        },
+        "labyrinth_navigation_options": {
+            "name": "Labyrinth Navigation Options",
+            "role": "System",
+            "dialogues": [
+                "\n1) Go deeper\n2) Go back\n3) Ask for divine assistance\n4) Listen at the door\n5) Open a chest\n6) Examine magic item",
+                "\n1) Deeper\n2) Back/Return\n3) Divine aid\n4) Listen\n5) Open chest\n6) Examine item"
+            ]
+        },
+        "monster_appears": {
+            "name": "Monster Appears",
+            "role": "System",
+            "dialogues": [
+                "A {name} appears!",
+                "You are confronted by a {name}!"
+            ]
+        },
+        "combat_monster_appears": {
+            "name": "Combat Monster Appears",
+            "role": "System",
+            "dialogues": [
+                "A {name} emerges from the shadows!",
+                "A {name} steps into view!"
+            ]
+        },
+        "combat_monster_defeated": {
+            "name": "Combat Monster Defeated",
+            "role": "System",
+            "dialogues": [
+                "You defeated the {name} and gain {xp} XP!",
+                "Victory! {name} defeated — you gain {xp} XP."
+            ]
+        },
+        "you_were_defeated": {
+            "name": "Defeated",
+            "role": "System",
+            "dialogues": [
+                "You were defeated...",
+                "You fall in battle..."
+            ]
+        },
+        "you_loot_gold": {
+            "name": "You Loot Gold",
+            "role": "System",
+            "dialogues": [
+                "You loot {gold} gold!",
+                "You recover {gold} gold from the corpse."
+            ]
+        },
+        "find_healing_potion": {
+            "name": "Find Healing Potion",
+            "role": "System",
+            "dialogues": [
+                "You find a healing potion!",
+                "A small vial of healing is found among the spoils."
+            ]
+        },
+        "find_scroll_of_spell": {
+            "name": "Find Scroll",
+            "role": "System",
+            "dialogues": [
+                "You find a scroll of {spell}!",
+                "A tattered scroll: {spell}."
+            ]
+        },
+        "vision_monster": {
+            "name": "Vision Monster",
+            "role": "System",
+            "dialogues": [
+                "A vision shows a {name} ahead.",
+                "You glimpse a {name} in the future corridor."
+            ]
+        },
+        "vision_empty": {
+            "name": "Vision Empty",
+            "role": "System",
+            "dialogues": [
+                "A vision shows an empty corridor ahead.",
+                "You sense nothing but stone ahead."
+            ]
+        },
+        "no_vision": {
+            "name": "No Vision",
+            "role": "System",
+            "dialogues": [
+                "No vision comes.",
+                "The gods remain silent."
+            ]
+        },
+        "listen_roll": {
+            "name": "Listen Roll",
+            "role": "System",
+            "dialogues": [
+                "You listen carefully... Roll {roll}",
+                "Listening... Roll {roll}"
+            ]
+        },
+        "you_hear": {
+            "name": "You Hear",
+            "role": "System",
+            "dialogues": [
+                "You hear: {hint}.",
+                "A distant sound: {hint}."
+            ]
+        },
+        "sounds_quiet": {
+            "name": "Sounds Quiet",
+            "role": "System",
+            "dialogues": [
+                "It sounds quiet ahead.",
+                "Silence lies ahead."
+            ]
+        },
+        "hear_nothing": {
+            "name": "Hear Nothing",
+            "role": "System",
+            "dialogues": [
+                "You hear nothing useful.",
+                "Only the faint echo of your own breath."
+            ]
+        },
+        "no_chest": {
+            "name": "No Chest",
+            "role": "System",
+            "dialogues": [
+                "There is no chest in this room.",
+                "No chest to be found here."
+            ]
+        },
+        "open_chest_gold": {
+            "name": "Open Chest Gold",
+            "role": "System",
+            "dialogues": [
+                "You open the chest and find {gold} gold!",
+                "A heap of {gold} gold spills from the chest."
+            ]
+        },
+        "find_magic_item": {
+            "name": "Find Magic Item",
+            "role": "System",
+            "dialogues": [
+                "You also find a {item}!",
+                "A magical item appears: {item}."
+            ]
+        },
+        "no_magic_items": {
+            "name": "No Magic Items",
+            "role": "System",
+            "dialogues": [
+                "You have no magic items to examine.",
+                "Your pack contains no enchanted trinkets."
+            ]
+        },
+        "magic_items_list": {
+            "name": "Magic Items List",
+            "role": "System",
+            "dialogues": [
+                "Magic items in your possession:",
+                "Your magic items:"
+            ]
+        },
+        "hesitate_return": {
+            "name": "Hesitate Return",
+            "role": "System",
+            "dialogues": [
+                "You hesitate and decide to return to town.",
+                "You decide it’s best to head back to town for now."
+            ]
+        },
+        "succumb_trap": {
+            "name": "Succumb Trap",
+            "role": "System",
+            "dialogues": [
+                "You succumb to the trap...",
+                "The trap claims you..."
+            ]
+        },
+        "monster_left_peacefully": {
+            "name": "Monster Left Peacefully",
+            "role": "System",
+            "dialogues": [
+                "The monster has left peacefully. You remain in this room.",
+                "The creature departs without a fight."
+            ]
+        },
+        "escaped_previous_room": {
+            "name": "Escaped Previous Room",
+            "role": "System",
+            "dialogues": [
+                "You successfully escape to the previous room!",
+                "You slip away to the previous room!"
+            ]
+        },
+        "escape_back_to_town": {
+            "name": "Escape Back To Town",
+            "role": "System",
+            "dialogues": [
+                "You escape back to town!",
+                "You flee the labyrinth and return to town!"
+            ]
+        },
+        "choose_odds_prompt": {
+            "name": "Choose Odds Prompt",
+            "role": "System",
+            "dialogues": [
+                "Which odds would you like?",
+                "Pick your odds:"
+            ]
+        },
+        "pick_range_prompt": {
+            "name": "Pick Range Prompt",
+            "role": "System",
+            "dialogues": [
+                "Choose a number range:",
+                "Pick a range:"
+            ]
+        },
+        "inventory_options": {
+            "name": "Inventory Options",
+            "role": "System",
+            "dialogues": [
+                "\n1) Equip weapon\n2) Equip armor\n3) View potions\n4) Unequip weapon\n5) Unequip armor\n6) Back",
+                "\n1) Weapon\n2) Armor\n3) Potions\n4) Unequip weapon\n5) Unequip armor\n6) Back"
+            ]
+        },
+        "companion_options": {
+            "name": "Companion Options",
+            "role": "System",
+            "dialogues": [
+                "1) Name companion\n2) Heal companion (uses a healing potion)\n3) Back",
+                "1) Give name\n2) Use healing potion\n3) Return"
+            ]
+        },
+        "not_enough_gold": {
+            "name": "Not Enough Gold",
+            "role": "System",
+            "dialogues": [
+                "Not enough gold.",
+                "You lack the funds for that action."
+            ]
+        },
+        "tips": {
+            "name": "Combat Tip",
+            "role": "System",
+            "dialogues": [
+                "You miss!",
+                "Your attack misses!"
+            ]
+        }
+    },
+    "combat": {
+        "death": {
+            "name": "Death",
+            "role": "System",
+            "dialogues": [
+                "You have died! Game Over!",
+                "The labyrinth claims you."
+            ]
+        },
+        "defeated_by": {
+            "name": "Defeated By",
+            "role": "System",
+            "dialogues": [
+                "You were defeated by the {name}.",
+                "The {name} overcomes you."
+            ]
+        },
+        "revival_success": {
+            "name": "Revival Success",
+            "role": "System",
+            "dialogues": [
+                "MIRACULOUS REVIVAL! Your spirit clings to life through {method}!",
+                "Against all odds, you return from death's threshold via {method}!"
+            ]
+        },
+        "permanent_death": {
+            "name": "Permanent Death",
+            "role": "System",
+            "dialogues": [
+                "PERMANENT DEATH — your spirit departs this world...",
+                "FINAL DARKNESS — no force can return you now."
+            ]
+        },
+        "town_header": {
+            "name": "Town Header",
+            "role": "System",
+            "dialogues": [
+                "=== Outskirt Town of Darsen ===",
+                "=== Darsen - Edge of the Known ==="
+            ]
+        },
+        "target_zones": {
+            "name": "Target Zones",
+            "role": "System",
+            "dialogues": [
+                "1) High\n2) Middle\n3) Low",
+                "Choose your target:\n1) High\n2) Middle\n3) Low"
+            ],
+            "charisma_high": [
+                "Select your precision strike:\n1) High\n2) Middle\n3) Low",
+                "Your expertise guides you:\n1) High\n2) Middle\n3) Low"
+            ],
+            "charisma_low": [
+                "Pick where to hit:\n1) High\n2) Middle\n3) Low",
+                "Uh... aim for:\n1) High\n2) Middle\n3) Low"
+            ]
+        },
+        "height_options": {
+            "name": "Height Options",
+            "role": "System",
+            "dialogues": [
+                "1) High\n2) Middle\n3) Low",
+                "Choose your height:\n1) High\n2) Middle\n3) Low"
+            ],
+            "charisma_high": [
+                "Select your technique:\n1) High\n2) Middle\n3) Low",
+                "Position your attack:\n1) High\n2) Middle\n3) Low"
+            ],
+            "charisma_low": [
+                "Pick spot:\n1) High\n2) Middle\n3) Low",
+                "Hit where:\n1) High\n2) Middle\n3) Low"
+            ]
+        },
+        "combat_actions": {
+            "name": "Combat Actions",
+            "role": "System",
+            "dialogues": [
+                "1) Attack\n2) Drink Potion\n3) Cast Spell\n4) Divine Aid\n5) Charm Monster\n6) Run Away\n7) Examine Monster",
+                "Choose your action:\n1) Strike\n2) Use Potion\n3) Cast Magic\n4) Prayer\n5) Charm\n6) Retreat\n7) Study"
+            ],
+            "charisma_high": [
+                "Your battle options unfold:\n1) Execute strike\n2) Imbibe potion\n3) Weave spells\n4) Beseech divinity\n5) Sway creature\n6) Strategic withdraw\n7) Tactical assessment",
+                "Command the battle:\n1) Martial prowess\n2) Magical draught\n3) Arcane mastery\n4) Divine favor\n5) Creature diplomacy\n6) Graceful exit\n7) Study opponent"
+            ],
+            "charisma_low": [
+                "Do what:\n1) Hit it\n2) Drink stuff\n3) Magic maybe\n4) Ask gods\n5) Talk at it\n6) Run away\n7) Look at it",
+                "Pick fast:\n1) Fight\n2) Potion\n3) Spell\n4) Pray\n5) Talk\n6) Leave\n7) Watch"
+            ]
+        },
+        "combat_menu": {
+            "name": "Combat Menu",
+            "role": "System",
+            "dialogues": [
+                "1) Attack\n2) Drink Potion\n3) Cast Spell\n4) Divine Aid\n5) Charm Monster\n6) Run Away\n7) Examine Monster",
+                "1) Strike\n2) Use Potion\n3) Cast Magic\n4) Prayer\n5) Charm\n6) Retreat\n7) Study Foe"
+            ],
+            "charisma_high": [
+                "1) Strike with flourish\n2) Sample your potions\n3) Weave magic\n4) Command divine favor\n5) Beguile creature\n6) Strategic withdrawal\n7) Assess opponent",
+                "Your options shine before you:\n1) Attack with style\n2) Imbibe potion\n3) Channel magic\n4) Call the gods\n5) Charm foe\n6) Graceful exit\n7) Study enemy"
+            ],
+            "charisma_low": [
+                "1) Hit it\n2) Drink something\n3) Try magic\n4) Beg gods\n5) Try talking\n6) Run!\n7) Look at it",
+                "Pick one, if you must:\n1) Swing weapon\n2) Use bottle\n3) Do magic\n4) Pray maybe\n5) Say words\n6) Leave fast\n7) Stare at it"
+            ]
+        },
+        "examine_attempt": {
+            "name": "Examine Monster",
+            "role": "Narration",
+            "dialogues": [
+                "You take a careful look at the creature, searching for weaknesses.",
+                "You study the monster, probing for signs of vulnerability."
+            ]
+        },
+        "examine_fail": {
+            "name": "Examine Fail",
+            "role": "Narration",
+            "dialogues": [
+                "You can't make out the creature's capabilities clearly.",
+                "The monster's nature remains a mystery to you."
+            ]
+        },
+        "choose_weapon": {
+            "name": "Choose Weapon",
+            "role": "System",
+            "dialogues": [
+                "Choose your weapon:",
+                "Pick a weapon to use:"
+            ]
+        },
+        "no_potions": {
+            "name": "No Potions",
+            "role": "System",
+            "dialogues": [
+                "You have no potions.",
+                "Your satchel is empty of restorative draughts."
+            ]
+        },
+        "potions_menu": {
+            "name": "Potions Menu",
+            "role": "System",
+            "dialogues": [
+                "Potions (choose by number):",
+                "Select a potion to drink:"
+            ]
+        },
+        "potion_heal": {
+            "name": "Potion Heal",
+            "role": "System",
+            "dialogues": [
+                "You drink a healing potion and recover {heal} HP.",
+                "Warm light floods you — {heal} HP restored."
+            ]
+        },
+        "potion_focus": {
+            "name": "Potion Focus",
+            "role": "System",
+            "dialogues": [
+                "You feel more focused. (+1 damage this combat)",
+                "Clarity sharpens your blades — +1 damage this fight."
+            ]
+        },
+        "potion_speed": {
+            "name": "Potion Speed",
+            "role": "System",
+            "dialogues": [
+                "Your reflexes quicken. (1 extra attack this combat)",
+                "You blur for a moment — an extra strike awaits."
+            ]
+        },
+        "potion_strength": {
+            "name": "Potion Strength",
+            "role": "System",
+            "dialogues": [
+                "Your muscles surge. (+2 damage this combat)",
+                "Power fills you — +2 damage for this encounter."
+            ]
+        },
+        "potion_protection": {
+            "name": "Potion Protection",
+            "role": "System",
+            "dialogues": [
+                "A shimmering barrier surrounds you. (+3 AC this combat)",
+                "A brief ward forms around you — +3 AC this fight."
+            ]
+        },
+        "potion_invisibility": {
+            "name": "Potion Invisibility",
+            "role": "System",
+            "dialogues": [
+                "You fade from sight. (Monster's next attack automatically misses)",
+                "You vanish for a heartbeat — the foe's next strike fails."
+            ]
+        },
+        "potion_antidote": {
+            "name": "Potion Antidote",
+            "role": "System",
+            "dialogues": [
+                "You drink the antidote and feel the poison leave your system.",
+                "Color returns to your face as the poison fades."
+            ]
+        },
+        "nothing_happens": {
+            "name": "Nothing Happens",
+            "role": "System",
+            "dialogues": [
+                "Nothing happens...",
+                "It seems inert."
+            ]
+        },
+        "no_spells": {
+            "name": "No Spells",
+            "role": "System",
+            "dialogues": [
+                "You don't know any spells.",
+                "You have no spells prepared."
+            ]
+        },
+        "spells_menu": {
+            "name": "Spells Menu",
+            "role": "System",
+            "dialogues": [
+                "Spells (choose by number):",
+                "Select a spell to cast:"
+            ]
+        },
+        "summon_attempt": {
+            "name": "Summon Attempt",
+            "role": "System",
+            "dialogues": [
+                "You attempt to summon a companion... Roll {roll}",
+                "Calling forth aid — roll {roll}..."
+            ]
+        },
+        "magic_missile": {
+            "name": "Magic Missile",
+            "role": "System",
+            "dialogues": [
+                "Magic missiles strike for {dmg} damage. Monster HP: {hp}",
+                "Arcane bolts hit for {dmg} damage. Monster HP: {hp}"
+            ]
+        },
+        "spell_fizzle": {
+            "name": "Spell Fizzle",
+            "role": "System",
+            "dialogues": [
+                "The spell fizzles...",
+                "The magic sputters and fails."
+            ]
+        },
+        "choose_aim": {
+            "name": "Choose Aim",
+            "role": "System",
+            "dialogues": [
+                "Aim your attack:",
+                "Where do you aim?"
+            ]
+        },
+        "choose_defend": {
+            "name": "Choose Defend",
+            "role": "System",
+            "dialogues": [
+                "Choose defense zone:",
+                "Where will you guard?"
+            ]
+        },
+        "divine_attempt": {
+            "name": "Divine Attempt",
+            "role": "System",
+            "dialogues": [
+                "You call for divine aid... Roll {roll}",
+                "You plead to the heavens... Roll {roll}"
+            ]
+        },
+        "divine_success": {
+            "name": "Divine Success",
+            "role": "System",
+            "dialogues": [
+                "The gods answer with {name} for {dmg} damage! Monster HP: {hp}",
+                "A divine {name} strikes, dealing {dmg} damage! Monster HP: {hp}"
+            ]
+        },
+        "divine_fail": {
+            "name": "Divine Fail",
+            "role": "System",
+            "dialogues": [
+                "Your plea goes unanswered.",
+                "Silence answers your call."
+            ]
+        },
+        "poison_dot": {
+            "name": "Poison DOT",
+            "role": "System",
+            "dialogues": [
+                "Poison saps you for {dmg} damage. ({rem} turns remain)",
+                "Toxic pain bites for {dmg} damage. ({rem} turns left)"
+            ]
+        },
+        "charm_attempt": {
+            "name": "Charm Attempt",
+            "role": "System",
+            "dialogues": [
+                "You attempt to charm the {name}... Roll {roll}",
+                "You try to beguile the {name} with your charisma... Roll {roll}",
+                "You speak soothing words to the {name}... Roll {roll}",
+                "Your eyes meet the {name}'s as you attempt to charm it... Roll {roll}"
+            ]
+        },
+        "charm_success": {
+            "name": "Charm Success",
+            "role": "System",
+            "dialogues": [
+                "The {name} is charmed and leaves peacefully.",
+                "The creature's fury dies; it retreats with a confused look.",
+                "Your words reach the {name}'s heart - it bows and departs.",
+                "The {name} seems enchanted by your presence and wanders away.",
+                "A spark of understanding passes between you - the {name} nods and leaves."
+            ]
+        },
+        "charm_fail": {
+            "name": "Charm Fail",
+            "role": "System",
+            "dialogues": [
+                "Your charm attempt fails.",
+                "The creature resists your entreaties.",
+                "The {name} snarls, unmoved by your words.",
+                "Your charm bounces off the {name}'s hardened heart.",
+                "The creature's eyes flash with annoyance at your attempt."
+            ]
+        },
+        "run_attempt": {
+            "name": "Run Attempt",
+            "role": "System",
+            "dialogues": [
+                "You attempt to run away... Roll {roll} (need >{threshold})",
+                "You lunge for the exit — roll {roll} to escape (need >{threshold}).",
+                "Your feet scramble for purchase as you try to flee... Roll {roll} (need >{threshold})",
+                "You duck and weave, seeking an escape route... Roll {roll} (need >{threshold})"
+            ]
+        },
+        "run_success": {
+            "name": "Run Success",
+            "role": "System",
+            "dialogues": [
+                "You successfully escape!",
+                "You break free and flee the fray.",
+                "Your nimble footwork carries you to safety!",
+                "You slip past the creature's grasp and dash away!",
+                "With a burst of speed, you escape the danger!"
+            ]
+        },
+        "run_fail": {
+            "name": "Run Fail",
+            "role": "System",
+            "dialogues": [
+                "You fail to escape!",
+                "Your feet betray you — you cannot flee.",
+                "The creature blocks your escape route!",
+                "You stumble and fail to get away!",
+                "The {name} is too quick - you're trapped!"
+            ]
+        },
+        "your_turn": {
+            "name": "Your Turn",
+            "role": "System",
+            "dialogues": [
+                "Your turn:",
+                "It’s your move."
+            ]
+        },
+        "attack_roll": {
+            "name": "Attack Roll",
+            "role": "System",
+            "dialogues": [
+                "You aim {zone} and roll: {attack_die} + Strength({str_mod}) = {attack_roll} vs AC {enemy_ac}",
+                "Aiming {zone}: roll {attack_die} + Strength/2({str_mod}) = {attack_roll} vs AC {enemy_ac}"
+            ]
+        },
+        "monster_brace": {
+            "name": "Monster Brace",
+            "role": "Narration",
+            "dialogues": [
+                "The {name} braces to defend {zone}.",
+                "It prepares a guard at the {zone}."
+            ]
+        },
+        "natural_one_self": {
+            "name": "Natural One Self",
+            "role": "System",
+            "dialogues": [
+                "Massive fail! You injure yourself for {dmg} HP. Your HP: {hp}",
+                "A catastrophic misstep costs you {dmg} HP. HP: {hp}"
+            ]
+        },
+        "critical_hit": {
+            "name": "Critical Hit",
+            "role": "System",
+            "dialogues": [
+                "Critical hit! You deal {dmg} damage. Monster HP: {hp}",
+                "A devastating strike for {dmg} damage! Monster HP: {hp}"
+            ]
+        },
+        "crippled": {
+            "name": "Crippled",
+            "role": "System",
+            "dialogues": [
+                "The blow rends the creature's defenses — it is crippled!",
+                "You smash its guard; the creature is crippled."
+            ]
+        },
+        "attack_blocked": {
+            "name": "Attack Blocked",
+            "role": "System",
+            "dialogues": [
+                "Your attack is blocked by the {zone} guard!",
+                "It blocks your strike at the {zone}."
+            ]
+        },
+        "hit_message": {
+            "name": "Hit Message",
+            "role": "System",
+            "dialogues": [
+                "Hit! You deal {dmg} damage. Monster HP: {hp}",
+                "You land a blow for {dmg} damage. Monster HP: {hp}"
+            ]
+        },
+        "extra_attack": {
+            "name": "Extra Attack",
+            "role": "System",
+            "dialogues": [
+                "Your speed grants you an extra strike!",
+                "You act again in a blur — extra strike incoming!"
+            ]
+        },
+        "monster_frozen": {
+            "name": "Monster Frozen",
+            "role": "System",
+            "dialogues": [
+                "The monster is frozen and cannot act!",
+                "Ice holds the creature — it cannot move."
+            ]
+        },
+        "invisibility_miss": {
+            "name": "Invisibility Miss",
+            "role": "System",
+            "dialogues": [
+                "The monster swings wildly but hits nothing!",
+                "Blinded by absence, the foe's strike misses."
+            ]
+        },
+        "prepare_guard": {
+            "name": "Prepare Guard",
+            "role": "System",
+            "dialogues": [
+                "Prepare your guard before the attack lands.",
+                "Get ready to defend — brace yourself."
+            ]
+        },
+        "brace_defend": {
+            "name": "Brace Defend",
+            "role": "System",
+            "dialogues": [
+                "You brace to defend {zone}.",
+                "You ready your defense at the {zone}."
+            ]
+        },
+        "monster_attack_roll": {
+            "name": "Monster Attack Roll",
+            "role": "System",
+            "dialogues": [
+                "{name} attacks {zone}: roll {attack_die} + Strength/2({str_bonus}) = {attack_roll} vs AC {ac}",
+                "The {name} strikes at {zone}: roll {attack_die} + Str/2({str_bonus}) = {attack_roll} vs AC {ac}"
+            ]
+        },
+        "monster_natural_one": {
+            "name": "Monster Natural One",
+            "role": "System",
+            "dialogues": [
+                "{name} blunders and injures itself for {dmg} HP!",
+                "A terrible mistake — {name} takes {dmg} HP damage."
+            ]
+        },
+        "monster_critical": {
+            "name": "Monster Critical",
+            "role": "System",
+            "dialogues": [
+                "Critical hit! You take {dmg} damage. Your HP: {hp}",
+                "A crushing blow lands — {dmg} damage! You have {hp} HP left."
+            ]
+        },
+        "armor_damaged": {
+            "name": "Armor Damaged",
+            "role": "System",
+            "dialogues": [
+                "Ouch! Your {name} is damaged and provides reduced protection.",
+                "Your {name} takes a beating — it’s now damaged."
+            ]
+        },
+        "defend_success": {
+            "name": "Defend Success",
+            "role": "System",
+            "dialogues": [
+                "You successfully defend against the {zone} attack!",
+                "Your guard holds at the {zone}."
+            ]
+        },
+        "player_hit": {
+            "name": "Player Hit",
+            "role": "System",
+            "dialogues": [
+                "You are hit for {dmg} damage. Your HP: {hp}",
+                "A blow connects — {dmg} damage. HP now {hp}."
+            ]
+        },
+        "monster_miss": {
+            "name": "Monster Miss",
+            "role": "System",
+            "dialogues": [
+                "{name} misses!",
+                "The {name}'s strike goes wide."
+            ]
+        },
+        "examine_intro": {
+            "name": "Examine Intro",
+            "role": "Narration",
+            "dialogues": [
+                "You examine the creature... (Wisdom check: {roll})",
+                "Careful study begins — Wisdom check {roll}."
+            ]
+        },
+        "examine_result": {
+            "name": "Examine Result",
+            "role": "Narration",
+            "dialogues": [
+                "You can see: HP {hp}, AC {ac}",
+                "Observed stats — HP: {hp}, AC: {ac}."
+            ]
+        },
+        "examine_dex": {
+            "name": "Examine Dexterity",
+            "role": "Narration",
+            "dialogues": [
+                "Dexterity: {dex}",
+                "It moves with Dexterity: {dex}."
+            ]
+        },
+        "examine_abilities": {
+            "name": "Examine Abilities",
+            "role": "Narration",
+            "dialogues": [
+                "Special abilities: {abilities}",
+                "Notable traits: {abilities}"
+            ]
+        },
+        "weapon_option": {
+            "name": "Weapon Option",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {name} ({damage} damage)",
+                "{idx}) {name} — Damage: {damage}"
+            ]
+        },
+        "potion_option": {
+            "name": "Potion Option",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {label}",
+                "{idx}) {label} ({uses} uses left)"
+            ]
+        },
+        "spell_option": {
+            "name": "Spell Option",
+            "role": "System",
+            "dialogues": [
+                "{idx}) {label} ({uses} uses left)",
+                "{idx}) {label} — Uses: {uses}"
+            ]
+        },
+        "weakness_effect": {
+            "name": "Weakness Effect",
+            "role": "System",
+            "dialogues": [
+                "The foe looks feebler. (-2 damage this combat)",
+                "Weakness takes hold — enemy damage reduced."
+            ]
+        },
+        "slowness_effect": {
+            "name": "Slowness Effect",
+            "role": "System",
+            "dialogues": [
+                "The foe slows. (-2 damage this combat)",
+                "Its movements lag — damage reduced."
+            ]
+        },
+        "full_power_option": {
+            "name": "Full Power Option",
+            "role": "System",
+            "dialogues": [
+                "1) Full power",
+                "1) Full power — max effect"
+            ]
+        },
+        "half_power_option": {
+            "name": "Half Power Option",
+            "role": "System",
+            "dialogues": [
+                "2) Half power",
+                "2) Half power — reduced effect"
+            ]
+        },
+        "lightning_bolt": {
+            "name": "Lightning Bolt",
+            "role": "System",
+            "dialogues": [
+                "Lightning arcs for {dmg} damage. Monster HP: {hp}",
+                "Crackling energy deals {dmg} damage. Monster HP: {hp}"
+            ]
+        },
+        "fireball": {
+            "name": "Fireball",
+            "role": "System",
+            "dialogues": [
+                "Fireball explodes for {dmg} damage. Monster HP: {hp}",
+                "A roaring fireball deals {dmg} damage! Monster HP: {hp}"
+            ]
+        },
+        "freeze_effect": {
+            "name": "Freeze Effect",
+            "role": "System",
+            "dialogues": [
+                "Ice binds the monster. (It skips its next turn)",
+                "Frozen solid — it will miss its next action."
+            ]
+        },
+        "vulnerability_effect": {
+            "name": "Vulnerability Effect",
+            "role": "System",
+            "dialogues": [
+                "Cracks appear in its defenses. (-2 AC this combat)",
+                "Its armor falters — AC reduced temporarily."
+            ]
+        },
+        "teleport_to_town": {
+            "name": "Teleport To Town",
+            "role": "System",
+            "dialogues": [
+                "A portal whisks you away to town!",
+                "A shimmering gateway pulls you back to safety."
+            ]
+        },
+        "magic_portal": {
+            "name": "Magic Portal",
+            "role": "System",
+            "dialogues": [
+                "You conjure a portal and step through to safety.",
+                "A portal opens; you step through and find yourself home."
+            ]
+        },
+        "initiative": {
+            "name": "Initiative",
+            "role": "System",
+            "dialogues": [
+                "Initiative - You: {c_roll} (roll + {cdx}) vs Monster: {m_roll} (roll + {mdx})",
+                "Rolls — You: {c_roll} vs Monster: {m_roll}."
+            ]
+        },
+        "rest_recover_full": {
+            "name": "Rest Recover",
+            "role": "System",
+            "dialogues": [
+                "You rest and recover to full health.",
+                "A full rest restores you to maximum HP."
+            ]
+        },
+        "dragon_victory": {
+            "name": "Dragon Victory",
+            "role": "System",
+            "dialogues": [
+                "The mighty Dragon crashes to the ground with a thunderous roar that shakes the very foundations of the labyrinth. As its life force fades, the corrupted energy that twisted this place begins to unravel. Reality stabilizes, the walls stop shifting, and a golden light fills the chamber.",
+                "With a final, earth-shaking roar, the great Dragon collapses. The labyrinth's malevolent energy dissipates like morning mist, and the twisted corridors begin to straighten and heal. You have broken the curse that bound this place."
+            ]
+        },
+        "dragon_victory_2": {
+            "name": "Dragon Victory Part 2",
+            "role": "System",
+            "dialogues": [
+                "You have done what no Explorer before you could accomplish—you have defeated the fallen guardian and sealed the breach in reality itself. The labyrinth dissolves around you as you emerge into daylight, forever changed by your triumph over the darkness.",
+                "The fallen guardian is no more. As the Dragon's corrupted spirit is finally laid to rest, the breach in reality seals itself. You emerge from the dissolving labyrinth as a true Explorer, having saved not just Darsen, but the entire realm from this ancient threat."
+            ]
+        },
+        "game_victory": {
+            "name": "Game Victory",
+            "role": "System",
+            "dialogues": [
+                "VICTORY! {character_name} the Dragon Slayer has saved the realm! Your legend will be told for generations to come.",
+                "TRIUMPH! {character_name} the Explorer has accomplished the impossible! The Dragon is slain, the labyrinth is cleansed, and peace returns to the land."
+            ]
+        },
+        "game_over": {
+            "name": "Game Over",
+            "role": "System",
+            "dialogues": [
+                "{character_name}'s adventure ends here. The labyrinth claims another soul, and the Dragon's corruption grows stronger.",
+                "The light fades from {character_name}'s eyes. Another brave soul has fallen to the labyrinth's horrors, and the Dragon remains undefeated."
+            ]
+        }
+    }
+}

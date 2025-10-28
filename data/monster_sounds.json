@@ -1,0 +1,126 @@
+[
+	{
+		"name": "Dragon",
+		"sound": "Piercing roar with rumbling wing beats"
+	},
+	{
+		"name": "Death Knight",
+		"sound": "Clanking armor and chilling whispers"
+	},
+	{
+		"name": "Archlich",
+		"sound": "Eerie resonant chanting with bone rattling"
+	},
+	{
+		"name": "Leviathan",
+		"sound": "Deep water splashes and distant thunder"
+	},
+	{
+		"name": "Hydra",
+		"sound": "Multiple hissing heads and wet snarls"
+	},
+	{
+		"name": "Chimera",
+		"sound": "Ferocious growl mixed with snarling roars"
+	},
+	{
+		"name": "Hell Knight",
+		"sound": "Heavy footsteps with fiery crackles"
+	},
+	{
+		"name": "Wyvern",
+		"sound": "Sharp screeches and flapping wings"
+	},
+	{
+		"name": "Manticore",
+		"sound": "Snarling with sporadic tail rattles"
+	},
+	{
+		"name": "Golem",
+		"sound": "Grinding stones and metallic clanks"
+	},
+	{
+		"name": "Frost Troll",
+		"sound": "Low guttural growls with icy cracking"
+	},
+	{
+		"name": "Vampire",
+		"sound": "Whispering hiss and soft flutter of cape."
+	},
+	{
+		"name": "Dark Elf",
+		"sound": "Murmured curses and swift footsteps"
+	},
+	{
+		"name": "Wraith",
+		"sound": "Haunting breezes with distant moans"
+	},
+	{
+		"name": "Banshee",
+		"sound": "Piercing screams echoing through silence"
+	},
+	{
+		"name": "Shadow Fiend",
+		"sound": "Whispering shadows and faint snarls"
+	},
+	{
+		"name": "Succubus",
+		"sound": "Seductive laughter with soft whispers"
+	},
+	{
+		"name": "Gargoyle",
+		"sound": "Stone scrapes and sharp wing beats"
+	},
+	{
+		"name": "Minotaur",
+		"sound": "Heavy snorts and pounding hooves"
+	},
+	{
+		"name": "Troll",
+		"sound": "Grumbling growls with tree branch snaps"
+	},
+	{
+		"name": "Giant Spider",
+		"sound": "Skittering legs and chittering mandibles"
+	},
+	{
+		"name": "Ghost",
+		"sound": "Whispering echoes and translucent sighs"
+	},
+	{
+		"name": "Werewolf",
+		"sound": "Ferocious howls with aggressive snarls"
+	},
+	{
+		"name": "Hobgoblin",
+		"sound": "Sneaky chuckles and quick footsteps"
+	},
+	{
+		"name": "Green Slime",
+		"sound": "Squishy plops and bubbling ooze"
+	},
+	{
+		"name": "Orc",
+		"sound": "Raucous grunts and battle cries"
+	},
+	{
+		"name": "Hellhound",
+		"sound": "Fiery growls and scorching panting"
+	},
+	{
+		"name": "Ghoul",
+		"sound": "Creepy moans with unsettling scrapes"
+	},
+	{
+		"name": "Zombie",
+		"sound": "Slow groans and shuffling feet"
+	},
+	{
+		"name": "Goblin",
+		"sound": "High-pitched chatter and scurrying"
+	},
+	{
+		"name": "Skeleton",
+		"sound": "Rattling bones and metallic clinks"
+	}
+]
