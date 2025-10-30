@@ -14,7 +14,9 @@
         html,
         body {
             height: 100%;
-            margin: 0
+            margin: 0;
+            overflow: hidden;
+            /* prevent page scrollbar */
         }
 
         body {
@@ -30,6 +32,10 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
+            /* Ensure bottom of content isn't clipped by viewport and account for safe areas */
+            padding-bottom: 10px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            box-sizing: border-box;
         }
 
         .game-content {
@@ -67,18 +73,21 @@
             backdrop-filter: blur(1px);
             border-radius: 12px 12px 0 0;
             padding: 20px;
-            margin: 0 10px 10px 10px;
-            min-height: 200px;
+            /* Remove external bottom margin to avoid clipping inside overflow-hidden container */
+            margin: 0 10px;
+            /* Let inline styles from React control min/max/height; keep a small base only */
+            min-height: 60px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #output {
             color: #ffffff;
             padding: 8px 0;
-            overflow: auto;
+            /* No native scrollbars; render full content */
+            overflow: visible;
             white-space: pre-wrap;
             font-family: Consolas, 'Courier New', monospace;
-            max-height: 300px;
+            max-height: none;
         }
 
         .options {

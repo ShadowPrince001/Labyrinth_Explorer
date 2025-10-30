@@ -28,6 +28,13 @@ window.initApp = (function () {
         const [error, setError] = useState('');
         const socketRef = useRef(null);
         const inputRef = useRef(null);
+        // Dynamic story container: refs and state
+        const overlayRef = useRef(null); // story/dialogue container
+        const outputRef = useRef(null); // inner text content
+        const bottomRef = useRef(null); // prompt + buttons wrapper
+        const [textBoxHeight, setTextBoxHeight] = useState(null);
+        const [bottomHeight, setBottomHeight] = useState(0);
+        const [bottomGapPx, setBottomGapPx] = useState(12); // small gap below textbox
         function append(text) { setLog(prev => [...prev, text]); const el = document.getElementById('output'); if (el) setTimeout(() => { try { el.scrollTop = el.scrollHeight; } catch (e) { } }, 0); }
         function startRevealLoop() {
             if (revealingRef.current) return;
@@ -272,6 +279,45 @@ window.initApp = (function () {
         }, []);
         // Autofocus prompt input when it appears
         useEffect(() => { if (prompt && inputRef.current) { try { inputRef.current.focus(); } catch (e) { } } }, [prompt]);
+        // Measure container so it's anchored to the bottom with a tiny gap and grows upward as content increases
+        useEffect(() => {
+            const padTop = 8, padBottom = 8; // keep in sync with inline style below
+            const contentEl = outputRef.current;
+            const bottomEl = bottomRef.current;
+            const contentH = contentEl ? contentEl.scrollHeight : 0;
+            const bH = bottomEl ? bottomEl.offsetHeight : 0;
+            setBottomHeight(bH);
+            const desired = Math.max(60, contentH + bH + padTop + padBottom);
+            if (typeof window !== 'undefined') {
+                const viewport = window.innerHeight || 800;
+                // Slight gap between container border and screen bottom, responsive
+                const bottomGap = Math.max(20, Math.floor(viewport * 0.024)); // ~2.4vh or at least 20px
+                const available = Math.max(60, viewport - bottomGap);
+                setBottomGapPx(bottomGap);
+                setTextBoxHeight(Math.max(60, Math.min(desired, available)));
+            } else {
+                setBottomGapPx(20);
+                setTextBoxHeight(desired);
+            }
+        }, [log, choices, prompt]);
+
+        // Recompute on window resize/orientation change
+        useEffect(() => {
+            const handler = () => {
+                // trigger re-measure by changing state with same values
+                setLog(prev => prev.slice());
+            };
+            if (typeof window !== 'undefined') {
+                window.addEventListener('resize', handler);
+                window.addEventListener('orientationchange', handler);
+            }
+            return () => {
+                if (typeof window !== 'undefined') {
+                    window.removeEventListener('resize', handler);
+                    window.removeEventListener('orientationchange', handler);
+                }
+            };
+        }, []);
         return (
             // Note: This is JSX and will be compiled by Babel to JS in app.js
             <div className="app-container" onClickCapture={flushNow}>
@@ -327,32 +373,55 @@ window.initApp = (function () {
                         </div>
                     ) : null}
                     <div className="content-area" style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
-                        <div className="spacer" style={{ flex: '1 1 50%' }} />
-                        <div className="text-overlay" onClick={flushNow}>
-                            <div id="output">
+                        <div
+                            ref={overlayRef}
+                            className="text-overlay"
+                            onClick={flushNow}
+                            style={{
+                                position: 'relative',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: textBoxHeight ? textBoxHeight : 'auto',
+                                transition: 'height 200ms ease',
+                                // Height is computed in JS to fit content and remain fully visible
+                                minHeight: 60,
+                                overflow: 'hidden', // never show internal scrollbars
+                                paddingTop: 8, paddingRight: 20, paddingBottom: 8, paddingLeft: 20,
+                                // Anchor at bottom with a tiny responsive gap; grow upward
+                                marginTop: 'auto',
+                                marginRight: 10,
+                                marginBottom: bottomGapPx,
+                                marginLeft: 10,
+                            }}
+                        >
+                            {/* Text area - renders fully, no internal scrollbars */}
+                            <div id="output" ref={outputRef} style={{ whiteSpace: 'pre-wrap' }}>
                                 {log.map((ln, i) => (<div key={i}>{ln}</div>))}
                             </div>
-                            {prompt ? (
-                                <div style={{ marginTop: 8 }}>
-                                    <input
-                                        ref={inputRef}
-                                        className="text-input"
-                                        placeholder={prompt.label || 'Enter'}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                const v = e.target.value; e.target.value = '';
-                                                // Send first, then clear local UI so action is reliably emitted
-                                                sendAction('prompt:submit', { id: prompt.id, value: v });
-                                                clearUI();
-                                            }
-                                        }}
-                                    />
+                            {/* Bottom controls: prompt + buttons */}
+                            <div ref={bottomRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                                {prompt ? (
+                                    <div>
+                                        <input
+                                            ref={inputRef}
+                                            className="text-input"
+                                            placeholder={prompt.label || 'Enter'}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    const v = e.target.value; e.target.value = '';
+                                                    // Send first, then clear local UI so action is reliably emitted
+                                                    sendAction('prompt:submit', { id: prompt.id, value: v });
+                                                    clearUI();
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                ) : null}
+                                <div className="options" style={{ marginTop: 0 }}>
+                                    {choices.map((c, i) => (
+                                        <button key={i} className="option-btn" onClick={() => { sendAction(c.id); clearUI(); }}>{c.label}</button>
+                                    ))}
                                 </div>
-                            ) : null}
-                            <div className="options">
-                                {choices.map((c, i) => (
-                                    <button key={i} className="option-btn" onClick={() => { sendAction(c.id); clearUI(); }}>{c.label}</button>
-                                ))}
                             </div>
                         </div>
                     </div>
