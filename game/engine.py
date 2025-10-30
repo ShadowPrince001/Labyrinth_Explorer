@@ -1793,13 +1793,16 @@ class GameEngine:
         self._emit_combat_update(
             f"Initiative - You: {c_roll} (roll + {cdx}) vs {mname}: {m_roll} (roll + {mdx})"
         )
-        self.s.combat["turn"] = "player" if c_roll >= m_roll else "monster"
-        # Pause after initiative so the actual combat menu appears on the next page
-        self.s.subphase = "post_initiative"
-        self._emit_pause()
-        self._emit_menu([("combat:after_initiative", "Continue")])
-        self._emit_state()
-        return self._flush()
+        # Decide who goes first and immediately show the next options inline
+        player_first = c_roll >= m_roll
+        self.s.combat["turn"] = "player" if player_first else "monster"
+        if player_first:
+            self._emit_combat_update("You win initiative and act first.")
+            self.s.subphase = "player_menu"
+        else:
+            self._emit_combat_update(f"{mname} wins initiative and acts first.")
+            self.s.subphase = "monster_defend"
+        return self._combat_emit_menu()
 
     def _combat_emit_menu(self) -> List[Event]:
         # Do not clear here; the UI clears on action clicks so prior combat
