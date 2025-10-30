@@ -180,6 +180,9 @@ class Character:
             armor_name = self.armor.name + (
                 " (damaged)" if getattr(self.armor, "damaged", False) else ""
             )
+        else:
+            # No armor: add 5 to AC (natural protection)
+            armor_ac = 5
         ac = base_ac + armor_ac
         current_weapon = (
             self.weapons[self.equipped_weapon_index].name

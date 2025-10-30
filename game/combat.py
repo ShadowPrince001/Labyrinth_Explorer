@@ -24,6 +24,9 @@ def compute_armor_class(character: Character, ac_bonus: int = 0) -> int:
             if getattr(character.armor, "damaged", False)
             else character.armor.armor_class
         )
+    else:
+        # No armor: add 5 to base AC (natural protection)
+        armor_ac = 5
 
     return base_ac + armor_ac + ac_bonus
 

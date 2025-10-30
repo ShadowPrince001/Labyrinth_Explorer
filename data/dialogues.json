@@ -2212,6 +2212,17 @@
         }
     },
     "combat": {
+        "monster_taunt": {
+            "name": "Monster Taunt",
+            "role": "Monster",
+            "dialogues": [
+                "Fresh meat!",
+                "Another fool to feed the maze!",
+                "Your bones will decorate my den!",
+                "You shouldn’t have come, little hero!",
+                "The labyrinth hungers!"
+            ]
+        },
         "death": {
             "name": "Death",
             "role": "System",

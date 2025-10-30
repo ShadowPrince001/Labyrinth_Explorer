@@ -230,7 +230,20 @@ def on_engine_action(data):
         return
     action = data.get("action") or ""
     payload = data.get("payload") or {}
+
+    # Debug logging
+    print(f"🎮 WEBAPP DEBUG: Received action={action}")
+    print(
+        f"🎮 WEBAPP DEBUG: Current engine phase={eng.s.phase}, subphase={eng.s.subphase}"
+    )
+
     events = eng.handle_action(action, payload)
+
+    print(
+        f"🎮 WEBAPP DEBUG: After action, phase={eng.s.phase}, subphase={eng.s.subphase}"
+    )
+    print(f"🎮 WEBAPP DEBUG: Emitting {len(events)} events")
+
     _emit_events(events, to_sid=sid)
 
 

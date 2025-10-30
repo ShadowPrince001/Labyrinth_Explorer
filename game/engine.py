@@ -144,6 +144,14 @@ class GameEngine:
     def handle_action(
         self, action: str, payload: Optional[Dict[str, Any]] = None
     ) -> List[Event]:
+        import sys
+
+        print(f"\n{'='*60}")
+        print(f"🎯 ENGINE: handle_action called")
+        print(f"🎯 ENGINE: action={action}")
+        print(f"🎯 ENGINE: current phase={self.s.phase}, subphase={self.s.subphase}")
+        sys.stdout.flush()
+
         self.s.buffer.clear()
         payload = payload or {}
 
@@ -184,6 +192,22 @@ class GameEngine:
             # Stage 1: Show full story intro
             self.s.subphase = "intro:story"
             self._emit_clear()
+            # Ensure labyrinth background is set at the start of character creation
+            try:
+                from .scene_manager import set_labyrinth_background
+
+                ev = set_labyrinth_background()
+                bg = (
+                    ev.get("data", {}).get("background")
+                    if isinstance(ev, dict)
+                    else None
+                )
+                if bg:
+                    self._emit_scene(bg)
+                else:
+                    self._emit_scene("labyrinth.png")
+            except Exception:
+                self._emit_scene("labyrinth.png")
             try:
                 d = load_dialogues() or {}
                 sysd = d.get("system", {}) if isinstance(d, dict) else {}
@@ -704,6 +728,14 @@ class GameEngine:
                     setattr(c, "prayed", False)
                 except Exception:
                     pass
+            # If a prior revival requested a depth reset, apply it now just before entering
+            try:
+                if bool(getattr(self.s, "defer_depth_reset", False)):
+                    self.s.depth = 1
+                    self.s.room_history = []
+                    setattr(self.s, "defer_depth_reset", False)
+            except Exception:
+                pass
             # Set labyrinth background for dungeon
             self._emit_scene("labyrinth.png")
             # Mark to show gate guard message on first room render
@@ -712,22 +744,23 @@ class GameEngine:
             self.s.current_room = None
             return self._enter_room()
         if action == "town:shop":
-            # Shop background
-            self._emit_scene("town_menu/shop.png")
             self.s.phase = "shop"
             return self._shop_show_categories()
+        if action == "town:train":
+            # Training background and menu
+            try:
+                self._emit_scene("town_menu/training.png")
+            except Exception:
+                pass
+            return self._train_menu()
         if action == "town:inventory":
             self.s.phase = "inventory"
             return self._inventory_show()
         if action == "town:gamble":
-            # Gambling background
-            self._emit_scene("town_menu/gambling.png")
             return self._gamble_start()
         if action == "town:companion":
             return self._companion_menu()
         if action == "town:repair":
-            # Weaponsmith background
-            self._emit_scene("town_menu/weaponsmith.png")
             return self._weaponsmith_menu()
         if action == "town:rest":
             # Once per town visit; 10g; 5d4 + CON > 25 -> heal ceil(maxHP/3)
@@ -1145,6 +1178,9 @@ class GameEngine:
                 or "Save is not implemented in the web version yet."
             )
             return self._render_town_menu()
+        # Handle training attribute selection
+        if action.startswith("train:"):
+            return self._train_handle(action)
         if action == "town:quit":
             self.s.phase = "main_menu"
             return self.start()
@@ -1192,20 +1228,26 @@ class GameEngine:
                     self._emit_dialogue(ln)
                 self._emit_update_stats()
                 if self.s.character.hp <= 0:
-                    self._emit_dialogue(
-                        get_dialogue("system", "death", None, self.s.character)
-                        or "You have died! Game Over!"
-                    )
-                    self.s.phase = "main_menu"
-                    self._emit_menu(
-                        [
-                            ("main:new", "New Game"),
-                            ("main:load", "Load Game"),
-                            ("main:quit", "Quit"),
-                        ]
-                    )
-                    self._emit_state()
-                    return self._flush()
+                    # If a trap kills you outside of combat, use the same revival flow
+                    # as combat deaths so you respawn in town (with deferred depth reset)
+                    try:
+                        return self._attempt_revival({"name": "Trap"})
+                    except Exception:
+                        # Fallback: go to main menu
+                        self._emit_dialogue(
+                            get_dialogue("system", "death", None, self.s.character)
+                            or "You have died! Game Over!"
+                        )
+                        self.s.phase = "main_menu"
+                        self._emit_menu(
+                            [
+                                ("main:new", "New Game"),
+                                ("main:load", "Load Game"),
+                                ("main:quit", "Quit"),
+                            ]
+                        )
+                        self._emit_state()
+                        return self._flush()
             room = generate_room(self.s.depth, self.s.character)
 
             # Override monster for special conditions:
@@ -1225,12 +1267,21 @@ class GameEngine:
                 except Exception:
                     pass
 
-            # Set room-specific background based on description
-            from .scene_manager import set_room_background
+            # Apply a forced monster from a previously committed preview, if present
+            try:
+                forced_name = getattr(self.s, "next_forced_monster", None)
+                if forced_name:
+                    from .labyrinth import _monster_by_name as _MBN2
 
-            room_bg_event = set_room_background(room.description)
-            if room_bg_event and room_bg_event.get("data", {}).get("background"):
-                self._emit_scene(room_bg_event["data"]["background"])
+                    forced_mon = _MBN2(str(forced_name), self.s.depth)
+                    if forced_mon:
+                        room.monster = forced_mon
+                # Clear forced marker after use
+                setattr(self.s, "next_forced_monster", None)
+            except Exception:
+                pass
+
+            # Defer room background scene emission until after we clear the UI below
 
             self.s.current_room = {
                 "description": room.description,
@@ -1238,6 +1289,7 @@ class GameEngine:
                 "has_chest": room.has_chest,
                 "chest_gold": getattr(room, "chest_gold", 0),
                 "chest_magic_item": getattr(room, "chest_magic_item", None),
+                "room_id": getattr(room, "room_id", None),
                 "monster": (
                     None
                     if not room.monster
@@ -1254,6 +1306,35 @@ class GameEngine:
             }
 
         room = self.s.current_room
+        # Precompute next-room preview (monster only) so Divine/Listen agree and match reality
+        try:
+            target_depth = int(self.s.depth) + 1
+            current_preview = getattr(self.s, "peek_next", None)
+            if not (
+                isinstance(current_preview, dict)
+                and current_preview.get("depth") == target_depth
+            ):
+                nxt = generate_room(target_depth, self.s.character)
+                # Emulate 50th encounter forcing in preview for consistency
+                try:
+                    upcoming_now = int(getattr(self.s, "monster_encounters", 0))
+                    if room.get("monster"):
+                        upcoming_now += 1
+                    upcoming_next = upcoming_now + 1
+                    if getattr(nxt, "monster", None) and upcoming_next == 50:
+                        from .labyrinth import _monster_by_name as _MBN
+
+                        forced = _MBN("Dragon", target_depth)
+                        if forced:
+                            nxt.monster = forced
+                except Exception:
+                    pass
+                mname = getattr(getattr(nxt, "monster", None), "name", None)
+                self.s.peek_next = {"depth": target_depth, "monster": mname or None}
+        except Exception:
+            pass
+        # Clear like CLI at each room view BEFORE setting the room background
+        self._emit_clear()
         # Always ensure the room background is set when (re)entering a room,
         # even if the room was already generated (e.g., after combat victory)
         try:
@@ -1265,8 +1346,7 @@ class GameEngine:
                 self._emit_scene(bg)
         except Exception:
             pass
-        # Clear like CLI at each room view
-        self._emit_clear()
+        # After background is set, render text
         # If just entering from town, show gate guard line once
         try:
             if self.s.subphase == "entering_dng_gate":
@@ -1340,6 +1420,26 @@ class GameEngine:
                 self.s.room_history.append(self.s.depth)
             except Exception:
                 self.s.room_history = [self.s.depth]
+            # Reset once-per-depth utilities when leaving this depth
+            try:
+                setattr(self.s, "used_divine_depth", None)
+                setattr(self.s, "used_listen_depth", None)
+            except Exception:
+                pass
+            # Consume precomputed preview so the next room's monster matches the hints
+            try:
+                forced_name = None
+                pv = getattr(self.s, "peek_next", None)
+                if isinstance(pv, dict) and pv.get("depth") == (self.s.depth + 1):
+                    forced_name = pv.get("monster")
+                setattr(self.s, "next_forced_monster", forced_name)
+                # Clear preview; will be recomputed upon entering the new room
+                self.s.peek_next = None
+            except Exception:
+                try:
+                    setattr(self.s, "next_forced_monster", None)
+                except Exception:
+                    pass
             self.s.depth += 1
             self.s.current_room = None
             return self._enter_room()
@@ -1357,6 +1457,12 @@ class GameEngine:
                     setattr(self.s.character, "prayed", False)
                 except Exception:
                     pass
+            # Reset once-per-depth utilities when leaving the dungeon
+            try:
+                setattr(self.s, "used_divine_depth", None)
+                setattr(self.s, "used_listen_depth", None)
+            except Exception:
+                pass
             self._emit_clear()
             # Set town background when returning from dungeon
             try:
@@ -1389,6 +1495,12 @@ class GameEngine:
             return self._flush()
         elif action == "dng:back":
             # Step back towards town according to history or depth
+            # Reset once-per-depth utilities when leaving this depth
+            try:
+                setattr(self.s, "used_divine_depth", None)
+                setattr(self.s, "used_listen_depth", None)
+            except Exception:
+                pass
             if self.s.room_history:
                 self.s.depth = max(1, int(self.s.room_history.pop()))
             else:
@@ -1417,36 +1529,63 @@ class GameEngine:
                     return self._render_town_menu()
             self.s.current_room = None
             return self._enter_room()
+        elif action == "dng:result_continue":
+            # Generic continue after room utility result screens
+            return self._enter_room()
         elif action == "dng:divine":
             c = self.s.character
-            # Wisdom-based bonus similar to CLI
-            wis = getattr(c, "attributes", {}).get("Wisdom", 10)
-            # Use new mechanics: 5d4 + (Wisdom - 10)
-            bonus = wis - 10
-            r = roll_damage("5d4") + bonus
-            line = get_dialogue("combat", "divine_attempt", None, c)
+            # Enforce once-per-depth usage
             try:
-                self._emit_dialogue(
-                    line.format(roll=r)
-                    if line
-                    else f"You pray for guidance... Roll {r}"
-                )
+                if getattr(self.s, "used_divine_depth", None) == self.s.depth:
+                    self._emit_dialogue(
+                        "You've already asked for divine assistance at this depth."
+                    )
+                    self._emit_pause()
+                    self._emit_menu([("dng:result_continue", "Continue")])
+                    self._emit_state()
+                    return self._flush()
             except Exception:
-                self._emit_dialogue(f"You pray for guidance... Roll {r}")
-            if r >= 12:
-                nxt = generate_room(self.s.depth + 1, c)
-                if nxt.monster:
+                pass
+            # New mechanics: 5d4 + Wisdom must be > 25
+            wis = getattr(c, "attributes", {}).get("Wisdom", 10)
+            base = roll_damage("5d4")
+            r = base + wis
+            line = get_dialogue("combat", "divine_attempt", None, c)
+            msg = (
+                line.format(roll=r)
+                if line
+                else f"You pray for guidance... Roll {base} + WIS {wis} = {r} (need >25)"
+            )
+            try:
+                self._emit_dialogue(msg)
+            except Exception:
+                self._emit_dialogue(
+                    f"You pray for guidance... Roll {base} + WIS {wis} = {r} (need >25)"
+                )
+            if r > 25:
+                # Use precomputed preview for consistency
+                pv = getattr(self.s, "peek_next", None)
+                mname = None
+                if isinstance(pv, dict) and pv.get("depth") == (self.s.depth + 1):
+                    mname = pv.get("monster")
+                else:
+                    # Fallback: compute one now (and store it)
+                    try:
+                        nxt = generate_room(self.s.depth + 1, c)
+                        mname = getattr(getattr(nxt, "monster", None), "name", None)
+                        self.s.peek_next = {"depth": self.s.depth + 1, "monster": mname}
+                    except Exception:
+                        mname = None
+                if mname:
                     v = get_dialogue("system", "vision_monster", None, c)
                     try:
                         self._emit_dialogue(
-                            v.format(name=nxt.monster.name)
+                            v.format(name=mname)
                             if v
-                            else f"A vision shows a {nxt.monster.name} ahead."
+                            else f"A vision shows a {mname} ahead."
                         )
                     except Exception:
-                        self._emit_dialogue(
-                            f"A vision shows a {nxt.monster.name} ahead."
-                        )
+                        self._emit_dialogue(f"A vision shows a {mname} ahead.")
                 else:
                     self._emit_dialogue(
                         get_dialogue("system", "vision_empty", None, c)
@@ -1456,38 +1595,67 @@ class GameEngine:
                 self._emit_dialogue(
                     get_dialogue("system", "no_vision", None, c) or "No vision comes."
                 )
+            # Mark used for this depth
+            try:
+                setattr(self.s, "used_divine_depth", self.s.depth)
+            except Exception:
+                pass
+            # Gate with Continue instead of refreshing immediately
             self._emit_pause()
-            return self._enter_room()
+            self._emit_menu([("dng:result_continue", "Continue")])
+            self._emit_state()
+            return self._flush()
         elif action == "dng:listen":
             # Dedicated listen result screen
+            # Enforce once-per-depth usage
+            try:
+                if getattr(self.s, "used_listen_depth", None) == self.s.depth:
+                    self._emit_dialogue("You've already listened at this depth.")
+                    self._emit_pause()
+                    self._emit_menu([("dng:result_continue", "Continue")])
+                    self._emit_state()
+                    return self._flush()
+            except Exception:
+                pass
             self._emit_clear()
             c = self.s.character
             per = getattr(c, "attributes", {}).get("Perception", 10)
-            bonus = per - 10
-            # Perception check now uses 5d4 base
+            # New mechanics: 5d4 + Perception must be > 25
             base = roll_damage("5d4")
-            total = base + bonus
+            total = base + per
             listen = get_dialogue("system", "listen_roll", None, c)
+            msg = (
+                listen.format(roll=total)
+                if listen
+                else f"You listen carefully... Roll {base} + PER {per} = {total} (need >25)"
+            )
             try:
-                self._emit_dialogue(
-                    listen.format(roll=total)
-                    if listen
-                    else f"You listen carefully... Roll {base} + Bonus {bonus} = {total}"
-                )
+                self._emit_dialogue(msg)
             except Exception:
                 self._emit_dialogue(
-                    f"You listen carefully... Roll {base} + Bonus {bonus} = {total}"
+                    f"You listen carefully... Roll {base} + PER {per} = {total} (need >25)"
                 )
-            if total >= 12:
+            if total > 25:
                 from .data_loader import load_monster_sounds
 
                 mapping = {
                     (s.get("name", "") or "").lower(): s.get("sound", "Unknown")
                     for s in (load_monster_sounds() or [])
                 }
-                nxt = generate_room(self.s.depth + 1, c)
-                if nxt.monster:
-                    name = (getattr(nxt.monster, "name", "") or "").lower()
+                # Use the preview for consistency with Divine and the actual next room
+                pv = getattr(self.s, "peek_next", None)
+                pname = None
+                if isinstance(pv, dict) and pv.get("depth") == (self.s.depth + 1):
+                    pname = pv.get("monster")
+                else:
+                    try:
+                        nxt = generate_room(self.s.depth + 1, c)
+                        pname = getattr(getattr(nxt, "monster", None), "name", None)
+                        self.s.peek_next = {"depth": self.s.depth + 1, "monster": pname}
+                    except Exception:
+                        pname = None
+                if pname:
+                    name = (pname or "").lower()
                     hint = mapping.get(name, "Unknown")
                     line = get_dialogue("system", "you_hear", None, c)
                     try:
@@ -1506,8 +1674,16 @@ class GameEngine:
                     get_dialogue("system", "hear_nothing", None, c)
                     or "You hear nothing useful."
                 )
+            # Mark used for this depth
+            try:
+                setattr(self.s, "used_listen_depth", self.s.depth)
+            except Exception:
+                pass
+            # Gate with Continue instead of refreshing immediately
             self._emit_pause()
-            return self._enter_room()
+            self._emit_menu([("dng:result_continue", "Continue")])
+            self._emit_state()
+            return self._flush()
         elif action == "dng:open_chest":
             # Dedicated chest result screen
             self._emit_clear()
@@ -1519,7 +1695,9 @@ class GameEngine:
                     or "There is no chest in this room."
                 )
                 self._emit_pause()
-                return self._enter_room()
+                self._emit_menu([("dng:result_continue", "Continue")])
+                self._emit_state()
+                return self._flush()
             gold = int(room.get("chest_gold", 0))
             if gold:
                 c.gold += gold
@@ -1564,8 +1742,11 @@ class GameEngine:
             self.s.current_room["chest_gold"] = 0
             self.s.current_room["chest_magic_item"] = None
             self._emit_update_stats()
+            # Gate with Continue instead of refreshing immediately
             self._emit_pause()
-            return self._enter_room()
+            self._emit_menu([("dng:result_continue", "Continue")])
+            self._emit_state()
+            return self._flush()
         elif action == "dng:examine_items":
             c = self.s.character
             if not getattr(c, "magic_items", None):
@@ -1574,7 +1755,9 @@ class GameEngine:
                     or "You have no magic items to examine."
                 )
                 self._emit_pause()
-                return self._enter_room()
+                self._emit_menu([("dng:result_continue", "Continue")])
+                self._emit_state()
+                return self._flush()
             self._emit_dialogue(
                 get_dialogue("system", "magic_items_list", None, c)
                 or "Magic items in your possession:"
@@ -1585,17 +1768,131 @@ class GameEngine:
                     self._emit_dialogue(f"{i}) {name}")
             except Exception:
                 pass
+            # Gate with Continue instead of refreshing immediately
             self._emit_pause()
-            return self._enter_room()
+            self._emit_menu([("dng:result_continue", "Continue")])
+            self._emit_state()
+            return self._flush()
         else:
             # Refresh room view
             return self._enter_room()
 
     def _handle_combat(self, action: str) -> List[Event]:
         # Event-driven combat loop
+        import sys
+
+        print(f"🔧 DEBUG: _handle_combat called with action={action}")
+        sys.stdout.flush()
+        print(f"🔧 DEBUG: phase={self.s.phase}, subphase={self.s.subphase}")
+        sys.stdout.flush()
+        print(f"🔧 DEBUG: current_room={self.s.current_room is not None}")
+        sys.stdout.flush()
+
+        # CRITICAL: Handle revival subphases BEFORE checking for monster
+        # because _attempt_revival clears current_room
+        sp = self.s.subphase or "player_menu"
+
+        # Revival handlers (these must come first, before monster check)
+        if sp == "revival_success" and action == "combat:revival_success_continue":
+            print(f"🔧 DEBUG: Revival handler triggered! sp={sp}, action={action}")
+            sys.stdout.flush()
+            print(
+                f"🔧 DEBUG: Before changes - phase={self.s.phase}, current_room={self.s.current_room}"
+            )
+            sys.stdout.flush()
+
+            # IMPORTANT: Set phase to town FIRST before clearing room state
+            # This prevents re-entry bugs where cleared room triggers dungeon routing
+            self.s.phase = "town"
+            self.s.subphase = ""
+            print(f"🔧 DEBUG: Phase set to town, subphase cleared")
+            sys.stdout.flush()
+
+            # Now clear combat/room state to ensure no dungeon remnants
+            try:
+                self.s.current_room = None
+                self.s.room_history = []
+                self.s.combat = {}
+                print(f"🔧 DEBUG: Cleared room/combat state")
+                sys.stdout.flush()
+            except Exception as e:
+                print(f"🔧 DEBUG: Error clearing state: {e}")
+                sys.stdout.flush()
+
+            self._emit_clear()
+            print(f"🔧 DEBUG: Emitted clear")
+            sys.stdout.flush()
+
+            # Force scene reset by sending null, then town background
+            self._emit_scene(None)
+            print(f"🔧 DEBUG: Emitted null scene")
+            sys.stdout.flush()
+
+            try:
+                from .scene_manager import set_town_background
+
+                ev = set_town_background()
+                bg = (
+                    ev.get("data", {}).get("background")
+                    if isinstance(ev, dict)
+                    else None
+                )
+                if bg:
+                    self._emit_scene(bg)
+                    print(f"🔧 DEBUG: Emitted town background: {bg}")
+                    sys.stdout.flush()
+                else:
+                    self._emit_scene("town_menu/town.png")
+                    print(f"🔧 DEBUG: Emitted fallback town background")
+                    sys.stdout.flush()
+            except Exception as e:
+                self._emit_scene("town_menu/town.png")
+                print(f"🔧 DEBUG: Exception in background, used fallback: {e}")
+                sys.stdout.flush()
+
+            print(f"🔧 DEBUG: About to call _render_town_menu()")
+            sys.stdout.flush()
+            print(
+                f"🔧 DEBUG: Final state - phase={self.s.phase}, current_room={self.s.current_room}"
+            )
+            sys.stdout.flush()
+            return self._render_town_menu()
+
+        if sp == "revival_fail" and action == "combat:revival_fail_continue":
+            # Proceed to main menu after permanent death page
+            try:
+                self.s.depth = 1
+            except Exception:
+                pass
+            # Reset once-per-depth utilities on death
+            try:
+                setattr(self.s, "used_divine_depth", None)
+                setattr(self.s, "used_listen_depth", None)
+            except Exception:
+                pass
+            self.s.phase = "main_menu"
+            # Clear first, then force background reset by sending null, then labyrinth
+            self._emit_clear()
+            # Emit a blank scene to force reset the background state on client
+            self._emit_scene(None)
+            # Now emit labyrinth - client will see it as a change from None
+            self._emit_scene("labyrinth.png")
+            self._emit_menu(
+                [
+                    ("main:new", "New Game"),
+                    ("main:load", "Load Game"),
+                    ("main:quit", "Quit"),
+                ]
+            )
+            self._emit_state()
+            return self._flush()
+
+        # NOW check for monster (after revival handlers)
         room = self.s.current_room or {}
         mon = room.get("monster")
         if not mon:
+            print(f"🔧 DEBUG: No monster found, routing to dungeon")
+            sys.stdout.flush()
             self.s.phase = "dungeon"
             return self._enter_room()
 
@@ -1603,8 +1900,8 @@ class GameEngine:
         if self.s.subphase == "start" and action == "combat:fight":
             return self._combat_begin(mon)
 
-        # Route by subphase
-        sp = self.s.subphase or "player_menu"
+        # Route by remaining subphases
+        print(f"🔧 DEBUG: Routing by subphase: sp={sp}")
         # Pause-gated continues for spawn/initiative/victory
         if sp == "pause_after_spawn" and action == "combat:after_spawn":
             self.s.subphase = "initiative"
@@ -1655,44 +1952,6 @@ class GameEngine:
         if sp == "run_fail" and action == "combat:run_fail_continue":
             self.s.subphase = "monster_defend"
             return self._combat_emit_menu()
-        if sp == "revival_success" and action == "combat:revival_success_continue":
-            # Proceed to town after revival success page
-            self.s.phase = "town"
-            self._emit_clear()
-            try:
-                from .scene_manager import set_town_background
-
-                ev = set_town_background()
-                bg = (
-                    ev.get("data", {}).get("background")
-                    if isinstance(ev, dict)
-                    else None
-                )
-                if bg:
-                    self._emit_scene(bg)
-                else:
-                    self._emit_scene("town_menu/town.png")
-            except Exception:
-                self._emit_scene("town_menu/town.png")
-            return self._render_town_menu()
-        if sp == "revival_fail" and action == "combat:revival_fail_continue":
-            # Proceed to main menu after permanent death page
-            self.s.phase = "main_menu"
-            # Clear first, then force background reset by sending null, then labyrinth
-            self._emit_clear()
-            # Emit a blank scene to force reset the background state on client
-            self._emit_scene(None)
-            # Now emit labyrinth - client will see it as a change from None
-            self._emit_scene("labyrinth.png")
-            self._emit_menu(
-                [
-                    ("main:new", "New Game"),
-                    ("main:load", "Load Game"),
-                    ("main:quit", "Quit"),
-                ]
-            )
-            self._emit_state()
-            return self._flush()
         if sp == "dragon_victory" and action == "combat:dragon_victory_continue":
             # Winning the game: go to main menu with a short epilogue
             self.s.phase = "main_menu"
@@ -1940,11 +2199,15 @@ class GameEngine:
             return self._combat_next_turn("monster")
         # Natural 20 crit
         if attack_die == 20:
-            dmg_die = getattr(weapon, "damage_die", "1d2") if weapon else "1d2"
-            base_dmg = (
-                roll_damage(dmg_die)
-                + math.ceil(str_mod / 2)
-                + self.s.combat.get("buffs", {}).get("damage_bonus", 0)
+            # Unarmed does fixed 2 damage, weapons roll their damage die
+            if weapon:
+                dmg_die = getattr(weapon, "damage_die", "1d2")
+                base_dmg = roll_damage(dmg_die)
+            else:
+                base_dmg = 2  # Fixed unarmed damage
+
+            base_dmg += math.ceil(str_mod / 2) + self.s.combat.get("buffs", {}).get(
+                "damage_bonus", 0
             )
             if weapon and getattr(weapon, "damaged", False):
                 base_dmg = max(1, base_dmg // 2)
@@ -1975,11 +2238,15 @@ class GameEngine:
             return self._combat_next_turn("monster")
         # Normal resolve
         if attack_roll >= enemy_ac:
-            dmg_die = getattr(weapon, "damage_die", "1d2") if weapon else "1d2"
-            base_dmg = (
-                roll_damage(dmg_die)
-                + math.ceil(str_mod / 2)
-                + self.s.combat.get("buffs", {}).get("damage_bonus", 0)
+            # Unarmed does fixed 2 damage, weapons roll their damage die
+            if weapon:
+                dmg_die = getattr(weapon, "damage_die", "1d2")
+                base_dmg = roll_damage(dmg_die)
+            else:
+                base_dmg = 2  # Fixed unarmed damage
+
+            base_dmg += math.ceil(str_mod / 2) + self.s.combat.get("buffs", {}).get(
+                "damage_bonus", 0
             )
             if weapon and getattr(weapon, "damaged", False):
                 base_dmg = max(1, base_dmg // 2)
@@ -2244,6 +2511,12 @@ class GameEngine:
                 self._emit_scene("death.png")
         except Exception:
             self._emit_scene("death.png")
+        # Ensure subsequent Continue actions are handled by the combat handler
+        # (trap deaths may invoke this from dungeon phase)
+        try:
+            self.s.phase = "combat"
+        except Exception:
+            pass
         # Increment death count safely
         try:
             setattr(c, "death_count", int(getattr(c, "death_count", 0)) + 1)
@@ -2268,7 +2541,7 @@ class GameEngine:
         self._emit_combat_update(f"Revival attempt: {rollv} (5d4 + WIS {wis}) vs {dc}")
 
         if rollv >= dc:
-            # Success: apply penalties and return to town with 1 HP
+            # Success: apply penalties and show a gated Continue screen before routing to Town
             msg = get_dialogue("combat", "revival_success", None, c)
             if msg:
                 try:
@@ -2288,7 +2561,7 @@ class GameEngine:
                     self._emit_combat_update("MIRACULOUS REVIVAL!")
             else:
                 self._emit_combat_update("MIRACULOUS REVIVAL!")
-            # Apply -2 to all core stats (min 3)
+            # Apply -1 to all core stats (min 3)
             for attr_name in [
                 "Strength",
                 "Dexterity",
@@ -2300,12 +2573,36 @@ class GameEngine:
             ]:
                 try:
                     old_val = int(getattr(c, "attributes", {}).get(attr_name, 10))
-                    new_val = max(3, old_val - 2)
+                    new_val = max(3, old_val - 1)
                     c.attributes[attr_name] = new_val
                 except Exception:
                     pass
             c.hp = 1
-            # Gate proceed to town behind a Continue
+            # Defer depth reset: mark so that on next labyrinth entry we start from depth 1
+            try:
+                setattr(self.s, "defer_depth_reset", True)
+            except Exception:
+                pass
+            # Reset once-per-depth utilities as we're returning to town due to death
+            try:
+                setattr(self.s, "used_divine_depth", None)
+                setattr(self.s, "used_listen_depth", None)
+            except Exception:
+                pass
+            # Clear any lingering combat/room so re-entering the Labyrinth does not reuse the same monster/room
+            try:
+                self.s.current_room = None
+            except Exception:
+                pass
+            try:
+                self.s.room_history = []
+            except Exception:
+                pass
+            try:
+                self.s.combat = {}
+            except Exception:
+                pass
+            # Stay on death screen and gate routing behind Continue
             self._emit_update_stats()
             self.s.subphase = "revival_success"
             self._emit_pause()
@@ -2313,7 +2610,7 @@ class GameEngine:
             self._emit_state()
             return self._flush()
         else:
-            # Permanent death
+            # Permanent death: show a gated Continue screen before routing to Main Menu
             death_msg = get_dialogue("combat", "permanent_death", None, c)
             if death_msg:
                 try:
@@ -2322,7 +2619,6 @@ class GameEngine:
                     self._emit_combat_update("PERMANENT DEATH")
             else:
                 self._emit_combat_update("PERMANENT DEATH")
-            # Gate proceed to main menu behind a Continue
             self.s.subphase = "revival_fail"
             self._emit_pause()
             self._emit_menu([("combat:revival_fail_continue", "Continue")])
@@ -2746,8 +3042,12 @@ class GameEngine:
         mon = room.get("monster")
         # Use new mechanics: 5d4 + (Wisdom - 10)
         wis = c.attributes.get("Wisdom", 10)
-        rollv = roll_damage("5d4") + (wis - 10)
-        self._emit_combat_update(f"You call for divine aid... Roll {rollv}")
+        base = roll_damage("5d4")
+        wis_bonus = wis - 10
+        rollv = base + wis_bonus
+        self._emit_combat_update(
+            f"You call for divine aid... Roll {base} + WIS bonus({wis_bonus}) = {rollv}"
+        )
         if rollv >= 12:
             if rollv >= 16:
                 die = "4d6"
@@ -2975,7 +3275,12 @@ class GameEngine:
 
     # ---------- SHOP ----------
     def _shop_show_categories(self) -> List[Event]:
+        # Clear first, then set the shop scene to avoid transition cancellation
         self._emit_clear()
+        try:
+            self._emit_scene("town_menu/shop.png")
+        except Exception:
+            pass
         # Mark we're at the root shop menu for proper Back handling
         self.s.subphase = "shop_root"
         self._emit_dialogue(
@@ -3962,9 +4267,73 @@ class GameEngine:
         self._emit_state()
         return self._flush()
 
+    def _train_handle(self, action: str) -> List[Event]:
+        c = self.s.character
+        if not c or not action.startswith("train:"):
+            return self._render_town_menu()
+        # Validate attribute
+        attr = action.split(":", 1)[1]
+        if attr not in (
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma",
+            "Perception",
+        ):
+            return self._train_menu()
+        cost = 50 * (c.trained_times + 1)
+        if c.gold < cost:
+            self._emit_dialogue(
+                f"Garron: Training costs {cost}g; you don't have enough."
+            )
+            try:
+                self._emit_dialogue(f"You need {cost}g but have {c.gold}g.")
+            except Exception:
+                pass
+            self._emit_pause()
+            self._emit_menu([("town", "Continue")])
+            self._emit_state()
+            return self._flush()
+        # Perform training
+        c.gold -= cost
+        try:
+            self._emit_dialogue(f"Paid {cost}g.")
+        except Exception:
+            pass
+        old_val = int(c.attributes.get(attr, 10))
+        c.attributes[attr] = old_val + 1
+        # Constitution grants +5 max HP per increase
+        if attr == "Constitution":
+            try:
+                c.max_hp += 5
+            except Exception:
+                c.max_hp = int(c.max_hp) + 5
+        # Track training counts per attribute
+        try:
+            tmap = getattr(c, "attribute_training", {})
+            tmap[attr] = int(tmap.get(attr, 0)) + 1
+            c.attribute_training = tmap
+        except Exception:
+            pass
+        c.trained_times += 1
+        self._emit_dialogue(f"You train {attr} to {c.attributes.get(attr, 10)}.")
+        self._emit_update_stats()
+        # Gate back to town
+        self._emit_pause()
+        self._emit_menu([("town", "Continue")])
+        self._emit_state()
+        return self._flush()
+
     def _weaponsmith_menu(self) -> List[Event]:
         c = self.s.character
+        # Clear first, then set scene to avoid transition cancellation
         self._emit_clear()
+        try:
+            self._emit_scene("town_menu/weaponsmith.png")
+        except Exception:
+            pass
         self._emit_dialogue(
             get_dialogue("shop", "shop_header", None, c) or "=== Shop ==="
         )
@@ -4126,7 +4495,12 @@ class GameEngine:
         c = self.s.character
         self.s.gamble = {}
         self.s.subphase = "gamble:mode"
+        # Clear, then set gambling scene to avoid transition cancellation
         self._emit_clear()
+        try:
+            self._emit_scene("town_menu/gambling.png")
+        except Exception:
+            pass
         from .data_loader import get_npc_dialogue
 
         intro = get_npc_dialogue("town", "gambler_seth", None, c)
@@ -4476,13 +4850,19 @@ class GameEngine:
     def _quests_menu(self) -> List[Event]:
         c = self.s.character
         from .quests import quest_manager
+        from .data_loader import get_dialogue
 
-        self._emit_dialogue("Town Bulletin: \n=== Side Quests ===")
+        # Header
+        header = get_dialogue("town", "town_bulletin", None, c)
+        self._emit_dialogue(header or "Town Bulletin: \n=== Side Quests ===")
+        # Body
         qs = list(getattr(c, "side_quests", []) or [])
         if not qs:
-            self._emit_dialogue("You have no active side quests.")
+            none = get_dialogue("town", "town_bulletin", "none_available", c)
+            self._emit_dialogue(none or "You have no active side quests.")
         else:
-            self._emit_dialogue("Current side quests:")
+            lead = get_dialogue("town", "quest_menu_options", None, c)
+            self._emit_dialogue(lead or "Current side quests:")
             for q in qs:
                 try:
                     desc = q.get("desc", q.get("description", ""))
@@ -4491,6 +4871,7 @@ class GameEngine:
                     self._emit_dialogue(f"- {desc} - Reward: {reward}g ({status})")
                 except Exception:
                     self._emit_dialogue(f"- {q}")
+        # Menu
         self._emit_menu(
             [("quests:new", "1) Ask for New Side Quests"), ("town", "2) Back")]
         )
