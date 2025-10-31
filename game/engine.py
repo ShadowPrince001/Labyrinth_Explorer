@@ -85,11 +85,39 @@ class EngineState:
     pending_roll: Optional[int] = None
     # Track last attribute assignment for recap
     last_assignment: Optional[Tuple[str, int]] = None
+    # Difficulty selection (affects stat rolling only)
+    difficulty: str = "normal"  # "easy" | "normal" | "hard"
 
 
 class GameEngine:
+    # Difficulty configuration: modular design for easy expansion
+    DIFFICULTY_CONFIG = {
+        "easy": {
+            "name": "Easy",
+            "dice": "6d5",
+            "description": "Higher starting stats for a gentler experience.",
+        },
+        "normal": {
+            "name": "Normal",
+            "dice": "5d5",
+            "description": "Balanced starting stats for the intended experience.",
+        },
+        "hard": {
+            "name": "Hard",
+            "dice": "4d5",
+            "description": "Lower starting stats for a challenging experience.",
+        },
+    }
+
     def __init__(self):
         self.s = EngineState()
+
+    def _get_stat_roll_dice(self) -> str:
+        """Get the dice formula based on selected difficulty."""
+        config = self.DIFFICULTY_CONFIG.get(
+            self.s.difficulty, self.DIFFICULTY_CONFIG["normal"]
+        )
+        return config["dice"]
 
     # ----- public API -----
     def start(self) -> List[Event]:
@@ -159,6 +187,10 @@ class GameEngine:
         if self.s.phase == "main_menu":
             return self._handle_main_menu(action)
 
+        # Difficulty selection
+        if self.s.phase == "select_difficulty":
+            return self._handle_difficulty_selection(action)
+
         # Character creation
         if self.s.phase == "create_name":
             return self._handle_create_name(action, payload)
@@ -187,42 +219,107 @@ class GameEngine:
         return self._flush()
 
     # ----- handlers -----
+    def _handle_difficulty_selection(self, action: str) -> List[Event]:
+        """Handle difficulty selection screen."""
+        if action.startswith("difficulty:"):
+            difficulty = action.split(":", 1)[1]
+            if difficulty in self.DIFFICULTY_CONFIG:
+                self.s.difficulty = difficulty
+                # Now show the story intro
+                self.s.phase = "main_menu"
+                self.s.subphase = "intro:story"
+                self._emit_clear()
+                # Ensure labyrinth background is set at the start of character creation
+                try:
+                    from .scene_manager import set_labyrinth_background
+
+                    ev = set_labyrinth_background()
+                    bg = (
+                        ev.get("data", {}).get("background")
+                        if isinstance(ev, dict)
+                        else None
+                    )
+                    if bg:
+                        self._emit_scene(bg)
+                    else:
+                        self._emit_scene("labyrinth.png")
+                except Exception:
+                    self._emit_scene("labyrinth.png")
+                try:
+                    d = load_dialogues() or {}
+                    sysd = d.get("system", {}) if isinstance(d, dict) else {}
+                    story = []
+                    if isinstance(sysd.get("story_intro", {}), dict):
+                        story = list(
+                            sysd.get("story_intro", {}).get("dialogues", []) or []
+                        )
+                    for line in story:
+                        if line:
+                            self._emit_dialogue(line)
+                except Exception:
+                    self._emit_dialogue(
+                        "In a world scarred by ancient betrayals, mysterious labyrinths spawn from wounds in reality itself..."
+                    )
+                self._emit_pause()
+                self._emit_menu([("intro:continue", "Continue")])
+            else:
+                self._emit_dialogue(f"Invalid difficulty: {difficulty}")
+                self._emit_state()
+        else:
+            # Show difficulty selection screen
+            self._emit_clear()
+            self._emit_dialogue("")
+            self._emit_dialogue("╔═══════════════════════════════════════════╗")
+            self._emit_dialogue("║       SELECT YOUR DIFFICULTY LEVEL        ║")
+            self._emit_dialogue("╚═══════════════════════════════════════════╝")
+            self._emit_dialogue("")
+
+            for key, config in [
+                ("easy", self.DIFFICULTY_CONFIG["easy"]),
+                ("normal", self.DIFFICULTY_CONFIG["normal"]),
+                ("hard", self.DIFFICULTY_CONFIG["hard"]),
+            ]:
+                name = config["name"]
+                dice = config["dice"]
+                desc = config["description"]
+
+                # Calculate stat ranges
+                num_dice = int(dice.split("d")[0])
+                die_size = int(dice.split("d")[1])
+                min_stat = num_dice * 1
+                max_stat = num_dice * die_size
+
+                # Format with proper alignment and spacing
+                self._emit_dialogue(f"▶ {name.upper()} ({dice})")
+                self._emit_dialogue(f"  {desc}")
+                self._emit_dialogue(
+                    f"  Roll {dice} ({min_stat}-{max_stat} range) for each attribute."
+                )
+                self._emit_dialogue(f"  Stat Range: {min_stat}-{max_stat}")
+                self._emit_dialogue("")
+
+            self._emit_dialogue("This choice affects your starting attributes only.")
+            self._emit_dialogue(
+                "You cannot change difficulty once character creation begins."
+            )
+            self._emit_dialogue("")
+            self._emit_state()
+            self._emit_menu(
+                [
+                    ("difficulty:easy", "Easy (6d5)"),
+                    ("difficulty:normal", "Normal (5d5)"),
+                    ("difficulty:hard", "Hard (4d5)"),
+                ]
+            )
+
+        return self._flush()
+
     def _handle_main_menu(self, action: str) -> List[Event]:
         if action == "main:new":
-            # Stage 1: Show full story intro
-            self.s.subphase = "intro:story"
-            self._emit_clear()
-            # Ensure labyrinth background is set at the start of character creation
-            try:
-                from .scene_manager import set_labyrinth_background
-
-                ev = set_labyrinth_background()
-                bg = (
-                    ev.get("data", {}).get("background")
-                    if isinstance(ev, dict)
-                    else None
-                )
-                if bg:
-                    self._emit_scene(bg)
-                else:
-                    self._emit_scene("labyrinth.png")
-            except Exception:
-                self._emit_scene("labyrinth.png")
-            try:
-                d = load_dialogues() or {}
-                sysd = d.get("system", {}) if isinstance(d, dict) else {}
-                story = []
-                if isinstance(sysd.get("story_intro", {}), dict):
-                    story = list(sysd.get("story_intro", {}).get("dialogues", []) or [])
-                for line in story:
-                    if line:
-                        self._emit_dialogue(line)
-            except Exception:
-                self._emit_dialogue(
-                    "In a world scarred by ancient betrayals, mysterious labyrinths spawn from wounds in reality itself..."
-                )
-            self._emit_pause()
-            self._emit_menu([("intro:continue", "Continue")])
+            # Go to difficulty selection screen
+            self.s.phase = "select_difficulty"
+            self.s.subphase = ""
+            return self._handle_difficulty_selection("")
         elif action == "intro:continue" and (self.s.subphase or "").startswith(
             "intro:"
         ):
@@ -321,7 +418,14 @@ class GameEngine:
             "Charisma",
             "Perception",
         ]
-        self.s.pending_roll = roll_damage("5d4")
+        self.s.pending_roll = roll_damage(self._get_stat_roll_dice())
+        # Show selected difficulty
+        difficulty_name = self.DIFFICULTY_CONFIG[self.s.difficulty]["name"]
+        difficulty_dice = self.DIFFICULTY_CONFIG[self.s.difficulty]["dice"]
+        self._emit_dialogue(
+            f"Difficulty: {difficulty_name} ({difficulty_dice} stat rolls)"
+        )
+        self._emit_dialogue("")
         # Intro and first roll lines via dialogues
         try:
             self._emit_dialogue(
@@ -606,7 +710,7 @@ class GameEngine:
         self.s.assignments[attr] = roll
 
         if self.s.pending_attrs:
-            self.s.pending_roll = roll_damage("5d4")
+            self.s.pending_roll = roll_damage(self._get_stat_roll_dice())
             count_done = len(self.s.assignments)
             self._emit_clear()
             self._emit_dialogue(f"Assigned {roll} to {attr}!")
