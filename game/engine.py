@@ -1409,6 +1409,7 @@ class GameEngine:
             menu.append(("dng:listen", "4) Listen at the door"))
             menu.append(("dng:open_chest", "5) Open a chest"))
             menu.append(("dng:examine_items", "6) Examine magic item"))
+            menu.append(("dng:use_potion", "7) Use a healing potion"))
             self._emit_menu(menu)
         self._emit_state()
         return self._flush()
@@ -1747,6 +1748,92 @@ class GameEngine:
             self._emit_menu([("dng:result_continue", "Continue")])
             self._emit_state()
             return self._flush()
+        elif action == "dng:use_potion":
+            c = self.s.character
+            if not c:
+                return self._enter_room()
+
+            # Check if any potions available
+            if c.potions <= 0 and not c.potion_uses:
+                self._emit_dialogue("You don't have any potions.")
+                self._emit_pause()
+                self._emit_menu([("dng:result_continue", "Continue")])
+                self._emit_state()
+                return self._flush()
+
+            # Show potion selection menu
+            options = []
+            idx = 1
+            if c.potions > 0:
+                options.append(
+                    ("dng_pot:legacy", f"{idx}) Healing (legacy) ({c.potions} uses)")
+                )
+                idx += 1
+            for name, uses in c.potion_uses.items():
+                if uses > 0:
+                    options.append((f"dng_pot:{name}", f"{idx}) {name} ({uses} uses)"))
+                    idx += 1
+            options.append(("dng:result_continue", f"{idx}) Back"))
+
+            self._emit_dialogue("Choose a potion to use:")
+            self._emit_menu(options)
+            self._emit_state()
+            return self._flush()
+        elif action.startswith("dng_pot:"):
+            c = self.s.character
+            if not c:
+                return self._enter_room()
+
+            potion_name = action.split(":", 1)[1]
+
+            if potion_name == "legacy":
+                if c.potions > 0:
+                    con = c.attributes.get("Constitution", 10)
+                    mult = max(1, math.ceil(con / 2))
+                    heal = 0
+                    for _ in range(mult):
+                        heal += max(1, roll_damage("2d2"))
+                    c.hp = min(c.max_hp, c.hp + heal)
+                    c.potions -= 1
+                    self._emit_dialogue(
+                        f"You drink a healing potion and recover {heal} HP."
+                    )
+                    self._emit_update_stats()
+            else:
+                # Handle named potions
+                lname = potion_name.lower()
+                uses = c.potion_uses.get(potion_name, 0)
+                if uses > 0:
+                    if lname == "healing":
+                        con = c.attributes.get("Constitution", 10)
+                        mult = max(1, math.ceil(con / 2))
+                        heal = 0
+                        for _ in range(mult):
+                            heal += max(1, roll_damage("2d2"))
+                        c.hp = min(c.max_hp, c.hp + heal)
+                        c.potion_uses[potion_name] -= 1
+                        if c.potion_uses[potion_name] <= 0:
+                            del c.potion_uses[potion_name]
+                        self._emit_dialogue(
+                            f"You drink a healing potion and recover {heal} HP."
+                        )
+                        self._emit_update_stats()
+                    elif lname == "antidote":
+                        c.potion_uses[potion_name] -= 1
+                        if c.potion_uses[potion_name] <= 0:
+                            del c.potion_uses[potion_name]
+                        c.persistent_buffs.pop("debuff_poison", None)
+                        self._emit_dialogue(
+                            "You drink the antidote and feel the poison leave your system."
+                        )
+                        self._emit_update_stats()
+                    else:
+                        self._emit_dialogue("This potion can only be used in combat.")
+
+            self._emit_pause()
+            self._emit_menu([("dng:result_continue", "Continue")])
+            self._emit_state()
+            return self._flush()
         elif action == "dng:examine_items":
             c = self.s.character
             if not getattr(c, "magic_items", None):
@@ -2067,17 +2154,21 @@ class GameEngine:
         # Do not clear here; the UI clears on action clicks so prior combat
         # messages (initiative, results) remain visible before choices.
         if self.s.subphase == "player_menu":
-            self._emit_menu(
-                [
-                    ("p:attack", "1) Attack"),
-                    ("p:potion", "2) Drink Potion"),
-                    ("p:spell", "3) Cast Spell"),
-                    ("p:divine", "4) Divine Aid"),
-                    ("p:charm", "5) Charm Monster"),
-                    ("p:run", "6) Run Away"),
-                    ("p:examine", "7) Examine Monster"),
-                ]
-            )
+            # Build menu - disable examine if already used this combat
+            examine_used = self.s.combat.get("actions_used", {}).get("examine", False)
+            menu = [
+                ("p:attack", "1) Attack"),
+                ("p:potion", "2) Drink Potion"),
+                ("p:spell", "3) Cast Spell"),
+                ("p:divine", "4) Divine Aid"),
+                ("p:charm", "5) Charm Monster"),
+                ("p:run", "6) Run Away"),
+            ]
+            if not examine_used:
+                menu.append(("p:examine", "7) Examine Monster"))
+            else:
+                menu.append(("p:examine_disabled", "7) Examine Monster (already used)"))
+            self._emit_menu(menu)
             self._emit_state()
         elif self.s.subphase == "monster_defend":
             self._emit_combat_update("Prepare your guard before the attack lands.")
@@ -2121,8 +2212,15 @@ class GameEngine:
             self.s.subphase = "run"
             return self._combat_run(None)
         if action == "p:examine":
+            # Check if already used this combat
+            if self.s.combat.get("actions_used", {}).get("examine", False):
+                self._emit_combat_update("You've already examined this creature.")
+                return self._combat_emit_menu()
             self.s.subphase = "examine"
             return self._combat_examine(None)
+        if action == "p:examine_disabled":
+            self._emit_combat_update("You've already examined this creature.")
+            return self._combat_emit_menu()
         return self._combat_emit_menu()
 
     def _combat_attack_choose_aim(self, action: str) -> List[Event]:
@@ -3163,7 +3261,9 @@ class GameEngine:
             self._emit_combat_update(
                 "You can't make out the creature's capabilities clearly."
             )
-        # Gate next turn behind a Continue
+        # Mark that examine has been used this combat
+        self.s.combat.setdefault("actions_used", {})["examine"] = True
+        # Gate next turn behind a Continue - returns to PLAYER menu (no monster attack)
         self.s.subphase = "examine_continue"
         self._emit_pause()
         self._emit_menu([("combat:after_examine", "Continue")])

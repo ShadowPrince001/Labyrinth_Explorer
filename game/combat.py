@@ -37,7 +37,9 @@ def wisdom_bonus(character: Character) -> int:
 
 
 def examine_monster(character: Character, monster: Monster) -> bool:
-    """Examine monster with 5d4 + wisdom > 25 check. Returns True if successful."""
+    """Examine monster with 5d4 + wisdom > 25 check.
+    Returns True if successful.
+    NOTE: Does NOT trigger monster attack (can only be used once per combat)."""
     wis = character.attributes.get("Wisdom", 10)
     roll = roll_damage("5d4") + wis
     intro = (
@@ -425,6 +427,8 @@ def _normalize_zone_input(choice: str) -> str:
 
 
 def divine_assistance_combat(character: Character, monster: Monster) -> bool:
+    """Divine aid: 5d4 + (WIS-10) vs 12. On success deals 3d6 or 4d6.
+    NOTE: Monster ALWAYS gets to attack after, even on success (consumes your turn)."""
     wis = character.attributes.get("Wisdom", 10)
     roll = roll_damage("5d4") + (wis - 10)
     print(
@@ -533,7 +537,11 @@ def run_away(character: Character, monster: Monster) -> bool:
 
 
 def player_turn(
-    character: Character, monster: Monster, buffs: dict, enemy_debuffs: dict
+    character: Character,
+    monster: Monster,
+    buffs: dict,
+    enemy_debuffs: dict,
+    examine_used: bool = False,
 ) -> bool:
     apply_poison_dot(character)
     if character.hp <= 0:
@@ -559,8 +567,30 @@ def player_turn(
         escaped = run_away(character, monster)
         return "escaped" if escaped else False
     if choice == "7":
+        if examine_used:
+            print("You've already examined this creature this combat.")
+            return "examine_no_turn"  # Stay on player turn
         examine_monster(character, monster)
-        return False  # Consumes turn
+        return "examine_no_turn"  # Special: examine doesn't trigger monster turn
+    choice = input("> ").strip()
+    if choice == "2":
+        used = use_potion(character, buffs)
+        return monster.hp <= 0 or used
+    if choice == "3":
+        cast = cast_spell(character, monster, buffs, enemy_debuffs)
+        return monster.hp <= 0 or cast
+    if choice == "4":
+        used = divine_assistance_combat(character, monster)
+        return monster.hp <= 0 or used
+    if choice == "5":
+        charmed = charm_monster(character, monster)
+        return "charmed" if charmed else False
+    if choice == "6":
+        escaped = run_away(character, monster)
+        return "escaped" if escaped else False
+    if choice == "7":
+        examine_monster(character, monster)
+        return "examine_no_turn"  # Special: examine doesn't trigger monster turn
     # Attack
     zone = choose_aim_zone()
     weapon = choose_weapon(character)
@@ -836,18 +866,27 @@ def combat_encounter(character: Character, monster: Monster) -> tuple[bool, str]
             print(f"{monster_taunt}\nA {monster.name} appears!")
     else:
         print(f"A {monster.name} appears!")
-    print("You can try to examine it with a Wisdom check (consumes your turn)")
+    print(
+        "You can examine it with a Wisdom check (once per combat, doesn't trigger monster attack)"
+    )
     buffs = {}
     enemy_debuffs = {}
+    examine_used = False  # Track if examine has been used this combat
     turn = initiative_order(character, monster)
     while character.hp > 0 and monster.hp > 0:
         try:
             if turn == "player":
-                result = player_turn(character, monster, buffs, enemy_debuffs)
+                result = player_turn(
+                    character, monster, buffs, enemy_debuffs, examine_used
+                )
                 if result == "charmed":
                     return True, "charmed"
                 elif result == "escaped":
                     return True, "escaped"
+                elif result == "examine_no_turn":
+                    # Examine doesn't trigger monster turn, stay on player turn
+                    examine_used = True
+                    continue
                 elif result:
                     # Monster defeated
                     pass

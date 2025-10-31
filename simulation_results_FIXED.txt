@@ -1,0 +1,803 @@
+DETAILED SIMULATION RESULTS
+============================================================
+
+
+Hero_1 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 64.2%
+  Gold Earned: 408g, Final: 348g
+  Potions Used: 1, Divine Used: 0
+
+Hero_2 - DEATH
+  Starting Stats: STR 18 CON 17 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 75.0%
+  Gold Earned: 420g, Final: 360g
+  Potions Used: 0, Divine Used: 0
+
+Hero_3 - DEATH
+  Starting Stats: STR 19 CON 19 DEX 18
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 51.5%
+  Gold Earned: 263g, Final: 253g
+  Potions Used: 0, Divine Used: 0
+
+Hero_4 - DEATH
+  Starting Stats: STR 18 CON 14 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 53.3%
+  Gold Earned: 244g, Final: 214g
+  Potions Used: 1, Divine Used: 0
+
+Hero_5 - DEATH
+  Starting Stats: STR 20 CON 18 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 63.0%
+  Gold Earned: 269g, Final: 259g
+  Potions Used: 0, Divine Used: 0
+
+Hero_6 - DEATH
+  Starting Stats: STR 17 CON 15 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 46.9%
+  Gold Earned: 432g, Final: 352g
+  Potions Used: 1, Divine Used: 0
+
+Hero_7 - DEATH
+  Starting Stats: STR 17 CON 17 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 71.9%
+  Gold Earned: 296g, Final: 286g
+  Potions Used: 0, Divine Used: 0
+
+Hero_8 - DEATH
+  Starting Stats: STR 19 CON 16 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 48.6%
+  Gold Earned: 277g, Final: 247g
+  Potions Used: 1, Divine Used: 0
+
+Hero_9 - DEATH
+  Starting Stats: STR 16 CON 15 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 71.7%
+  Gold Earned: 426g, Final: 366g
+  Potions Used: 0, Divine Used: 0
+
+Hero_10 - DEATH
+  Starting Stats: STR 20 CON 15 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 60.0%
+  Gold Earned: 267g, Final: 257g
+  Potions Used: 0, Divine Used: 0
+
+Hero_11 - DEATH
+  Starting Stats: STR 18 CON 17 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 63.3%
+  Gold Earned: 411g, Final: 351g
+  Potions Used: 0, Divine Used: 0
+
+Hero_12 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 13
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 69.8%
+  Gold Earned: 410g, Final: 330g
+  Potions Used: 1, Divine Used: 0
+
+Hero_13 - DEATH
+  Starting Stats: STR 16 CON 12 DEX 12
+  Encounters: 9, Max Depth: 5
+  Kills: 7, Deaths: 2, Revivals: 1
+  Hit Rate: 64.5%
+  Gold Earned: 221g, Final: 211g
+  Potions Used: 1, Divine Used: 0
+
+Hero_14 - DEATH
+  Starting Stats: STR 20 CON 20 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 53.0%
+  Gold Earned: 403g, Final: 323g
+  Potions Used: 1, Divine Used: 0
+
+Hero_15 - DEATH
+  Starting Stats: STR 19 CON 15 DEX 15
+  Encounters: 5, Max Depth: 5
+  Kills: 4, Deaths: 1, Revivals: 0
+  Hit Rate: 50.0%
+  Gold Earned: 113g, Final: 173g
+  Potions Used: 0, Divine Used: 0
+
+Hero_16 - DEATH
+  Starting Stats: STR 18 CON 17 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 63.8%
+  Gold Earned: 420g, Final: 360g
+  Potions Used: 0, Divine Used: 0
+
+Hero_17 - DEATH
+  Starting Stats: STR 14 CON 14 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 65.8%
+  Gold Earned: 417g, Final: 357g
+  Potions Used: 1, Divine Used: 0
+
+Hero_18 - DEATH
+  Starting Stats: STR 22 CON 19 DEX 19
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 64.3%
+  Gold Earned: 415g, Final: 335g
+  Potions Used: 3, Divine Used: 0
+
+Hero_19 - DEATH
+  Starting Stats: STR 19 CON 18 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 59.3%
+  Gold Earned: 418g, Final: 358g
+  Potions Used: 0, Divine Used: 0
+
+Hero_20 - DEATH
+  Starting Stats: STR 19 CON 16 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 65.9%
+  Gold Earned: 411g, Final: 331g
+  Potions Used: 1, Divine Used: 0
+
+Hero_21 - DEATH
+  Starting Stats: STR 18 CON 18 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 58.0%
+  Gold Earned: 404g, Final: 344g
+  Potions Used: 0, Divine Used: 0
+
+Hero_22 - DEATH
+  Starting Stats: STR 18 CON 16 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 60.4%
+  Gold Earned: 401g, Final: 321g
+  Potions Used: 2, Divine Used: 0
+
+Hero_23 - DEATH
+  Starting Stats: STR 19 CON 17 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 55.3%
+  Gold Earned: 421g, Final: 361g
+  Potions Used: 1, Divine Used: 0
+
+Hero_24 - DEATH
+  Starting Stats: STR 16 CON 14 DEX 13
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 63.0%
+  Gold Earned: 290g, Final: 280g
+  Potions Used: 0, Divine Used: 0
+
+Hero_25 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 75.0%
+  Gold Earned: 256g, Final: 246g
+  Potions Used: 0, Divine Used: 0
+
+Hero_26 - DEATH
+  Starting Stats: STR 18 CON 16 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 65.9%
+  Gold Earned: 412g, Final: 352g
+  Potions Used: 2, Divine Used: 0
+
+Hero_27 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 60.0%
+  Gold Earned: 293g, Final: 263g
+  Potions Used: 1, Divine Used: 0
+
+Hero_28 - DEATH
+  Starting Stats: STR 20 CON 13 DEX 12
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 61.1%
+  Gold Earned: 275g, Final: 265g
+  Potions Used: 1, Divine Used: 0
+
+Hero_29 - DEATH
+  Starting Stats: STR 16 CON 13 DEX 12
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 42.1%
+  Gold Earned: 258g, Final: 248g
+  Potions Used: 0, Divine Used: 0
+
+Hero_30 - DEATH
+  Starting Stats: STR 23 CON 17 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 76.7%
+  Gold Earned: 284g, Final: 274g
+  Potions Used: 0, Divine Used: 0
+
+Hero_31 - DEATH
+  Starting Stats: STR 18 CON 16 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 75.7%
+  Gold Earned: 414g, Final: 354g
+  Potions Used: 0, Divine Used: 0
+
+Hero_32 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 64.7%
+  Gold Earned: 438g, Final: 378g
+  Potions Used: 0, Divine Used: 0
+
+Hero_33 - DEATH
+  Starting Stats: STR 18 CON 17 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 70.0%
+  Gold Earned: 393g, Final: 333g
+  Potions Used: 0, Divine Used: 0
+
+Hero_34 - DEATH
+  Starting Stats: STR 18 CON 18 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 58.1%
+  Gold Earned: 408g, Final: 348g
+  Potions Used: 0, Divine Used: 0
+
+Hero_35 - DEATH
+  Starting Stats: STR 17 CON 15 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 50.9%
+  Gold Earned: 438g, Final: 378g
+  Potions Used: 0, Divine Used: 0
+
+Hero_36 - DEATH
+  Starting Stats: STR 15 CON 15 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 60.8%
+  Gold Earned: 410g, Final: 290g
+  Potions Used: 3, Divine Used: 0
+
+Hero_37 - DEATH
+  Starting Stats: STR 19 CON 18 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 59.7%
+  Gold Earned: 369g, Final: 289g
+  Potions Used: 1, Divine Used: 0
+
+Hero_38 - DEATH
+  Starting Stats: STR 14 CON 14 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 58.3%
+  Gold Earned: 283g, Final: 273g
+  Potions Used: 0, Divine Used: 0
+
+Hero_39 - DEATH
+  Starting Stats: STR 21 CON 20 DEX 18
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 64.0%
+  Gold Earned: 416g, Final: 356g
+  Potions Used: 0, Divine Used: 0
+
+Hero_40 - VICTORY
+  Starting Stats: STR 21 CON 21 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 13, Deaths: 2, Revivals: 2
+  Hit Rate: 58.9%
+  Gold Earned: 430g, Final: 420g
+  Potions Used: 3, Divine Used: 0
+
+Hero_41 - DEATH
+  Starting Stats: STR 19 CON 18 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 72.5%
+  Gold Earned: 379g, Final: 319g
+  Potions Used: 0, Divine Used: 0
+
+Hero_42 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 62.2%
+  Gold Earned: 270g, Final: 260g
+  Potions Used: 1, Divine Used: 0
+
+Hero_43 - DEATH
+  Starting Stats: STR 22 CON 20 DEX 20
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 66.7%
+  Gold Earned: 423g, Final: 343g
+  Potions Used: 1, Divine Used: 0
+
+Hero_44 - DEATH
+  Starting Stats: STR 17 CON 15 DEX 13
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 71.4%
+  Gold Earned: 287g, Final: 277g
+  Potions Used: 0, Divine Used: 0
+
+Hero_45 - DEATH
+  Starting Stats: STR 19 CON 18 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 66.2%
+  Gold Earned: 441g, Final: 381g
+  Potions Used: 1, Divine Used: 0
+
+Hero_46 - DEATH
+  Starting Stats: STR 16 CON 14 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 47.4%
+  Gold Earned: 257g, Final: 247g
+  Potions Used: 1, Divine Used: 0
+
+Hero_47 - DEATH
+  Starting Stats: STR 17 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 76.7%
+  Gold Earned: 296g, Final: 286g
+  Potions Used: 0, Divine Used: 0
+
+Hero_48 - DEATH
+  Starting Stats: STR 20 CON 16 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 79.4%
+  Gold Earned: 281g, Final: 231g
+  Potions Used: 2, Divine Used: 0
+
+Hero_49 - DEATH
+  Starting Stats: STR 21 CON 18 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 56.1%
+  Gold Earned: 396g, Final: 336g
+  Potions Used: 0, Divine Used: 0
+
+Hero_50 - DEATH
+  Starting Stats: STR 20 CON 17 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 70.8%
+  Gold Earned: 439g, Final: 379g
+  Potions Used: 0, Divine Used: 0
+
+Hero_51 - DEATH
+  Starting Stats: STR 18 CON 17 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 62.0%
+  Gold Earned: 424g, Final: 364g
+  Potions Used: 0, Divine Used: 0
+
+Hero_52 - DEATH
+  Starting Stats: STR 20 CON 18 DEX 18
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 69.2%
+  Gold Earned: 380g, Final: 280g
+  Potions Used: 2, Divine Used: 0
+
+Hero_53 - VICTORY
+  Starting Stats: STR 21 CON 18 DEX 15
+  Encounters: 5, Max Depth: 5
+  Kills: 5, Deaths: 0, Revivals: 0
+  Hit Rate: 69.6%
+  Gold Earned: 150g, Final: 210g
+  Potions Used: 0, Divine Used: 0
+
+Hero_54 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 92.3%
+  Gold Earned: 255g, Final: 225g
+  Potions Used: 1, Divine Used: 0
+
+Hero_55 - DEATH
+  Starting Stats: STR 17 CON 17 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 55.3%
+  Gold Earned: 253g, Final: 243g
+  Potions Used: 0, Divine Used: 0
+
+Hero_56 - DEATH
+  Starting Stats: STR 17 CON 15 DEX 13
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 46.5%
+  Gold Earned: 278g, Final: 268g
+  Potions Used: 0, Divine Used: 0
+
+Hero_57 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 15
+  Encounters: 20, Max Depth: 5
+  Kills: 16, Deaths: 4, Revivals: 3
+  Hit Rate: 67.3%
+  Gold Earned: 562g, Final: 452g
+  Potions Used: 0, Divine Used: 0
+
+Hero_58 - DEATH
+  Starting Stats: STR 22 CON 15 DEX 13
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 69.8%
+  Gold Earned: 403g, Final: 323g
+  Potions Used: 1, Divine Used: 0
+
+Hero_59 - DEATH
+  Starting Stats: STR 21 CON 18 DEX 13
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 64.3%
+  Gold Earned: 420g, Final: 360g
+  Potions Used: 0, Divine Used: 0
+
+Hero_60 - DEATH
+  Starting Stats: STR 22 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 60.0%
+  Gold Earned: 261g, Final: 231g
+  Potions Used: 1, Divine Used: 0
+
+Hero_61 - DEATH
+  Starting Stats: STR 20 CON 20 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 57.1%
+  Gold Earned: 415g, Final: 355g
+  Potions Used: 0, Divine Used: 0
+
+Hero_62 - DEATH
+  Starting Stats: STR 19 CON 17 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 55.4%
+  Gold Earned: 407g, Final: 347g
+  Potions Used: 0, Divine Used: 0
+
+Hero_63 - DEATH
+  Starting Stats: STR 18 CON 17 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 62.3%
+  Gold Earned: 414g, Final: 354g
+  Potions Used: 0, Divine Used: 0
+
+Hero_64 - DEATH
+  Starting Stats: STR 21 CON 19 DEX 19
+  Encounters: 20, Max Depth: 5
+  Kills: 16, Deaths: 4, Revivals: 3
+  Hit Rate: 58.6%
+  Gold Earned: 587g, Final: 457g
+  Potions Used: 1, Divine Used: 0
+
+Hero_65 - DEATH
+  Starting Stats: STR 16 CON 16 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 79.2%
+  Gold Earned: 276g, Final: 266g
+  Potions Used: 0, Divine Used: 0
+
+Hero_66 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 12
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 62.2%
+  Gold Earned: 255g, Final: 245g
+  Potions Used: 0, Divine Used: 0
+
+Hero_67 - DEATH
+  Starting Stats: STR 20 CON 18 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 57.7%
+  Gold Earned: 447g, Final: 387g
+  Potions Used: 0, Divine Used: 0
+
+Hero_68 - DEATH
+  Starting Stats: STR 20 CON 17 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 48.6%
+  Gold Earned: 286g, Final: 256g
+  Potions Used: 1, Divine Used: 0
+
+Hero_69 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 58.2%
+  Gold Earned: 409g, Final: 349g
+  Potions Used: 0, Divine Used: 0
+
+Hero_70 - DEATH
+  Starting Stats: STR 16 CON 16 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 68.8%
+  Gold Earned: 261g, Final: 251g
+  Potions Used: 0, Divine Used: 0
+
+Hero_71 - DEATH
+  Starting Stats: STR 21 CON 16 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 61.8%
+  Gold Earned: 402g, Final: 322g
+  Potions Used: 3, Divine Used: 0
+
+Hero_72 - DEATH
+  Starting Stats: STR 18 CON 18 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 63.9%
+  Gold Earned: 258g, Final: 208g
+  Potions Used: 2, Divine Used: 0
+
+Hero_73 - DEATH
+  Starting Stats: STR 22 CON 16 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 51.4%
+  Gold Earned: 293g, Final: 263g
+  Potions Used: 1, Divine Used: 0
+
+Hero_74 - DEATH
+  Starting Stats: STR 19 CON 18 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 51.5%
+  Gold Earned: 435g, Final: 355g
+  Potions Used: 1, Divine Used: 0
+
+Hero_75 - DEATH
+  Starting Stats: STR 17 CON 17 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 63.3%
+  Gold Earned: 282g, Final: 272g
+  Potions Used: 0, Divine Used: 0
+
+Hero_76 - DEATH
+  Starting Stats: STR 19 CON 16 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 64.7%
+  Gold Earned: 283g, Final: 273g
+  Potions Used: 1, Divine Used: 0
+
+Hero_77 - DEATH
+  Starting Stats: STR 18 CON 16 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 58.3%
+  Gold Earned: 407g, Final: 287g
+  Potions Used: 3, Divine Used: 0
+
+Hero_78 - DEATH
+  Starting Stats: STR 17 CON 15 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 60.8%
+  Gold Earned: 426g, Final: 366g
+  Potions Used: 2, Divine Used: 0
+
+Hero_79 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 54.2%
+  Gold Earned: 411g, Final: 351g
+  Potions Used: 0, Divine Used: 0
+
+Hero_80 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 57.4%
+  Gold Earned: 443g, Final: 383g
+  Potions Used: 0, Divine Used: 0
+
+Hero_81 - DEATH
+  Starting Stats: STR 15 CON 15 DEX 13
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 66.7%
+  Gold Earned: 298g, Final: 288g
+  Potions Used: 2, Divine Used: 0
+
+Hero_82 - DEATH
+  Starting Stats: STR 15 CON 12 DEX 12
+  Encounters: 8, Max Depth: 5
+  Kills: 6, Deaths: 2, Revivals: 1
+  Hit Rate: 67.7%
+  Gold Earned: 209g, Final: 159g
+  Potions Used: 3, Divine Used: 0
+
+Hero_83 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 63.0%
+  Gold Earned: 261g, Final: 251g
+  Potions Used: 2, Divine Used: 0
+
+Hero_84 - DEATH
+  Starting Stats: STR 22 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 64.5%
+  Gold Earned: 276g, Final: 266g
+  Potions Used: 0, Divine Used: 0
+
+Hero_85 - DEATH
+  Starting Stats: STR 17 CON 17 DEX 15
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 62.2%
+  Gold Earned: 279g, Final: 269g
+  Potions Used: 0, Divine Used: 0
+
+Hero_86 - DEATH
+  Starting Stats: STR 18 CON 16 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 55.1%
+  Gold Earned: 387g, Final: 327g
+  Potions Used: 2, Divine Used: 0
+
+Hero_87 - DEATH
+  Starting Stats: STR 16 CON 16 DEX 16
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 75.0%
+  Gold Earned: 249g, Final: 239g
+  Potions Used: 0, Divine Used: 0
+
+Hero_88 - DEATH
+  Starting Stats: STR 21 CON 19 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 59.4%
+  Gold Earned: 416g, Final: 356g
+  Potions Used: 0, Divine Used: 0
+
+Hero_89 - DEATH
+  Starting Stats: STR 15 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 53.3%
+  Gold Earned: 262g, Final: 252g
+  Potions Used: 0, Divine Used: 0
+
+Hero_90 - DEATH
+  Starting Stats: STR 18 CON 18 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 66.0%
+  Gold Earned: 402g, Final: 342g
+  Potions Used: 0, Divine Used: 0
+
+Hero_91 - DEATH
+  Starting Stats: STR 18 CON 15 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 65.0%
+  Gold Earned: 250g, Final: 240g
+  Potions Used: 0, Divine Used: 0
+
+Hero_92 - DEATH
+  Starting Stats: STR 18 CON 16 DEX 14
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 60.9%
+  Gold Earned: 285g, Final: 275g
+  Potions Used: 0, Divine Used: 0
+
+Hero_93 - DEATH
+  Starting Stats: STR 21 CON 20 DEX 17
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 56.4%
+  Gold Earned: 420g, Final: 340g
+  Potions Used: 1, Divine Used: 0
+
+Hero_94 - DEATH
+  Starting Stats: STR 19 CON 17 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 57.1%
+  Gold Earned: 386g, Final: 326g
+  Potions Used: 0, Divine Used: 0
+
+Hero_95 - DEATH
+  Starting Stats: STR 16 CON 14 DEX 13
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 60.5%
+  Gold Earned: 285g, Final: 275g
+  Potions Used: 0, Divine Used: 0
+
+Hero_96 - DEATH
+  Starting Stats: STR 19 CON 17 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 65.4%
+  Gold Earned: 420g, Final: 360g
+  Potions Used: 0, Divine Used: 0
+
+Hero_97 - DEATH
+  Starting Stats: STR 17 CON 16 DEX 15
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 61.4%
+  Gold Earned: 388g, Final: 328g
+  Potions Used: 1, Divine Used: 0
+
+Hero_98 - DEATH
+  Starting Stats: STR 14 CON 14 DEX 12
+  Encounters: 10, Max Depth: 5
+  Kills: 8, Deaths: 2, Revivals: 1
+  Hit Rate: 54.8%
+  Gold Earned: 280g, Final: 270g
+  Potions Used: 0, Divine Used: 0
+
+Hero_99 - DEATH
+  Starting Stats: STR 19 CON 19 DEX 16
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 51.9%
+  Gold Earned: 399g, Final: 339g
+  Potions Used: 1, Divine Used: 0
+
+Hero_100 - DEATH
+  Starting Stats: STR 23 CON 16 DEX 14
+  Encounters: 15, Max Depth: 5
+  Kills: 12, Deaths: 3, Revivals: 2
+  Hit Rate: 62.5%
+  Gold Earned: 423g, Final: 363g
+  Potions Used: 0, Divine Used: 0
