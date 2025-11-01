@@ -17,6 +17,11 @@ window.initApp = function () {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const transitionTimeoutRef = useRef(null);
     const lastBackgroundRef = useRef('labyrinth.png');
+    // Orientation and device flags
+    const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth >= window.innerHeight : true);
+    const [isMobileLike, setIsMobileLike] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) : false);
+    const [showRotateHint, setShowRotateHint] = useState(false);
+    const rotateDismissedRef = useRef(false);
 
     // Reveal queue state (character-by-character typing)
     const revealQueueRef = useRef([]); // queued full lines
@@ -253,32 +258,35 @@ window.initApp = function () {
           // Use lastBackgroundRef.current instead of background state (which is stale in closure)
           const needsUpdate = currentBg === '__RESET__' || newBackground !== currentBg && newBackground !== nextBackground;
           if (needsUpdate) {
-            console.log('[SCENE] Applying background:', newBackground);
-            // If a transition is mid-flight, finalize it immediately to avoid dropping the new scene
+            console.log('[SCENE] Applying background (preload):', newBackground);
+            const path = `/static/images/${newBackground}`;
+            // If a transition is mid-flight, finalize immediately after preload
             if (isTransitioning) {
               if (transitionTimeoutRef.current) {
                 clearTimeout(transitionTimeoutRef.current);
                 transitionTimeoutRef.current = null;
               }
-              // Hard switch to ensure correctness over animation in edge cases
-              lastBackgroundRef.current = newBackground;
-              setBackground(newBackground);
-              setNextBackground(null);
-              setIsTransitioning(false);
+              preloadImage(path, () => {
+                lastBackgroundRef.current = newBackground;
+                setBackground(newBackground);
+                setNextBackground(null);
+                setIsTransitioning(false);
+              });
             } else {
-              // Normal crossfade transition
-              lastBackgroundRef.current = newBackground;
               if (transitionTimeoutRef.current) {
                 clearTimeout(transitionTimeoutRef.current);
               }
-              setNextBackground(newBackground);
-              requestAnimationFrame(() => {
-                setIsTransitioning(true);
-                transitionTimeoutRef.current = setTimeout(() => {
-                  setBackground(newBackground);
-                  setNextBackground(null);
-                  setIsTransitioning(false);
-                }, 800);
+              preloadImage(path, () => {
+                lastBackgroundRef.current = newBackground;
+                setNextBackground(newBackground);
+                requestAnimationFrame(() => {
+                  setIsTransitioning(true);
+                  transitionTimeoutRef.current = setTimeout(() => {
+                    setBackground(newBackground);
+                    setNextBackground(null);
+                    setIsTransitioning(false);
+                  }, 800);
+                });
               });
             }
           } else {
@@ -370,43 +378,93 @@ window.initApp = function () {
         }
       };
     }, []);
+    // Track orientation and device type; optionally show rotate hint on mobile portrait
+    useEffect(() => {
+      const updateFlags = () => {
+        if (typeof window === 'undefined') return;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const mobileLike = w <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0);
+        const landscape = w >= h;
+        setIsMobileLike(mobileLike);
+        setIsLandscape(landscape);
+        if (mobileLike && !landscape && !rotateDismissedRef.current) {
+          setShowRotateHint(true);
+        } else {
+          setShowRotateHint(false);
+        }
+      };
+      updateFlags();
+      if (typeof window !== 'undefined') {
+        window.addEventListener('resize', updateFlags);
+        window.addEventListener('orientationchange', updateFlags);
+      }
+      return () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('resize', updateFlags);
+          window.removeEventListener('orientationchange', updateFlags);
+        }
+      };
+    }, []);
+    const imgObjectFit = 'cover';
+
+    // Preload helper for smoother transitions
+    const preloadImage = (path, cb) => {
+      try {
+        const img = new Image();
+        img.onload = () => cb && cb(true);
+        img.onerror = () => cb && cb(false);
+        img.src = path;
+      } catch (e) {
+        if (cb) cb(false);
+      }
+    };
     return (
       /*#__PURE__*/
       // Note: This is JSX and will be compiled by Babel to JS in app.js
       React.createElement("div", {
         className: "app-container",
         onClickCapture: flushNow
-      }, /*#__PURE__*/React.createElement("div", {
+      }, /*#__PURE__*/React.createElement("img", {
         className: "background-image background-current",
+        src: background === '__RESET__' ? '' : `/static/images/${background}`,
+        alt: "",
         style: {
-          backgroundImage: background === '__RESET__' ? 'none' : `url(/static/images/${background})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          display: background === '__RESET__' ? 'none' : 'block',
           position: 'fixed',
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
+          width: '100vw',
+          height: '100dvh',
+          maxWidth: '100vw',
+          maxHeight: '100vh',
+          objectFit: imgObjectFit,
+          objectPosition: 'center',
           zIndex: -2,
           opacity: isTransitioning && nextBackground ? 0 : 1,
-          transition: isTransitioning ? 'opacity 800ms cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none'
+          transition: isTransitioning ? 'opacity 800ms cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none',
+          pointerEvents: 'none',
+          userSelect: 'none'
         }
-      }), nextBackground && /*#__PURE__*/React.createElement("div", {
+      }), nextBackground && /*#__PURE__*/React.createElement("img", {
         className: "background-image background-next",
+        src: `/static/images/${nextBackground}`,
+        alt: "",
         style: {
-          backgroundImage: `url(/static/images/${nextBackground})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
           position: 'fixed',
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
+          width: '100vw',
+          height: '100dvh',
+          maxWidth: '100vw',
+          maxHeight: '100vh',
+          objectFit: imgObjectFit,
+          objectPosition: 'center',
           zIndex: -1,
           opacity: isTransitioning ? 1 : 0,
-          transition: 'opacity 800ms cubic-bezier(0.4, 0.0, 0.2, 1)'
+          transition: 'opacity 800ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          pointerEvents: 'none',
+          userSelect: 'none'
         }
       }), /*#__PURE__*/React.createElement("div", {
         className: "game-content",
@@ -417,7 +475,56 @@ window.initApp = function () {
           position: 'relative',
           zIndex: 1
         }
-      }, hud.enabled && hud.stats && hud.stats.character ? /*#__PURE__*/React.createElement("div", {
+      }, showRotateHint ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0,0,0,0.6)',
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+          boxSizing: 'border-box'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          background: '#111',
+          border: '1px solid #333',
+          borderRadius: 12,
+          padding: 20,
+          maxWidth: 520,
+          width: '90%',
+          color: '#fff',
+          textAlign: 'center'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 18,
+          marginBottom: 12
+        }
+      }, "For best experience, rotate your device to landscape."), /*#__PURE__*/React.createElement("div", {
+        style: {
+          opacity: 0.85,
+          marginBottom: 16
+        }
+      }, "Landscape mode shows the full scene and keeps all text and buttons visible."), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          gap: 10,
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }
+      }, /*#__PURE__*/React.createElement("button", {
+        className: "option-btn",
+        onClick: () => {
+          rotateDismissedRef.current = true;
+          setShowRotateHint(false);
+        }
+      }, "Continue in portrait")))) : null, hud.enabled && hud.stats && hud.stats.character ? /*#__PURE__*/React.createElement("div", {
         className: "hud"
       }, /*#__PURE__*/React.createElement("span", {
         className: "pill"

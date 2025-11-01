@@ -28,6 +28,13 @@ Then open http://127.0.0.1:5000/ in your browser.
 
 Note: The legacy CLI entry point (`python -m game`) has been removed. Use the web app.
 
+## Responsive scene images (no UI changes)
+
+- Background/foreground scene images are rendered with `<img>` layers using `object-fit: contain` and centered alignment to prevent any cropping on mobile and desktop.
+- Images are constrained to the viewport with `max-width: 100vw` and `max-height: 100vh` and do not overflow horizontally or vertically.
+- The dynamic textbox (auto-resizing, buttons, starting position, and interactions) is unchanged; only the image container implementation was adjusted.
+- The container uses modern viewport units where available (`height: 100dvh`) with a `100vh` fallback to avoid mobile browser UI cropping.
+
 ## Dev quick-start
 
 - Python deps: `pip install -r requirements.txt`
