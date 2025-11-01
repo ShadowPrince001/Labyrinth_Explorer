@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Labyrinth Adventure - Web</title>
     <style>
         :root {
@@ -17,6 +18,9 @@
             margin: 0;
             overflow: hidden;
             /* prevent page scrollbar */
+            touch-action: manipulation;
+            /* reduce double-tap zoom */
+            -ms-touch-action: manipulation;
         }
 
         body {
@@ -40,6 +44,7 @@
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
             padding-top: calc(0px + env(safe-area-inset-top));
             box-sizing: border-box;
+            touch-action: manipulation;
         }
 
         .game-content {
@@ -161,6 +166,20 @@
     </style>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <script>
+        // Early guard against accidental page zoom on mobile (pinch, double-tap)
+        (function () {
+            var lastTouchEnd = 0;
+            function preventPinch(e) { if (e.touches && e.touches.length > 1) { e.preventDefault(); } }
+            function preventDoubleTap(e) { var now = Date.now(); if (now - lastTouchEnd < 350) { e.preventDefault(); } lastTouchEnd = now; }
+            function preventGesture(e) { e.preventDefault(); }
+            document.addEventListener('touchstart', preventPinch, { passive: false });
+            document.addEventListener('touchend', preventDoubleTap, { passive: false });
+            document.addEventListener('dblclick', preventGesture, { passive: false });
+            document.addEventListener('gesturestart', preventGesture);
+        })();
+    </script>
 
     <script>
         (function () {

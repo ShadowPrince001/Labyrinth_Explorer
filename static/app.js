@@ -16,6 +16,8 @@ window.initApp = function () {
     const [nextBackground, setNextBackground] = useState(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const transitionTimeoutRef = useRef(null);
+    const coalesceTimerRef = useRef(null); // debounce rapid background changes
+    const pendingBgRef = useRef(null); // last requested bg during debounce window
     const lastBackgroundRef = useRef('labyrinth.png');
     // Orientation and device flags
     const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth >= window.innerHeight : true);
@@ -163,6 +165,42 @@ window.initApp = function () {
       socketRef.current.emit('player_start');
     }
     useEffect(() => {
+      // Prevent mobile zoom gestures (double-tap, pinch) for better game UX
+      const preventPinch = e => {
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault();
+        }
+      };
+      let lastTouchEnd = 0;
+      const preventDoubleTap = e => {
+        const now = Date.now();
+        if (now - lastTouchEnd < 350) {
+          e.preventDefault();
+        }
+        lastTouchEnd = now;
+      };
+      const preventGesture = e => {
+        e.preventDefault();
+      };
+      document.addEventListener('touchstart', preventPinch, {
+        passive: false
+      });
+      document.addEventListener('touchend', preventDoubleTap, {
+        passive: false
+      });
+      document.addEventListener('dblclick', preventGesture, {
+        passive: false
+      });
+      // iOS Safari specific
+      document.addEventListener('gesturestart', preventGesture);
+      return () => {
+        document.removeEventListener('touchstart', preventPinch);
+        document.removeEventListener('touchend', preventDoubleTap);
+        document.removeEventListener('dblclick', preventGesture);
+        document.removeEventListener('gesturestart', preventGesture);
+      };
+    }, []);
+    useEffect(() => {
       if (typeof io !== 'function') {
         setError('Socket.IO not loaded');
         return;
@@ -233,65 +271,71 @@ window.initApp = function () {
       // Scene events for background images and overlay text
       s.on('scene', data => {
         const sceneData = data.data || data; // Handle both nested and flat structures
-        if (sceneData && sceneData.background !== undefined) {
-          const newBackground = sceneData.background;
-          // Use ref for accurate current state (state variables are stale in this closure)
+        // Helper to actually apply a background with preload + crossfade
+        const applyBackground = newBackground => {
           const currentBg = lastBackgroundRef.current;
-          console.log('[SCENE] Received:', newBackground, '| LastRef:', currentBg, '| Next:', nextBackground, '| Transitioning:', isTransitioning);
-
-          // Allow null/undefined to clear background state for forced resets
+          // Allow null/empty to clear background state for forced resets
           if (newBackground === null || newBackground === '') {
-            console.log('[SCENE] Clearing background state');
             if (transitionTimeoutRef.current) {
               clearTimeout(transitionTimeoutRef.current);
               transitionTimeoutRef.current = null;
             }
-            // Use a special sentinel value that won't match any real background
             setBackground('__RESET__');
             setNextBackground(null);
             setIsTransitioning(false);
             lastBackgroundRef.current = '__RESET__';
             return;
           }
-
-          // Check if this is genuinely a new background we need to apply
-          // Use lastBackgroundRef.current instead of background state (which is stale in closure)
           const needsUpdate = currentBg === '__RESET__' || newBackground !== currentBg && newBackground !== nextBackground;
-          if (needsUpdate) {
-            console.log('[SCENE] Applying background (preload):', newBackground);
-            const path = `/static/images/${newBackground}`;
-            // If a transition is mid-flight, finalize immediately after preload
-            if (isTransitioning) {
-              if (transitionTimeoutRef.current) {
-                clearTimeout(transitionTimeoutRef.current);
-                transitionTimeoutRef.current = null;
-              }
-              preloadImage(path, () => {
-                lastBackgroundRef.current = newBackground;
-                setBackground(newBackground);
-                setNextBackground(null);
-                setIsTransitioning(false);
-              });
-            } else {
-              if (transitionTimeoutRef.current) {
-                clearTimeout(transitionTimeoutRef.current);
-              }
-              preloadImage(path, () => {
-                lastBackgroundRef.current = newBackground;
-                setNextBackground(newBackground);
-                requestAnimationFrame(() => {
-                  setIsTransitioning(true);
-                  transitionTimeoutRef.current = setTimeout(() => {
-                    setBackground(newBackground);
-                    setNextBackground(null);
-                    setIsTransitioning(false);
-                  }, 800);
-                });
-              });
-            }
-          } else {
-            console.log('[SCENE] Skipped (duplicate)');
+          if (!needsUpdate) {
+            return;
           }
+          const path = `/static/images/${newBackground}`;
+          // If a transition is mid-flight, finalize immediately after preload
+          if (isTransitioning) {
+            if (transitionTimeoutRef.current) {
+              clearTimeout(transitionTimeoutRef.current);
+              transitionTimeoutRef.current = null;
+            }
+            preloadImage(path, () => {
+              lastBackgroundRef.current = newBackground;
+              setBackground(newBackground);
+              setNextBackground(null);
+              setIsTransitioning(false);
+            });
+          } else {
+            if (transitionTimeoutRef.current) {
+              clearTimeout(transitionTimeoutRef.current);
+            }
+            preloadImage(path, () => {
+              lastBackgroundRef.current = newBackground;
+              setNextBackground(newBackground);
+              requestAnimationFrame(() => {
+                setIsTransitioning(true);
+                const duration = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 600 : 800;
+                transitionTimeoutRef.current = setTimeout(() => {
+                  setBackground(newBackground);
+                  setNextBackground(null);
+                  setIsTransitioning(false);
+                }, duration);
+              });
+            });
+          }
+        };
+        if (sceneData && sceneData.background !== undefined) {
+          const newBackground = sceneData.background;
+          // Debounce/coalesce rapid bg updates (e.g., town -> labyrinth -> room)
+          if (coalesceTimerRef.current) {
+            clearTimeout(coalesceTimerRef.current);
+          }
+          pendingBgRef.current = newBackground;
+          const delay = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 220 : 140;
+          coalesceTimerRef.current = setTimeout(() => {
+            const toApply = pendingBgRef.current;
+            pendingBgRef.current = null;
+            coalesceTimerRef.current = null;
+            applyBackground(toApply);
+          }, delay);
         }
         if (sceneData && sceneData.text != null && sceneData.text !== '') {
           enqueueDialogue(String(sceneData.text));
@@ -305,6 +349,11 @@ window.initApp = function () {
         if (transitionTimeoutRef.current) {
           clearTimeout(transitionTimeoutRef.current);
           transitionTimeoutRef.current = null;
+        }
+        if (coalesceTimerRef.current) {
+          clearTimeout(coalesceTimerRef.current);
+          coalesceTimerRef.current = null;
+          pendingBgRef.current = null;
         }
         setNextBackground(null);
         setIsTransitioning(false);
@@ -407,6 +456,10 @@ window.initApp = function () {
       };
     }, []);
     const imgObjectFit = 'cover';
+    const isMonster = bg => typeof bg === 'string' && bg.toLowerCase().includes('/monsters/') || typeof bg === 'string' && bg.toLowerCase().startsWith('monsters/');
+    const currentObjPos = isMonster(background) ? 'top center' : 'center';
+    const nextObjPos = isMonster(nextBackground) ? 'top center' : 'center';
+    const fadeMs = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 600 : 800;
 
     // Preload helper for smoother transitions
     const preloadImage = (path, cb) => {
@@ -424,7 +477,10 @@ window.initApp = function () {
       // Note: This is JSX and will be compiled by Babel to JS in app.js
       React.createElement("div", {
         className: "app-container",
-        onClickCapture: flushNow
+        onClickCapture: flushNow,
+        style: {
+          touchAction: 'manipulation'
+        }
       }, /*#__PURE__*/React.createElement("img", {
         className: "background-image background-current",
         src: background === '__RESET__' ? '' : `/static/images/${background}`,
@@ -439,10 +495,11 @@ window.initApp = function () {
           maxWidth: '100vw',
           maxHeight: '100vh',
           objectFit: imgObjectFit,
-          objectPosition: 'center',
+          objectPosition: currentObjPos,
           zIndex: -2,
           opacity: isTransitioning && nextBackground ? 0 : 1,
-          transition: isTransitioning ? 'opacity 800ms cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none',
+          transition: isTransitioning ? `opacity ${fadeMs}ms ease` : 'none',
+          willChange: 'opacity',
           pointerEvents: 'none',
           userSelect: 'none'
         }
@@ -459,10 +516,11 @@ window.initApp = function () {
           maxWidth: '100vw',
           maxHeight: '100vh',
           objectFit: imgObjectFit,
-          objectPosition: 'center',
+          objectPosition: nextObjPos,
           zIndex: -1,
           opacity: isTransitioning ? 1 : 0,
-          transition: 'opacity 800ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          transition: `opacity ${fadeMs}ms ease`,
+          willChange: 'opacity',
           pointerEvents: 'none',
           userSelect: 'none'
         }
