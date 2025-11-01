@@ -78,8 +78,9 @@
         }
 
         .text-overlay {
-            background: rgba(10, 14, 18, 0.42);
-            backdrop-filter: blur(3px);
+            /* Subtle, not-too-dark overlay with gentle separation */
+            background: rgba(20, 20, 20, 0.35);
+            backdrop-filter: blur(2px);
             border-radius: 12px 12px 0 0;
             padding: 20px;
             /* Remove external bottom margin to avoid clipping inside overflow-hidden container */
@@ -87,20 +88,24 @@
             /* Let inline styles from React control min/max/height; keep a small base only */
             min-height: 60px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.22);
             /* Allow responsive font scaling on mobile; desktop unchanged */
             font-size: 1rem;
         }
 
         #output {
-            color: #ffffff;
+            /* Softer contrast for comfort */
+            color: #F3F3F3;
             padding: 8px 0;
             /* No native scrollbars; render full content */
             overflow: visible;
             white-space: pre-wrap;
-            font-family: Consolas, 'Courier New', monospace;
+            /* Clear, heavier sans-serif for legibility */
+            font-family: 'Segoe UI', Roboto, Arial, Helvetica, sans-serif;
+            font-weight: 600;
             max-height: none;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+            /* Soft, wider text shadow to separate from busy scenes */
+            text-shadow: 1px 2px 6px #222a;
         }
 
         .options {
@@ -111,13 +116,30 @@
         }
 
         .option-btn {
-            background: #2ecc71;
-            color: #042;
+            /* Muted, desaturated button styling for comfort */
+            background: #333F4F;
+            /* dark slate */
+            color: #F3F3F3;
             padding: 10px 12px;
             border-radius: 8px;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            font-weight: 600;
+        }
+
+        .option-btn:hover {
+            background: #3F4B5C;
+        }
+
+        .option-btn:active {
+            background: #2B3644;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) inset;
+        }
+
+        .option-btn:focus-visible {
+            outline: 2px solid rgba(111, 163, 216, 0.9);
+            outline-offset: 2px;
         }
 
         .text-input {
@@ -144,8 +166,9 @@
             }
 
             .text-overlay {
-                background: rgba(10, 14, 18, 0.5);
-                backdrop-filter: blur(4px);
+                /* Keep mobile overlay subtle; avoid too much dimming */
+                background: rgba(20, 20, 20, 0.35);
+                backdrop-filter: blur(2px);
             }
         }
 
@@ -160,7 +183,7 @@
             }
 
             .text-overlay {
-                background: rgba(10, 14, 18, 0.48);
+                background: rgba(20, 20, 20, 0.33);
             }
         }
     </style>

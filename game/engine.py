@@ -141,22 +141,13 @@ class GameEngine:
             or "=== Labyrinth Adventure (CLI) ==="
         )
         self._emit_dialogue(hdr)
+        # Use fixed numbering to avoid duplicate numbers from dialogues
         self._emit_menu(
             [
-                (
-                    "main:new",
-                    get_dialogue("system", "main_menu_new", None, None)
-                    or "1) New Game",
-                ),
-                (
-                    "main:load",
-                    get_dialogue("system", "main_menu_load", None, None)
-                    or "2) Load Game",
-                ),
-                (
-                    "main:quit",
-                    get_dialogue("system", "main_menu_quit", None, None) or "3) Quit",
-                ),
+                ("main:new", "1) New Game"),
+                ("main:load", "2) Load Game"),
+                ("main:howto", "3) How to Play"),
+                ("main:quit", "4) Quit"),
             ]
         )
         self._emit_state()
@@ -266,43 +257,25 @@ class GameEngine:
                 self._emit_dialogue(f"Invalid difficulty: {difficulty}")
                 self._emit_state()
         else:
-            # Show difficulty selection screen
+            # Show difficulty selection screen (compact, mobile-friendly)
             self._emit_clear()
-            self._emit_dialogue("")
-            self._emit_dialogue("╔═══════════════════════════════════════════╗")
-            self._emit_dialogue("║       SELECT YOUR DIFFICULTY LEVEL        ║")
-            self._emit_dialogue("╚═══════════════════════════════════════════╝")
-            self._emit_dialogue("")
+            self._emit_dialogue("       SELECT YOUR DIFFICULTY LEVEL        ")
+            self._emit_dialogue("═══════════════════════════════════════════")
 
-            for key, config in [
-                ("easy", self.DIFFICULTY_CONFIG["easy"]),
-                ("normal", self.DIFFICULTY_CONFIG["normal"]),
-                ("hard", self.DIFFICULTY_CONFIG["hard"]),
-            ]:
-                name = config["name"]
-                dice = config["dice"]
-                desc = config["description"]
-
-                # Calculate stat ranges
-                num_dice = int(dice.split("d")[0])
-                die_size = int(dice.split("d")[1])
-                min_stat = num_dice * 1
-                max_stat = num_dice * die_size
-
-                # Format with proper alignment and spacing
-                self._emit_dialogue(f"▶ {name.upper()} ({dice})")
-                self._emit_dialogue(f"  {desc}")
-                self._emit_dialogue(
-                    f"  Roll {dice} ({min_stat}-{max_stat} range) for each attribute."
-                )
-                self._emit_dialogue(f"  Stat Range: {min_stat}-{max_stat}")
-                self._emit_dialogue("")
+            # EASY
+            self._emit_dialogue("▶ EASY ")
+            self._emit_dialogue("  Roll 6d5 (6-30 range) for each attribute.")
+            # NORMAL
+            self._emit_dialogue("▶ NORMAL ")
+            self._emit_dialogue("  Roll 5d5 (5-25 range) for each attribute.")
+            # HARD
+            self._emit_dialogue("▶ HARD")
+            self._emit_dialogue("  Roll 4d5 (4-20 range) for each attribute.")
 
             self._emit_dialogue("This choice affects your starting attributes only.")
             self._emit_dialogue(
                 "You cannot change difficulty once character creation begins."
             )
-            self._emit_dialogue("")
             self._emit_state()
             self._emit_menu(
                 [
@@ -356,12 +329,78 @@ class GameEngine:
                 self._emit_dialogue(ask)
                 self._emit_prompt("name", "Enter your name:")
                 self._emit_menu([("prompt:submit", "OK")])
+        elif action == "main:howto":
+            # Show a concise "How to Play" screen (<=10 lines)
+            self._emit_clear()
+            # Keep labyrinth background while reading
+            try:
+                from .scene_manager import set_labyrinth_background
+
+                ev = set_labyrinth_background()
+                bg = (
+                    ev.get("data", {}).get("background")
+                    if isinstance(ev, dict)
+                    else None
+                )
+                if bg:
+                    self._emit_scene(bg)
+            except Exception:
+                pass
+            lines = [
+                "How to Play:",
+                "- Choose options to explore rooms.",
+                "- Rolls use your stats — higher is better.",
+                "- Combat: Attack, Cast, Charm, Run, Examine.",
+                "- Depth raises rewards and danger.",
+                "- Heal with potions; rest in town.",
+                "- Gold buys gear; train and level up.",
+                "- Listen/Divine hint the next room.",
+                "- Charmed foes give half rewards.",
+                "- Press Continue to advance screens.",
+            ]
+            for ln in lines:
+                self._emit_dialogue(ln)
+            self._emit_menu([("main:menu", "Back")])
+            self._emit_state()
+            return self._flush()
+        elif action == "main:menu":
+            # Re-render main menu
+            self._emit_clear()
+            # Set labyrinth background again for consistency
+            try:
+                from .scene_manager import set_labyrinth_background
+
+                ev = set_labyrinth_background()
+                bg = (
+                    ev.get("data", {}).get("background")
+                    if isinstance(ev, dict)
+                    else None
+                )
+                if bg:
+                    self._emit_scene(bg)
+            except Exception:
+                pass
+            hdr = (
+                get_dialogue("system", "main_menu_header", None, None)
+                or "=== Labyrinth Adventure (CLI) ==="
+            )
+            self._emit_dialogue(hdr)
+            self._emit_menu(
+                [
+                    ("main:new", "1) New Game"),
+                    ("main:load", "2) Load Game"),
+                    ("main:howto", "3) How to Play"),
+                    ("main:quit", "4) Quit"),
+                ]
+            )
+            self._emit_state()
+            return self._flush()
         elif action == "main:load":
             self._emit_dialogue("No saved game found.")
             self._emit_menu(
                 [
                     ("main:new", "New Game"),
-                    ("main:quit", "Quit"),
+                    ("main:menu", "Back"),
                 ]
             )
         elif action == "main:quit":
@@ -384,12 +423,13 @@ class GameEngine:
             self._emit_dialogue("Thanks for playing!")
             self._emit_menu([])
         else:
-            # repeat menu
+            # repeat menu with fixed numbering
             self._emit_menu(
                 [
-                    ("main:new", "New Game"),
-                    ("main:load", "Load Game"),
-                    ("main:quit", "Quit"),
+                    ("main:new", "1) New Game"),
+                    ("main:load", "2) Load Game"),
+                    ("main:howto", "3) How to Play"),
+                    ("main:quit", "4) Quit"),
                 ]
             )
         self._emit_state()
@@ -2120,6 +2160,10 @@ class GameEngine:
         if sp == "charm_continue" and action == "combat:after_charm":
             self.s.subphase = "monster_defend"
             return self._combat_emit_menu()
+        if sp == "charm_success" and action == "combat:charm_success_continue":
+            # After successful charm and rewards, return to the room view
+            self.s.phase = "dungeon"
+            return self._enter_room()
         if sp == "run_success" and action == "combat:run_success_continue":
             # Leave combat and go to town after confirming
             self.s.phase = "town"
@@ -2833,18 +2877,25 @@ class GameEngine:
         # Show victory on a clean page
         self._emit_clear()
 
+        # Depth-scaled XP reward
         monsters = load_monsters()
         entry = next((m for m in monsters if m.get("name") == mon.get("name")), None)
-        xp_reward = int(entry.get("xp", 10)) if entry else 10
+        base_xp = int(entry.get("xp", 10)) if entry else 10
+        depth = max(1, int(getattr(self.s, "depth", 1)))
+        xp_reward = max(0, int(base_xp * depth))
         msgs = self.s.character.gain_xp(xp_reward)
         self._emit_combat_update(
             f"You defeated the {mon['name']} and gain {xp_reward} XP!"
         )
         for m in msgs:
             self._emit_combat_update(m)
-        gold = room.get("gold_reward", 0)
+
+        # Depth-scaled gold reward
+        base_gold = int(room.get("gold_reward", 0))
+        gold = max(0, int(base_gold * depth))
         self.s.character.gold += gold
         self._emit_combat_update(f"You loot {gold} gold!")
+
         # Side quests progression and auto turn-in for relevant kills
         try:
             from .quests import quest_manager
@@ -2879,6 +2930,7 @@ class GameEngine:
                         )
         except Exception:
             pass
+
         # Drops: weight by monster difficulty when available
         diff = int(entry.get("difficulty", 1)) if entry else 1
         potion_chance = min(0.20, 0.05 + diff * 0.01)
@@ -2929,8 +2981,10 @@ class GameEngine:
                     )
                 self.s.character.magic_items.append(mi)
                 self._emit_combat_update(f"You discover a {mi.name}!")
+
         room["monster"] = None
         self._emit_update_stats()
+
         # If this was the Dragon, trigger end-game victory flow
         if (mon.get("name") or "").lower() == "dragon":
             # Clean final victory screen
@@ -3286,11 +3340,47 @@ class GameEngine:
             self._emit_combat_update(
                 f"The {mon['name']} is charmed and leaves peacefully."
             )
+            # Award reduced rewards on charm: 50% of depth-scaled XP and gold.
+            try:
+                from .data_loader import load_monsters
+
+                monsters = load_monsters() or []
+                entry = next(
+                    (m for m in monsters if m.get("name") == mon.get("name")),
+                    None,
+                )
+                base_xp = int(entry.get("xp", 10)) if entry else 10
+            except Exception:
+                base_xp = 10
+            depth = max(1, int(getattr(self.s, "depth", 1)))
+            xp_reward = max(0, int(base_xp * depth * 0.5))
+            # Gold from room reward, depth-scaled then halved
+            try:
+                base_gold = int(room.get("gold_reward", 0))
+            except Exception:
+                base_gold = 0
+            gold = max(0, int(base_gold * depth * 0.5))
+            # Apply rewards (no quests or drops on charm)
+            try:
+                _ = self.s.character.gain_xp(xp_reward)
+            except Exception:
+                pass
+            try:
+                self.s.character.gold += gold
+            except Exception:
+                pass
+            if xp_reward or gold:
+                self._emit_combat_update(
+                    f"Charmed reward: +{xp_reward} XP and +{gold} gold (no loot/quests)."
+                )
+            self._emit_update_stats()
             room["monster"] = None
-            self.s.phase = "dungeon"
-            # brief pause to match CLI pacing on successful charm
+            # Stay on a dedicated result screen; route to room after Continue
+            self.s.subphase = "charm_success"
             self._emit_pause()
-            return self._enter_room()
+            self._emit_menu([("combat:charm_success_continue", "Continue")])
+            self._emit_state()
+            return self._flush()
         else:
             self._emit_combat_update("Your charm attempt fails.")
             # Gate next turn behind a Continue
