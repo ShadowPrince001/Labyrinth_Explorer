@@ -1782,8 +1782,8 @@
             "name": "Rolling HP Bonus",
             "role": "System",
             "dialogues": [
-                "Rolling 3d6 for HP bonus...",
-                "Determining HP bonus (3d6)..."
+                "Rolling 5d4 for HP bonus...",
+                "Determining HP bonus (5d4)..."
             ]
         },
         "hp_result": {

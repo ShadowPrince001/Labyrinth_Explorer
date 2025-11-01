@@ -6,7 +6,7 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory, request, jsonify
 from flask_socketio import SocketIO, emit
 from typing import Dict
 import os
@@ -14,14 +14,30 @@ import os
 from game.engine import GameEngine
 
 app = Flask(__name__, static_folder="static")
+
+# Configuration via environment variables for deployment flexibility
+_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*")
+_transports_env = os.getenv(
+    "SOCKET_TRANSPORTS", "websocket,polling"
+)  # e.g. "websocket,polling"
+_transports = [t.strip() for t in _transports_env.split(",") if t.strip()]
+_allow_upgrades = "websocket" in _transports or os.getenv(
+    "ALLOW_UPGRADES", ""
+).lower() in ("1", "true", "yes")
+_message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE")  # e.g. redis URL for scale-out
+
+# Let Flask-SocketIO auto-detect async mode by default (eventlet/gevent/threading)
+_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "").strip() or None
+
 socketio = SocketIO(
     app,
-    async_mode="threading",
-    cors_allowed_origins="*",
+    async_mode=_async_mode,
+    cors_allowed_origins=_cors_origins,
     logger=True,
     engineio_logger=True,
-    transports=["polling"],
-    allow_upgrades=False,
+    transports=_transports or ["polling"],
+    allow_upgrades=_allow_upgrades,
+    message_queue=_message_queue,
 )
 
 # Keep engine instances per client session (sid)
@@ -31,6 +47,12 @@ engines: Dict[str, GameEngine] = {}
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
+
+
+@app.route("/health")
+def health():
+    """Lightweight health endpoint for Render health checks."""
+    return jsonify({"ok": True}), 200
 
 
 @app.route("/test-dragon")
@@ -192,7 +214,17 @@ def _emit_events(events, to_sid=None):
 def on_connect():
     sid = request.sid
     # Create engine for this session
-    engines[sid] = GameEngine()
+    eng = GameEngine()
+    # Gate engine verbose prints via env var LE_ENGINE_DEBUG
+    try:
+        eng.debug = str(os.getenv("LE_ENGINE_DEBUG", "")).strip().lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+    except Exception:
+        pass
+    engines[sid] = eng
     emit("connected", {"ok": True})
 
 
@@ -216,6 +248,14 @@ def on_engine_start():
     eng = engines.get(sid)
     if not eng:
         eng = GameEngine()
+        try:
+            eng.debug = str(os.getenv("LE_ENGINE_DEBUG", "")).strip().lower() in (
+                "1",
+                "true",
+                "yes",
+            )
+        except Exception:
+            pass
         engines[sid] = eng
     events = eng.start()
     _emit_events(events, to_sid=sid)
@@ -250,5 +290,8 @@ def on_engine_action(data):
 if __name__ == "__main__":
     if not os.path.exists("static"):
         os.makedirs("static", exist_ok=True)
-    print("🚀 Starting Flask-SocketIO server...")
-    socketio.run(app, host="127.0.0.1", port=5000, debug=True)
+    port = int(os.getenv("PORT", "5000"))
+    host = os.getenv("HOST", "0.0.0.0")
+    debug = os.getenv("FLASK_DEBUG", "").lower() in ("1", "true", "yes")
+    print(f"🚀 Starting Flask-SocketIO server on {host}:{port} (debug={debug})...")
+    socketio.run(app, host=host, port=port, debug=debug)

@@ -63,6 +63,10 @@ class SimulationMetrics:
     deaths: int = 0
     revivals: int = 0
 
+    # Charm tracking (engine-level feature not used in this simulator, but kept for parity)
+    charms_attempted: int = 0
+    charms_success: int = 0
+
     # Action usage
     divine_used: int = 0
     divine_success: int = 0
@@ -87,6 +91,13 @@ class SimulationMetrics:
 
     # Town visits
     town_visits: int = 0
+
+    # Additional per-run telemetry
+    unique_monsters: set = field(default_factory=set)
+    death_reasons: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    # Quests
+    quests_completed: int = 0
+    quest_gold_earned: int = 0
 
     # Final stats
     final_stats: Dict[str, int] = field(default_factory=dict)
@@ -138,10 +149,21 @@ class SmartAI:
     @staticmethod
     def should_visit_town(char: Character, depth: int, just_revived: bool) -> bool:
         """Decide if we should return to town.
+        Rules:
         - Always after revival
-        - Never mid-run (only start + revival)
+        - If HP < 60%
+        - If potions < 2
+        - If we likely can afford an upgrade (gold >= 40 for weapon or >= 60 for armor)
+        - Before pushing into depth >= 4 (one-time pre-push gear-up)
         """
-        return just_revived
+        if just_revived:
+            return True
+        hp_ok = char.max_hp > 0 and (char.hp / char.max_hp) >= 0.6
+        pot_ok = char.potions >= 2
+        gold_ok = not (char.gold >= 40 or char.gold >= 60)
+        if (not hp_ok) or (not pot_ok) or (not gold_ok):
+            return True
+        return False
 
     @staticmethod
     def choose_training_attribute(char: Character) -> Optional[str]:
@@ -177,6 +199,9 @@ class SmartAI:
         if not available_weapons:
             return None
 
+        # Consider only shop-available weapons with a positive (or defined) price
+        candidates = [w for w in available_weapons if w.get("availability") == "shop"]
+
         current_weapon = char.weapons[0] if char.weapons else None
 
         # Parse damage dice to compare
@@ -195,8 +220,8 @@ class SmartAI:
         best_weapon = None
         best_avg = current_avg
 
-        for weapon in available_weapons:
-            cost = weapon.get("cost", 999)
+        for weapon in candidates:
+            cost = weapon.get("price", weapon.get("cost", 999))
             if cost <= char.gold:
                 weapon_avg = avg_damage(weapon.get("damage_die", "1d4"))
                 if weapon_avg > best_avg:
@@ -213,14 +238,17 @@ class SmartAI:
         if not available_armor:
             return None
 
+        # Consider only shop-available armor
+        candidates = [a for a in available_armor if a.get("availability") == "shop"]
+
         current_ac = char.armor.armor_class if char.armor else 0
 
         # Find best affordable upgrade
         best_armor = None
         best_ac = current_ac
 
-        for armor in available_armor:
-            cost = armor.get("cost", 999)
+        for armor in candidates:
+            cost = armor.get("price", armor.get("cost", 999))
             ac = armor.get("armor_class", 0)
             if cost <= char.gold and ac > best_ac:
                 best_armor = armor
@@ -275,6 +303,15 @@ class GameSimulator:
         self.armors = load_armors()
         self.monsters_data = load_monsters()
 
+    @staticmethod
+    def _stat_dice_for_difficulty(difficulty: str) -> str:
+        d = (difficulty or "normal").lower()
+        if d == "easy":
+            return "6d5"
+        if d == "hard":
+            return "4d5"
+        return "5d5"  # normal
+
     def create_monster(self, name: str = None, depth: int = 1) -> Monster:
         """Create a monster from data (fixed base stats, no scaling)"""
         if name:
@@ -315,7 +352,7 @@ class GameSimulator:
             # Buy best weapon we can afford (prioritize Longsword 1d8 for 40g)
             weapon_dict = SmartAI.should_buy_weapon(char, self.weapons)
             if weapon_dict:
-                cost = weapon_dict.get("cost", 0)
+                cost = weapon_dict.get("price", weapon_dict.get("cost", 0))
                 char.gold -= cost
                 weapon = Weapon(
                     name=weapon_dict["name"], damage_die=weapon_dict["damage_die"]
@@ -327,7 +364,7 @@ class GameSimulator:
             # Buy best armor we can afford (prioritize Leather Armor AC 12 for 60g)
             armor_dict = SmartAI.should_buy_armor(char, self.armors)
             if armor_dict:
-                cost = armor_dict.get("cost", 0)
+                cost = armor_dict.get("price", armor_dict.get("cost", 0))
                 char.gold -= cost
                 armor = Armor(
                     name=armor_dict["name"], armor_class=armor_dict["armor_class"]
@@ -344,7 +381,6 @@ class GameSimulator:
                 char.gold -= cost
                 metrics.gold_spent_potions += cost
                 metrics.potions_bought += potions_to_buy
-
         # Subsequent visits: upgrade and train
         else:
             # Try to train if we have 50g+ and need stats
@@ -358,11 +394,12 @@ class GameSimulator:
                     metrics.gold_spent_training += 50
                     metrics.training_sessions += 1
                     metrics.stats_trained[attr] += 1
-
             # Upgrade weapon if needed and affordable
             weapon_dict = SmartAI.should_buy_weapon(char, self.weapons)
-            if weapon_dict and char.gold >= weapon_dict.get("cost", 0):
-                cost = weapon_dict.get("cost", 0)
+            if weapon_dict and char.gold >= weapon_dict.get(
+                "price", weapon_dict.get("cost", 0)
+            ):
+                cost = weapon_dict.get("price", weapon_dict.get("cost", 0))
                 char.gold -= cost
                 weapon = Weapon(
                     name=weapon_dict["name"], damage_die=weapon_dict["damage_die"]
@@ -370,18 +407,20 @@ class GameSimulator:
                 char.weapons = [weapon]
                 metrics.gold_spent_weapons += cost
                 metrics.weapons_bought += 1
-
             # Upgrade armor if needed and affordable
             armor_dict = SmartAI.should_buy_armor(char, self.armors)
-            if armor_dict and char.gold >= armor_dict.get("cost", 0):
-                cost = armor_dict.get("cost", 0)
+            if armor_dict and char.gold >= armor_dict.get(
+                "price", armor_dict.get("cost", 0)
+            ):
+                cost = armor_dict.get("price", armor_dict.get("cost", 0))
                 char.gold -= cost
                 armor = Armor(
                     name=armor_dict["name"], armor_class=armor_dict["armor_class"]
                 )
                 char.armor = armor
                 metrics.gold_spent_armor += cost
-                metrics.armor_bought += 1  # Buy potions if low (keep 3-5 in stock)
+                metrics.armor_bought += 1
+            # Buy potions if low (keep 3-5 in stock)
             if char.potions < 3 and char.gold >= 20:
                 potions_to_buy = min(3 - char.potions, char.gold // 20)
                 if potions_to_buy > 0:
@@ -402,6 +441,21 @@ class GameSimulator:
         Execute one turn of combat.
         Returns: (char_won, char_died, examined_this_turn)
         """
+        # Dragon policy: always attack (no examine/divine), but still use potion at 50%
+        if (monster.name or "").lower() == "dragon":
+            if SmartAI.should_use_potion(char, monster.hp):
+                if char.potions > 0:
+                    con = char.attributes.get("Constitution", 10)
+                    mult = max(1, math.ceil(con / 2))
+                    heal = sum(max(1, roll_damage("2d2")) for _ in range(mult))
+                    char.hp = min(char.max_hp, char.hp + heal)
+                    char.potions -= 1
+                    metrics.potions_used += 1
+                    # Monster attacks after potion
+                    return self.monster_attacks(char, monster, metrics)
+            # Always attack vs Dragon
+            return self.player_attacks(char, monster, metrics)
+
         # Check if we should examine (once per combat, doesn't trigger monster attack)
         if SmartAI.should_examine(char, monster, examined_this_combat):
             wis = char.attributes.get("Wisdom", 10)
@@ -550,6 +604,10 @@ class GameSimulator:
             metrics.damage_taken += dmg
 
             if char.hp <= 0:
+                try:
+                    metrics.death_reasons[monster.name] += 1
+                except Exception:
+                    pass
                 return False, True, False
 
         return False, False, False
@@ -589,23 +647,49 @@ class GameSimulator:
             metrics.permanent_death = True
             return False
 
-    def run_character(self, char_num: int) -> SimulationMetrics:
+    def run_character(
+        self, char_num: int, difficulty: str = "normal"
+    ) -> SimulationMetrics:
         """Run a complete character from creation to death or victory"""
         metrics = SimulationMetrics()
 
         # Create character
-        char = Character(
-            name=f"Hero_{char_num}", clazz="Warrior", max_hp=10, gold=100
-        )  # Roll and allocate stats
-        rolls = [roll_damage("4d6") for _ in range(7)]
+        char = Character(name=f"Hero_{char_num}", clazz="Warrior", max_hp=1, gold=0)
+        # Roll and allocate stats per engine difficulty dice
+        dice = self._stat_dice_for_difficulty(difficulty)
+        rolls = [roll_damage(dice) for _ in range(7)]
         SmartAI.allocate_stats_smart(char, rolls)
 
         metrics.character_name = char.name
         metrics.starting_stats = dict(char.attributes)
 
-        # Update HP based on CON
-        char.max_hp = 10 + char.attributes.get("Constitution", 10)
+        # Starting HP per engine: base_hp = 3*CON + roll(5d4)
+        con = int(char.attributes.get("Constitution", 10))
+        base_hp = 3 * con
+        hp_bonus = roll_damage("5d4")
+        char.max_hp = base_hp + hp_bonus
         char.hp = char.max_hp
+
+        # Starting gold per engine: 20d6 + ceil(CHA/1.5)d6 + low-HP bonus (tiers)
+        base_gold = roll_damage("20d6")
+        cha = int(char.attributes.get("Charisma", 10))
+        cha_dice = int(math.ceil(cha / 1.5))
+        cha_bonus = roll_damage(f"{cha_dice}d6") if cha_dice > 0 else 0
+        # Low HP bonus tiers (apply highest matching)
+        hp = char.max_hp
+        hp_bonus_die = None
+        if hp < 25:
+            hp_bonus_die = "15d6"
+        elif hp < 30:
+            hp_bonus_die = "10d6"
+        elif hp < 40:
+            hp_bonus_die = "7d6"
+        elif hp < 50:
+            hp_bonus_die = "5d6"
+        elif hp < 60:
+            hp_bonus_die = "3d6"
+        low_hp_bonus = roll_damage(hp_bonus_die) if hp_bonus_die else 0
+        char.gold = base_gold + cha_bonus + low_hp_bonus
 
         # Initial town visit (buy starting gear)
         self.town_phase(char, metrics, first_visit=True)
@@ -614,15 +698,29 @@ class GameSimulator:
         current_depth = 1
         encounter_count = 0
         just_revived = False
+        deep_shop_done = False
 
         while char.hp > 0 and encounter_count < 100:  # Safety limit
             metrics.total_turns += 1
 
-            # Check if should visit town (only after revival)
-            if just_revived:
+            # Check if should visit town (after revival or pre-deep push)
+            if SmartAI.should_visit_town(char, current_depth, just_revived):
                 self.town_phase(char, metrics, first_visit=False)
+                if just_revived:
+                    current_depth = 1
+                    deep_shop_done = False
                 just_revived = False
-                current_depth = 1  # Reset depth after revival
+
+            # Before pushing into depth 4/5, return to town to gear up if we can afford basics
+            if (not deep_shop_done) and current_depth >= 4:
+                can_afford_basics = (
+                    (char.gold >= 40)
+                    or (char.gold >= 60)
+                    or (char.potions < 3 and char.gold >= 20)
+                )
+                if can_afford_basics:
+                    self.town_phase(char, metrics, first_visit=False)
+                    deep_shop_done = True
 
             # Dragon spawns at 50th encounter OR at depth 5
             if encounter_count >= 50 or current_depth >= 5:
@@ -631,13 +729,16 @@ class GameSimulator:
             else:
                 monster = self.create_monster(depth=current_depth)
 
+            # Track unique monsters faced
+            try:
+                metrics.unique_monsters.add(monster.name)
+            except Exception:
+                pass
+
             metrics.total_encounters += 1
             encounter_count += 1
 
-            # Award gold for entering combat
-            gold_reward = random.randint(5, 20) + current_depth * 5
-            char.gold += gold_reward
-            metrics.gold_earned += gold_reward
+            # No pre-combat gold; rewards are granted on victory based on monsters.json (depth-scaled)
 
             # Combat loop
             examined_this_combat = False
@@ -657,24 +758,96 @@ class GameSimulator:
 
                 if char_won:
                     # Victory!
-                    if monster.name == "Dragon":
-                        # WON THE GAME!
-                        metrics.won_game = True
-                        metrics.final_stats = dict(char.attributes)
-                        metrics.final_hp = char.hp
-                        metrics.final_max_hp = char.max_hp
-                        metrics.final_gold = char.gold
+                    if char_won:
+                        # Victory! Award XP and gold based on monsters.json with depth scaling
+                        try:
+                            entry = next(
+                                (
+                                    m
+                                    for m in self.monsters_data
+                                    if m.get("name") == monster.name
+                                ),
+                                None,
+                            )
+                            depth = max(1, current_depth)
+                            # XP award
+                            base_xp = int(entry.get("xp", 10)) if entry else 10
+                            xp_reward = max(0, int(base_xp * depth))
+                            _ = char.gain_xp(xp_reward)
+                            # Auto-spend stat points: STR then CON
+                            while getattr(char, "unspent_stat_points", 0) > 0:
+                                if char.attributes.get("Strength", 10) < 20:
+                                    char.attributes["Strength"] = (
+                                        char.attributes.get("Strength", 10) + 1
+                                    )
+                                    char.unspent_stat_points -= 1
+                                    metrics.stats_trained["Strength"] += 1
+                                    metrics.training_sessions += 1
+                                elif char.attributes.get("Constitution", 10) < 20:
+                                    char.attributes["Constitution"] = (
+                                        char.attributes.get("Constitution", 10) + 1
+                                    )
+                                    char.max_hp += 5
+                                    char.unspent_stat_points -= 1
+                                    metrics.stats_trained["Constitution"] += 1
+                                    metrics.training_sessions += 1
+                                else:
+                                    break
+                            # Gold award
+                            base_gold = None
+                            if (
+                                entry
+                                and isinstance(entry.get("gold_range"), list)
+                                and len(entry["gold_range"]) == 2
+                            ):
+                                lo, hi = int(entry["gold_range"][0]), int(
+                                    entry["gold_range"][1]
+                                )
+                                if hi < lo:
+                                    lo, hi = hi, lo
+                                base_gold = random.randint(lo, hi)
+                            if base_gold is None:
+                                base_gold = 0
+                            gold_reward = max(0, int(base_gold * depth))
+                            char.gold += gold_reward
+                            metrics.gold_earned += gold_reward
+                        except Exception:
+                            pass
+
+                        if monster.name == "Dragon":
+                            # WON THE GAME!
+                            metrics.won_game = True
+                            metrics.final_stats = dict(char.attributes)
+                            metrics.final_hp = char.hp
+                            metrics.final_max_hp = char.max_hp
+                            metrics.final_gold = char.gold
+                            metrics.max_depth_reached = max(
+                                metrics.max_depth_reached, current_depth
+                            )
+                            return metrics
+
+                        # Regular monster defeated - go deeper (max 5)
+                        current_depth = min(5, current_depth + 1)
                         metrics.max_depth_reached = max(
                             metrics.max_depth_reached, current_depth
                         )
-                        return metrics
+                        # Quests turn-in for kill (if available)
+                        try:
+                            from game.quests import quest_manager
+                            from game.entities import Monster as _EM
 
-                    # Regular monster defeated - go deeper
-                    current_depth += 1
-                    metrics.max_depth_reached = max(
-                        metrics.max_depth_reached, current_depth
-                    )
-                    break
+                            mobj = _EM(
+                                name=monster.name,
+                                hp=max(0, monster.hp),
+                                armor_class=monster.armor_class,
+                                damage_die=monster.damage_die,
+                            )
+                            changed = quest_manager.check_kill(char, mobj)
+                            if changed:
+                                metrics.quests_completed += len(changed)
+                        except Exception:
+                            pass
+                        break
 
                 if char_died:
                     # Attempt revival
@@ -697,29 +870,36 @@ class GameSimulator:
         return metrics
 
 
-def run_simulation(num_characters: int = 100) -> List[SimulationMetrics]:
+def run_simulation(
+    num_characters: int = 100, difficulty: str = "normal", verbose: bool = True
+) -> List[SimulationMetrics]:
     """Run simulation for multiple characters"""
     simulator = GameSimulator()
     results = []
 
-    print(f"Starting simulation of {num_characters} characters...")
+    print(
+        f"Starting simulation of {num_characters} characters (difficulty={difficulty})..."
+    )
     print("=" * 60)
 
     for i in range(num_characters):
-        if (i + 1) % 10 == 0:
+        if verbose and (i + 1) % 10 == 0:
             print(f"Progress: {i + 1}/{num_characters} characters completed")
 
-        metrics = simulator.run_character(i + 1)
+        metrics = simulator.run_character(i + 1, difficulty=difficulty)
         results.append(metrics)
 
-        # Show individual result
-        outcome = "VICTORY (Dragon Slain!)" if metrics.won_game else "Permanent Death"
-        print(
-            f"  {metrics.character_name}: {outcome} - "
-            f"Encounters: {metrics.total_encounters}, "
-            f"Max Depth: {metrics.max_depth_reached}, "
-            f"Kills: {metrics.monsters_killed}"
-        )
+        # Show individual result if verbose
+        if verbose:
+            outcome = (
+                "VICTORY (Dragon Slain!)" if metrics.won_game else "Permanent Death"
+            )
+            print(
+                f"  {metrics.character_name}: {outcome} - "
+                f"Encounters: {metrics.total_encounters}, "
+                f"Max Depth: {metrics.max_depth_reached}, "
+                f"Kills: {metrics.monsters_killed}"
+            )
 
     print("=" * 60)
     print("Simulation complete!")
@@ -756,6 +936,14 @@ def analyze_results(results: List[SimulationMetrics]):
     )
     print(f"Average Max Depth: {sum(r.max_depth_reached for r in results)/total:.2f}")
     print(f"Deepest Depth Reached: {max(r.max_depth_reached for r in results)}")
+    # Unique monsters faced stats
+    try:
+        avg_unique = (
+            sum(len(getattr(r, "unique_monsters", set())) for r in results) / total
+        )
+        print(f"Average Unique Monsters Faced: {avg_unique:.1f}")
+    except Exception:
+        pass
 
     print(f"\n=== COMBAT PERFORMANCE ===")
     total_attacks = sum(r.total_attacks for r in results)
@@ -796,6 +984,17 @@ def analyze_results(results: List[SimulationMetrics]):
     print(
         f"Average Revivals per Character: {sum(r.revivals for r in results)/total:.2f}"
     )
+    # Aggregate death reasons
+    all_reasons = defaultdict(int)
+    for r in results:
+        for k, v in getattr(r, "death_reasons", {}).items():
+            all_reasons[k] += v
+    if all_reasons:
+        print("Death Reasons (top 5):")
+        for name, count in sorted(
+            all_reasons.items(), key=lambda kv: kv[1], reverse=True
+        )[:5]:
+            print(f"  {name}: {count}")
 
     print(f"\n=== ACTION USAGE ===")
     print(f"Divine Aid Used: {sum(r.divine_used for r in results):,}")

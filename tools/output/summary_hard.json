@@ -1,0 +1,97 @@
+{
+  "total": 1000,
+  "victories": 746,
+  "victory_rate": 0.746,
+  "permanent_deaths": 254,
+  "dragon_encounter_rate": 1.0,
+  "encounters": {
+    "sum": 8632,
+    "mean": 8.632,
+    "median": 10.0,
+    "p90": 10.0,
+    "p99": 15.0
+  },
+  "turns": {
+    "sum": 8632,
+    "mean": 8.632,
+    "median": 10.0,
+    "p90": 10.0,
+    "p99": 15.0
+  },
+  "max_depth": {
+    "mean": 5,
+    "median": 5.0,
+    "histogram": {
+      "5": 1000
+    },
+    "max": 5
+  },
+  "deaths_per_char": {
+    "mean": 0.981,
+    "median": 1.0,
+    "p90": 2.0
+  },
+  "revivals_per_char": {
+    "mean": 0.727,
+    "median": 1.0,
+    "p90": 1.0
+  },
+  "hit_rates": {
+    "mean": 57.22823045419673,
+    "median": 57.03296703296703,
+    "p90": 70.2802802802803
+  },
+  "potions_used_per_char": {
+    "mean": 0.17,
+    "median": 0.0,
+    "p90": 1.0
+  },
+  "combat": {
+    "attacks": 36478,
+    "hits": 20205,
+    "misses": 4290,
+    "blocked": 11983,
+    "hit_pct": 0.5538954986567246,
+    "kills": 7651,
+    "avg_turns_per_kill": 4.767742778721736,
+    "damage_dealt": 344386,
+    "damage_taken": 38186,
+    "avg_dealt_per_encounter": 39.89643188137164,
+    "avg_taken_per_encounter": 4.423772011121408
+  },
+  "economy": {
+    "gold_earned_total": 1456216,
+    "gold_earned_mean": 1456.216,
+    "spent_weapons": 233210,
+    "spent_armor": 109110,
+    "spent_potions": 57320,
+    "spent_training": 199650,
+    "spent_total": 599290
+  },
+  "death_reasons_top": [
+    [
+      "Dragon",
+      979
+    ],
+    [
+      "Succubus",
+      1
+    ],
+    [
+      "Wraith",
+      1
+    ]
+  ],
+  "training_distribution": {
+    "Strength": 4580,
+    "Constitution": 4784
+  },
+  "victory_insights": {
+    "avg_start_STR": 16.250670241286862,
+    "avg_start_CON": 14.57372654155496,
+    "avg_final_STR": 20.0,
+    "avg_final_CON": 19.474530831099194,
+    "avg_encounters_to_victory": 8.156836461126005,
+    "avg_gold_at_victory": 1277.623324396783
+  }
+}

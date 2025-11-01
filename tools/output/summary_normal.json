@@ -1,0 +1,89 @@
+{
+  "total": 1000,
+  "victories": 986,
+  "victory_rate": 0.986,
+  "permanent_deaths": 14,
+  "dragon_encounter_rate": 1.0,
+  "encounters": {
+    "sum": 5980,
+    "mean": 5.98,
+    "median": 5.0,
+    "p90": 10.0,
+    "p99": 15.0
+  },
+  "turns": {
+    "sum": 5980,
+    "mean": 5.98,
+    "median": 5.0,
+    "p90": 10.0,
+    "p99": 15.0
+  },
+  "max_depth": {
+    "mean": 5,
+    "median": 5.0,
+    "histogram": {
+      "5": 1000
+    },
+    "max": 5
+  },
+  "deaths_per_char": {
+    "mean": 0.21,
+    "median": 0.0,
+    "p90": 1.0
+  },
+  "revivals_per_char": {
+    "mean": 0.196,
+    "median": 0.0,
+    "p90": 1.0
+  },
+  "hit_rates": {
+    "mean": 61.760478146298325,
+    "median": 61.167800453514744,
+    "p90": 75.0
+  },
+  "potions_used_per_char": {
+    "mean": 0.074,
+    "median": 0.0,
+    "p90": 0.0
+  },
+  "combat": {
+    "attacks": 27250,
+    "hits": 16315,
+    "misses": 2022,
+    "blocked": 8913,
+    "hit_pct": 0.5987155963302753,
+    "kills": 5770,
+    "avg_turns_per_kill": 4.722703639514731,
+    "damage_dealt": 289534,
+    "damage_taken": 10680,
+    "avg_dealt_per_encounter": 48.417056856187294,
+    "avg_taken_per_encounter": 1.785953177257525
+  },
+  "economy": {
+    "gold_earned_total": 1599295,
+    "gold_earned_mean": 1599.295,
+    "spent_weapons": 213830,
+    "spent_armor": 91605,
+    "spent_potions": 52000,
+    "spent_training": 78350,
+    "spent_total": 435785
+  },
+  "death_reasons_top": [
+    [
+      "Dragon",
+      210
+    ]
+  ],
+  "training_distribution": {
+    "Strength": 1316,
+    "Constitution": 2734
+  },
+  "victory_insights": {
+    "avg_start_STR": 19.36004056795132,
+    "avg_start_CON": 17.484787018255577,
+    "avg_final_STR": 20.456389452332658,
+    "avg_final_CON": 20.02028397565923,
+    "avg_encounters_to_victory": 5.9026369168357,
+    "avg_gold_at_victory": 1283.1409736308317
+  }
+}

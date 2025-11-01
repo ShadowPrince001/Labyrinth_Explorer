@@ -87,7 +87,32 @@ def generate_room(depth: int, character=None) -> Room:
             ]
         )
     )
-    gold = random.randint(5, 15) + depth * 2
+    # Determine per-monster base gold from data/monsters.json (gold_range)
+    gold = random.randint(5, 15) + depth * 2  # fallback
+    try:
+        from .data_loader import load_monsters as _lm
+
+        data = _lm() or []
+        mname = getattr(monster, "name", None)
+        entry = next((m for m in data if (m.get("name") or "") == (mname or "")), None)
+        if (
+            entry
+            and isinstance(entry.get("gold_range"), list)
+            and len(entry["gold_range"]) == 2
+        ):
+            lo, hi = entry["gold_range"][0], entry["gold_range"][1]
+            try:
+                lo = int(lo)
+                hi = int(hi)
+                if hi < lo:
+                    lo, hi = hi, lo
+                gold = random.randint(lo, hi)
+            except Exception:
+                # keep fallback gold
+                pass
+    except Exception:
+        # keep fallback gold
+        pass
     try:
         monster.gold_reward = gold
     except Exception:

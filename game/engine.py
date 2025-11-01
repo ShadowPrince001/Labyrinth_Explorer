@@ -111,6 +111,8 @@ class GameEngine:
 
     def __init__(self):
         self.s = EngineState()
+        # Gate verbose prints behind a flag; set True only when actively debugging
+        self.debug: bool = False
 
     def _get_stat_roll_dice(self) -> str:
         """Get the dice formula based on selected difficulty."""
@@ -165,11 +167,12 @@ class GameEngine:
     ) -> List[Event]:
         import sys
 
-        print(f"\n{'='*60}")
-        print(f"🎯 ENGINE: handle_action called")
-        print(f"🎯 ENGINE: action={action}")
-        print(f"🎯 ENGINE: current phase={self.s.phase}, subphase={self.s.subphase}")
-        sys.stdout.flush()
+        if self.debug:
+            print(f"\n{'='*60}")
+            print("[ENGINE] handle_action called")
+            print(f"[ENGINE] action={action}")
+            print(f"[ENGINE] current phase={self.s.phase}, subphase={self.s.subphase}")
+            sys.stdout.flush()
 
         self.s.buffer.clear()
         payload = payload or {}
@@ -347,16 +350,16 @@ class GameEngine:
             except Exception:
                 pass
             lines = [
-                "How to Play:",
-                "- Choose options to explore rooms.",
-                "- Rolls use your stats — higher is better.",
-                "- Combat: Attack, Cast, Charm, Run, Examine.",
-                "- Depth raises rewards and danger.",
-                "- Heal with potions; rest in town.",
-                "- Gold buys gear; train and level up.",
-                "- Listen/Divine hint the next room.",
-                "- Charmed foes give half rewards.",
-                "- Press Continue to advance screens.",
+                "▶ Welcome to Labyrinth Adventure, a turn-based dungeon crawler.",
+                "▶ Select your difficulty: Easy, Normal, or Hard to set your starting stats.",
+                "▶ Explore the town to shop, rest, train, and manage your inventory.",
+                "▶ Enter the labyrinth, where rooms, traps, and monsters await.",
+                "▶ Use your skills wisely—attack, cast spells, drink potions, or charm foes.",
+                "▶ Winning combats grants XP and treasure; charm foes for partial rewards.",
+                "▶ Keep an eye on your health, potions, and gold carefully.",
+                "▶ Examine monsters to learn their weaknesses before attacking.",
+                "▶ Save your progress often and return to town when needed.",
+                "▶ Your choices determine your fate—survive and conquer the labyrinth!",
             ]
             for ln in lines:
                 self._emit_dialogue(ln)
@@ -527,10 +530,10 @@ class GameEngine:
                 self._emit_dialogue(f"Your Constitution is {con}...")
             self._emit_dialogue(
                 get_dialogue("system", "rolling_hp_bonus", None, None)
-                or "Rolling 3d6 for HP bonus..."
+                or "Rolling 5d4 for HP bonus..."
             )
             base_hp = 3 * con
-            hp_bonus = roll_damage("3d6")
+            hp_bonus = roll_damage("5d4")
             hp = base_hp + hp_bonus
             try:
                 self._emit_dialogue(
@@ -573,6 +576,9 @@ class GameEngine:
                 hp_bonus_die = "7d6"
             elif hp < 50:
                 hp_bonus_die = "5d6"
+            elif hp < 60:
+                hp_bonus_die = "3d6"
+
             if hp_bonus_die:
                 try:
                     self._emit_dialogue(
@@ -1585,6 +1591,12 @@ class GameEngine:
                     setattr(self.s, "next_forced_monster", None)
                 except Exception:
                     pass
+            # Enforce maximum depth of 5
+            if self.s.depth >= 5:
+                # Already at final depth; just refresh current room
+                self.s.depth = 5
+                self.s.current_room = None
+                return self._enter_room()
             self.s.depth += 1
             self.s.current_room = None
             return self._enter_room()
@@ -2012,12 +2024,13 @@ class GameEngine:
         # Event-driven combat loop
         import sys
 
-        print(f"🔧 DEBUG: _handle_combat called with action={action}")
-        sys.stdout.flush()
-        print(f"🔧 DEBUG: phase={self.s.phase}, subphase={self.s.subphase}")
-        sys.stdout.flush()
-        print(f"🔧 DEBUG: current_room={self.s.current_room is not None}")
-        sys.stdout.flush()
+        if self.debug:
+            print(f"[DEBUG] _handle_combat called with action={action}")
+            sys.stdout.flush()
+            print(f"[DEBUG] phase={self.s.phase}, subphase={self.s.subphase}")
+            sys.stdout.flush()
+            print(f"[DEBUG] current_room={self.s.current_room is not None}")
+            sys.stdout.flush()
 
         # CRITICAL: Handle revival subphases BEFORE checking for monster
         # because _attempt_revival clears current_room
@@ -2025,39 +2038,45 @@ class GameEngine:
 
         # Revival handlers (these must come first, before monster check)
         if sp == "revival_success" and action == "combat:revival_success_continue":
-            print(f"🔧 DEBUG: Revival handler triggered! sp={sp}, action={action}")
-            sys.stdout.flush()
-            print(
-                f"🔧 DEBUG: Before changes - phase={self.s.phase}, current_room={self.s.current_room}"
-            )
-            sys.stdout.flush()
+            if self.debug:
+                print(f"[DEBUG] Revival handler triggered! sp={sp}, action={action}")
+                sys.stdout.flush()
+                print(
+                    f"[DEBUG] Before changes - phase={self.s.phase}, current_room={self.s.current_room}"
+                )
+                sys.stdout.flush()
 
             # IMPORTANT: Set phase to town FIRST before clearing room state
             # This prevents re-entry bugs where cleared room triggers dungeon routing
             self.s.phase = "town"
             self.s.subphase = ""
-            print(f"🔧 DEBUG: Phase set to town, subphase cleared")
-            sys.stdout.flush()
+            if self.debug:
+                print(f"[DEBUG] Phase set to town, subphase cleared")
+                sys.stdout.flush()
 
             # Now clear combat/room state to ensure no dungeon remnants
             try:
                 self.s.current_room = None
                 self.s.room_history = []
                 self.s.combat = {}
-                print(f"🔧 DEBUG: Cleared room/combat state")
-                sys.stdout.flush()
+                if self.debug:
+                    print(f"[DEBUG] Cleared room/combat state")
+                    sys.stdout.flush()
             except Exception as e:
-                print(f"🔧 DEBUG: Error clearing state: {e}")
-                sys.stdout.flush()
+                if self.debug:
+                    print(f"[DEBUG] Error clearing state: {e}")
+                    sys.stdout.flush()
 
             self._emit_clear()
-            print(f"🔧 DEBUG: Emitted clear")
-            sys.stdout.flush()
+            if self.debug:
+                print(f"[DEBUG] Emitted clear")
+                sys.stdout.flush()
 
             # Force scene reset by sending null, then town background
             self._emit_scene(None)
-            print(f"🔧 DEBUG: Emitted null scene")
-            sys.stdout.flush()
+            if self.debug:
+                print(f"[DEBUG] Emitted null scene")
+                sys.stdout.flush()
 
             try:
                 from .scene_manager import set_town_background
@@ -2070,23 +2089,27 @@ class GameEngine:
                 )
                 if bg:
                     self._emit_scene(bg)
-                    print(f"🔧 DEBUG: Emitted town background: {bg}")
-                    sys.stdout.flush()
+                    if self.debug:
+                        print(f"[DEBUG] Emitted town background: {bg}")
+                        sys.stdout.flush()
                 else:
                     self._emit_scene("town_menu/town.png")
-                    print(f"🔧 DEBUG: Emitted fallback town background")
-                    sys.stdout.flush()
+                    if self.debug:
+                        print(f"[DEBUG] Emitted fallback town background")
+                        sys.stdout.flush()
             except Exception as e:
                 self._emit_scene("town_menu/town.png")
-                print(f"🔧 DEBUG: Exception in background, used fallback: {e}")
-                sys.stdout.flush()
+                if self.debug:
+                    print(f"[DEBUG] Exception in background, used fallback: {e}")
+                    sys.stdout.flush()
 
-            print(f"🔧 DEBUG: About to call _render_town_menu()")
-            sys.stdout.flush()
-            print(
-                f"🔧 DEBUG: Final state - phase={self.s.phase}, current_room={self.s.current_room}"
-            )
-            sys.stdout.flush()
+            if self.debug:
+                print(f"[DEBUG] About to call _render_town_menu()")
+                sys.stdout.flush()
+                print(
+                    f"[DEBUG] Final state - phase={self.s.phase}, current_room={self.s.current_room}"
+                )
+                sys.stdout.flush()
             return self._render_town_menu()
 
         if sp == "revival_fail" and action == "combat:revival_fail_continue":
@@ -2122,8 +2145,9 @@ class GameEngine:
         room = self.s.current_room or {}
         mon = room.get("monster")
         if not mon:
-            print(f"🔧 DEBUG: No monster found, routing to dungeon")
-            sys.stdout.flush()
+            if self.debug:
+                print(f"[DEBUG] No monster found, routing to dungeon")
+                sys.stdout.flush()
             self.s.phase = "dungeon"
             return self._enter_room()
 
@@ -2132,7 +2156,8 @@ class GameEngine:
             return self._combat_begin(mon)
 
         # Route by remaining subphases
-        print(f"🔧 DEBUG: Routing by subphase: sp={sp}")
+        if self.debug:
+            print(f"[DEBUG] Routing by subphase: sp={sp}")
         # Pause-gated continues for spawn/initiative/victory
         if sp == "pause_after_spawn" and action == "combat:after_spawn":
             self.s.subphase = "initiative"
@@ -2890,8 +2915,27 @@ class GameEngine:
         for m in msgs:
             self._emit_combat_update(m)
 
-        # Depth-scaled gold reward
-        base_gold = int(room.get("gold_reward", 0))
+        # Depth-scaled gold reward based on monsters.json gold_range
+        base_gold = None
+        try:
+            if (
+                entry
+                and isinstance(entry.get("gold_range"), list)
+                and len(entry["gold_range"]) == 2
+            ):
+                lo, hi = int(entry["gold_range"][0]), int(entry["gold_range"][1])
+                if hi < lo:
+                    lo, hi = hi, lo
+                base_gold = random.randint(lo, hi)
+        except Exception:
+            base_gold = None
+        if base_gold is None:
+            try:
+                base_gold = int(mon.get("gold_reward", 0))
+            except Exception:
+                base_gold = 0
+        if base_gold is None:
+            base_gold = int(room.get("gold_reward", 0))
         gold = max(0, int(base_gold * depth))
         self.s.character.gold += gold
         self._emit_combat_update(f"You loot {gold} gold!")
@@ -3329,6 +3373,19 @@ class GameEngine:
         mon = room.get("monster")
         # Dedicated charm result screen
         self._emit_clear()
+        # Dragons are immune to charm
+        try:
+            mname = (mon.get("name") or "").lower()
+        except Exception:
+            mname = ""
+        if mname == "dragon":
+            self._emit_combat_update("Your charm has no effect on the Dragon!")
+            # Gate next turn behind a Continue and proceed to monster's action
+            self.s.subphase = "charm_continue"
+            self._emit_pause()
+            self._emit_menu([("combat:after_charm", "Continue")])
+            self._emit_state()
+            return self._flush()
         cha = c.attributes.get("Charisma", 10)
         # Include any temporary charisma bonus from buffs (e.g., potion)
         cha_bonus = self.s.combat.get("buffs", {}).get("cha_bonus", 0)
@@ -3354,11 +3411,27 @@ class GameEngine:
                 base_xp = 10
             depth = max(1, int(getattr(self.s, "depth", 1)))
             xp_reward = max(0, int(base_xp * depth * 0.5))
-            # Gold from room reward, depth-scaled then halved
+            # Gold based on monsters.json gold_range, depth-scaled then halved
+            base_gold = None
             try:
-                base_gold = int(room.get("gold_reward", 0))
+                if (
+                    entry
+                    and isinstance(entry.get("gold_range"), list)
+                    and len(entry["gold_range"]) == 2
+                ):
+                    lo, hi = int(entry["gold_range"][0]), int(entry["gold_range"][1])
+                    if hi < lo:
+                        lo, hi = hi, lo
+                    base_gold = random.randint(lo, hi)
             except Exception:
-                base_gold = 0
+                base_gold = None
+            if base_gold is None:
+                try:
+                    base_gold = int(mon.get("gold_reward", 0))
+                except Exception:
+                    base_gold = 0
+            if base_gold is None:
+                base_gold = int(room.get("gold_reward", 0))
             gold = max(0, int(base_gold * depth * 0.5))
             # Apply rewards (no quests or drops on charm)
             try:

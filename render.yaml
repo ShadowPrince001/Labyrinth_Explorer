@@ -1,0 +1,36 @@
+# Render Blueprint for Labyrinth Explorer
+# Connect this repo to Render and choose this blueprint to provision the service.
+# Docs: https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: labyrinth-explorer
+    env: python
+    plan: free
+    autoDeploy: true
+    region: oregon
+    buildCommand: |
+      pip install -r requirements.txt && npm ci && npm run build
+    startCommand: |
+      gunicorn -k eventlet -w 1 -b 0.0.0.0:$PORT web_app:app
+    healthCheckPath: "/health"
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: FLASK_ENV
+        value: production
+      - key: LE_ENGINE_DEBUG
+        value: "0"
+      - key: NODE_VERSION
+        value: "20"
+      - key: SOCKET_TRANSPORTS
+        value: websocket,polling
+      - key: ALLOW_UPGRADES
+        value: "1"
+      - key: SOCKETIO_ASYNC_MODE
+        value: eventlet
+      # For WebSockets, you can enable eventlet and upgrades by setting:
+      # (Already enabled above.)
+      # If you scale to multiple instances, add a Redis and set:
+      # - key: SOCKETIO_MESSAGE_QUEUE
+      #   value: redis://:password@host:port/0

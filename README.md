@@ -5,7 +5,7 @@ A compact Python labyrinth crawler with a modern browser UI. The app uses a stru
 
 ## Features
 
-- Character creation with 5d4 attribute rolls; HP and Gold based on rules and dialogue-driven narration
+- Character creation with selectable difficulty (Easy/Normal/Hard) that sets the roll dice (6d5/5d5/4d5); HP and Gold based on rules and dialogue-driven narration
 - Town hub: Shop, Healer, Tavern, Eat, Gamble, Temple (Divine), Level Up, Quests, Train, Sleep, Companion, Repair, Remove Curses, Save
 - Labyrinth exploration: generated rooms, traps, ambient flavor, chests, rare item drops, and monster encounters
 - Turn-based combat with aimed attacks, potions, spells, divine aid, charm, run, and examine; XP/leveling and loot
@@ -17,7 +17,7 @@ A compact Python labyrinth crawler with a modern browser UI. The app uses a stru
 python -m venv .venv ; .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-# (Optional) build the frontend assets (React JSX → JS)
+# Build the frontend assets (React JSX → JS)
 npm ci
 npm run build
 
@@ -55,6 +55,7 @@ Note: The legacy CLI entry point (`python -m game`) has been removed. Use the we
 - Add content in `data/` (monsters, items, traps, spells) to extend the game.
 - The web engine lives in `game/engine.py` and emits events the server forwards to the client.
 
-Localization note: Most roll/result strings are now data-driven. Recent additions include keys for town refresh gating and sleep outcomes (e.g., `town.refresh_used`, `town.sleep_success`, `town.sleep_fail`), and creation narration such as `system.gold_result_detailed`.
+Localization note: Most roll/result strings are data-driven. Examples include keys for town refresh gating and sleep outcomes (e.g., `town.refresh_used`, `town.sleep_success`, `town.sleep_fail`), and creation narration such as `system.gold_result_detailed`.
 
-See `PROJECT_OVERVIEW.txt` for a full file-by-file breakdown.
+For a technical architecture and structure guide, see `project_overview.md`.
+For game systems and rules, see `mechanics.md`.
