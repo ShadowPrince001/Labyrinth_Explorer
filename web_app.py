@@ -6,20 +6,32 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
-# IMPORTANT: prevent eventlet from monkey-patching ssl, which causes recursion
-# on Python 3.13 with PyMongo/TLS. This is safe and recommended when using
-# drivers that manage their own SSL (like PyMongo).
-try:
-    import eventlet  # type: ignore
+# Runtime compatibility notes:
+# - Python 3.13 + eventlet + TLS can trigger recursion in ssl.SSLContext.options
+#   when PyMongo creates its SSL context. To avoid this in hosted environments
+#   that might default to Python 3.13, we:
+#   1) Avoid importing/monkey-patching eventlet by default.
+#   2) Force Flask-SocketIO async_mode="threading" on Python >= 3.13.
+#   3) Allow opting-in to eventlet via USE_EVENTLET=1 for older Python versions.
+import sys
+import os
 
-    eventlet.monkey_patch(ssl=False)
-except Exception:
-    pass
+_USE_EVENTLET = os.getenv("USE_EVENTLET", "").lower() in ("1", "true", "yes")
+_IS_PY313_PLUS = sys.version_info >= (3, 13)
+
+# Only consider eventlet when explicitly requested and when not on Python 3.13+
+if _USE_EVENTLET and not _IS_PY313_PLUS:
+    try:
+        import eventlet  # type: ignore
+
+        # Prevent SSL monkey-patch; PyMongo manages SSL context itself
+        eventlet.monkey_patch(ssl=False)
+    except Exception:
+        pass
 
 from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_socketio import SocketIO, emit
 from typing import Dict, Any
-import os
 import uuid
 from datetime import datetime
 import json
@@ -49,17 +61,40 @@ if _secret_key:
 
 # Configuration via environment variables for deployment flexibility
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*")
-_transports_env = os.getenv(
-    "SOCKET_TRANSPORTS", "websocket,polling"
-)  # e.g. "websocket,polling"
-_transports = [t.strip() for t in _transports_env.split(",") if t.strip()]
-_allow_upgrades = "websocket" in _transports or os.getenv(
-    "ALLOW_UPGRADES", ""
-).lower() in ("1", "true", "yes")
+_configured_transports = [
+    t.strip()
+    for t in os.getenv("SOCKET_TRANSPORTS", "websocket,polling").split(",")
+    if t.strip()
+]
+
+# Force a safe async mode on Python 3.13+ to avoid eventlet/SSL recursion.
+_forced_threading = _IS_PY313_PLUS or (
+    os.getenv("FORCE_THREADING", "").lower() in ("1", "true", "yes")
+)
+_async_mode_env = os.getenv("SOCKETIO_ASYNC_MODE", "").strip().lower()
+_async_mode = "threading" if _forced_threading else (_async_mode_env or None)
+
+# When running in threading mode, prefer long-polling for maximum compatibility.
+if _async_mode == "threading":
+    _transports = ["polling"]
+    _allow_upgrades = False
+else:
+    _transports = _configured_transports or ["polling"]
+    _allow_upgrades = ("websocket" in _transports) or (
+        os.getenv("ALLOW_UPGRADES", "").lower() in ("1", "true", "yes")
+    )
+
 _message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE")  # e.g. redis URL for scale-out
 
-# Let Flask-SocketIO auto-detect async mode by default (eventlet/gevent/threading)
-_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "").strip() or None
+# Log the selected async mode and transports for easier diagnosis in prod
+try:
+    print(
+        f"🔧 SocketIO config: async_mode={_async_mode or 'auto'} transports={_transports} allow_upgrades={_allow_upgrades}"
+    )
+    if _IS_PY313_PLUS:
+        print("🔒 Python 3.13+ detected; using threading mode to avoid SSL recursion.")
+except Exception:
+    pass
 
 socketio = SocketIO(
     app,
@@ -67,7 +102,7 @@ socketio = SocketIO(
     cors_allowed_origins=_cors_origins,
     logger=True,
     engineio_logger=True,
-    transports=_transports or ["polling"],
+    transports=_transports,
     allow_upgrades=_allow_upgrades,
     message_queue=_message_queue,
 )

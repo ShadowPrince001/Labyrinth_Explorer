@@ -14,7 +14,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt && npm ci && npm run build
     startCommand: |
-      gunicorn -k eventlet -w 1 -b 0.0.0.0:$PORT web_app:app
+      gunicorn --workers 1 --threads 8 --timeout 120 -b 0.0.0.0:$PORT web_app:app
     healthCheckPath: "/health"
     envVars:
       - key: PYTHONUNBUFFERED
@@ -41,11 +41,13 @@ services:
       - key: MONGODB_COLLECTION
         value: player_saves
       - key: SOCKET_TRANSPORTS
-        value: websocket,polling
+        value: polling
       - key: ALLOW_UPGRADES
-        value: "1"
+        value: "0"
       - key: SOCKETIO_ASYNC_MODE
-        value: eventlet
+        value: threading
+      - key: USE_EVENTLET
+        value: "0"
       # For WebSockets, you can enable eventlet and upgrades by setting:
       # (Already enabled above.)
       # If you scale to multiple instances, add a Redis and set:
