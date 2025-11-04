@@ -184,9 +184,13 @@ window.initApp = (function () {
         useEffect(() => {
             if (typeof io !== 'function') { setError('Socket.IO not loaded'); return; }
             const s = io({
-                transports: ['polling'],
-                forceNew: true,
-                timeout: 10000
+                transports: ['websocket', 'polling'],
+                withCredentials: true,
+                timeout: 15000,
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 500,
+                reconnectionDelayMax: 3000
             }); socketRef.current = s;
             s.on('connect', () => {
                 setConnected(true);

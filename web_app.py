@@ -162,6 +162,18 @@ def health():
     return jsonify({"ok": True}), 200
 
 
+@app.route("/health/db")
+def health_db():
+    """Optional health endpoint to verify Mongo connectivity in deployments."""
+    try:
+        coll = _get_mongo_collection()
+        # quick roundtrip without creating or reading large docs
+        coll.estimated_document_count()  # may use metadata
+        return jsonify({"ok": True}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @app.route("/save-game", methods=["POST"])
 def save_game():
     """Save a game state for a device. Overwrites existing by device_id.
@@ -536,10 +548,51 @@ def on_engine_action(data):
                     to_sid=sid,
                 )
                 return
+            # Sanitize the loaded snapshot to avoid unexpected/cyclic data
+            raw = doc.get("game_state", {})
+            safe: Dict[str, any] = {}
+            try:
+                safe["depth"] = int(raw.get("depth", 1))
+            except Exception:
+                safe["depth"] = 1
+            ch = raw.get("character")
+            if isinstance(ch, dict):
+                # Whitelist allowed character fields only
+                allowed_keys = {
+                    "name",
+                    "clazz",
+                    "max_hp",
+                    "gold",
+                    "hp",
+                    "weapons",
+                    "armor",
+                    "attributes",
+                    "potions",
+                    "potion_uses",
+                    "spells",
+                    "trained_times",
+                    "persistent_buffs",
+                    "companion",
+                    "xp",
+                    "magic_items",
+                    "equipped_weapon_index",
+                    "armors_owned",
+                    "level",
+                    "rest_attempted",
+                    "prayed",
+                    "side_quests",
+                    "death_count",
+                    "examine_used_this_turn",
+                    "attribute_training",
+                }
+                safe["character"] = {k: v for k, v in ch.items() if k in allowed_keys}
+            else:
+                safe["character"] = None
+
             ok = False
             try:
-                ok = bool(eng.load_snapshot(doc["game_state"]))
-            except Exception:
+                ok = bool(eng.load_snapshot(safe))
+            except Exception as _e:
                 ok = False
             if not ok:
                 _emit_events(
@@ -554,16 +607,16 @@ def on_engine_action(data):
                 events = eng.start()
                 _emit_events(events, to_sid=sid)
                 return
-            # On success, tell the player and show the appropriate screen (town)
+            # On success, tell the player and gate with a Continue so message is visible
             _emit_events(
                 [
                     {"type": "dialogue", "text": "Loaded saved game."},
+                    {"type": "pause"},
+                    {"type": "menu", "items": [{"id": "town", "label": "Continue"}]},
                 ],
                 to_sid=sid,
             )
-            # Render town menu
-            events = eng.handle_action("town", {})
-            _emit_events(events, to_sid=sid)
+            # Do not immediately render town; wait for client to click Continue (id: 'town')
             return
         except Exception as e:
             _emit_events(
