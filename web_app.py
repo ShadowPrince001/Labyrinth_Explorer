@@ -8,10 +8,11 @@ to the frontend. The frontend sends back actions to drive the engine.
 
 from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_socketio import SocketIO, emit
-from typing import Dict
+from typing import Dict, Any
 import os
 import uuid
 from datetime import datetime
+import json
 
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import PyMongoError
@@ -143,6 +144,66 @@ def _resolve_device_id(sid: str, payload: Dict = None) -> str:
     except Exception:
         pass
     return ""
+
+
+def _sanitize_for_bson(obj: Any, *, _depth: int = 0, _max: int = 8, _seen=None) -> Any:
+    """Best-effort sanitizer to ensure data is BSON/JSON-serializable and acyclic.
+    - Limits nesting depth
+    - Converts unknown types to strings
+    - Avoids cycles using an id() set
+    """
+    if _seen is None:
+        _seen = set()
+    try:
+        oid = id(obj)
+        if oid in _seen:
+            return str(obj)
+        _seen.add(oid)
+    except Exception:
+        pass
+
+    if _depth > _max:
+        return str(obj)
+
+    # Primitives
+    if obj is None or isinstance(obj, (bool, int, float, str)):
+        return obj
+
+    # Datetime is BSON-compatible via PyMongo
+    try:
+        from datetime import datetime as _dt
+
+        if isinstance(obj, _dt):
+            return obj
+    except Exception:
+        pass
+
+    # Dict-like
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            try:
+                key = str(k)
+            except Exception:
+                key = repr(k)
+            out[key] = _sanitize_for_bson(v, _depth=_depth + 1, _max=_max, _seen=_seen)
+        return out
+
+    # List/tuple
+    if isinstance(obj, (list, tuple)):
+        return [
+            _sanitize_for_bson(x, _depth=_depth + 1, _max=_max, _seen=_seen)
+            for x in obj
+        ]
+
+    # Fallback to string
+    try:
+        return json.loads(json.dumps(obj, default=str))
+    except Exception:
+        try:
+            return str(obj)
+        except Exception:
+            return None
 
 
 @app.route("/")
@@ -526,10 +587,57 @@ def on_engine_action(data):
                 return
             # Save current snapshot; detect whether we are overwriting an existing save
             state = eng.snapshot()
+            # Best-effort sanitize to prevent recursion/non-serializable types in prod
+            safe_state = _sanitize_for_bson(state)
+            # Quick validation: ensure JSON serializable (avoids surprising BSON failures)
+            try:
+                json.dumps(safe_state, default=str)
+            except Exception:
+                # Fallback to a minimal shape if needed
+                try:
+                    ch = state.get("character") if isinstance(state, dict) else None
+                except Exception:
+                    ch = None
+                safe_state = {
+                    "depth": (
+                        int(state.get("depth", 1)) if isinstance(state, dict) else 1
+                    ),
+                    "character": {
+                        "name": (
+                            (ch or {}).get("name") if isinstance(ch, dict) else None
+                        ),
+                        "clazz": (
+                            (ch or {}).get("clazz") if isinstance(ch, dict) else None
+                        ),
+                        "hp": (
+                            int((ch or {}).get("hp", 0)) if isinstance(ch, dict) else 0
+                        ),
+                        "max_hp": (
+                            int((ch or {}).get("max_hp", 0))
+                            if isinstance(ch, dict)
+                            else 0
+                        ),
+                        "gold": (
+                            int((ch or {}).get("gold", 0))
+                            if isinstance(ch, dict)
+                            else 0
+                        ),
+                        "level": (
+                            int((ch or {}).get("level", 1))
+                            if isinstance(ch, dict)
+                            else 1
+                        ),
+                        "attributes": (
+                            dict((ch or {}).get("attributes", {}))
+                            if isinstance(ch, dict)
+                            else {}
+                        ),
+                    },
+                }
             coll = _get_mongo_collection()
             doc = {
                 "device_id": device_id,
-                "game_state": state,
+                "game_state": safe_state,
                 "updated_at": datetime.utcnow(),
             }
             # Check existence first to craft message
@@ -541,6 +649,12 @@ def on_engine_action(data):
                 if existed
                 else "Game saved for this device."
             )
+            try:
+                print(
+                    f"💾 SAVE OK device_id={device_id} existed={existed} depth={safe_state.get('depth')} char={(safe_state.get('character') or {}).get('name')}"
+                )
+            except Exception:
+                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": msg},
@@ -551,6 +665,12 @@ def on_engine_action(data):
             )
             return
         except Exception as e:
+            try:
+                print(
+                    f"💥 SAVE ERROR device_id={device_id if 'device_id' in locals() else None}: {e}"
+                )
+            except Exception:
+                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": f"Save failed: {e}"},
@@ -656,6 +776,12 @@ def on_engine_action(data):
                 _emit_events(events, to_sid=sid)
                 return
             # On success, tell the player and gate with a Continue so message is visible
+            try:
+                print(
+                    f"📥 LOAD OK device_id={device_id} depth={safe.get('depth')} char={(safe.get('character') or {}).get('name')}"
+                )
+            except Exception:
+                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": "Loaded saved game."},
@@ -667,6 +793,12 @@ def on_engine_action(data):
             # Do not immediately render town; wait for client to click Continue (id: 'town')
             return
         except Exception as e:
+            try:
+                print(
+                    f"💥 LOAD ERROR device_id={device_id if 'device_id' in locals() else None}: {e}"
+                )
+            except Exception:
+                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": f"Load failed: {e}"},
