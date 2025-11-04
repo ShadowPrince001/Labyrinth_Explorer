@@ -8,6 +8,8 @@ window.initApp = (function () {
         const [log, setLog] = useState([]);
         const [choices, setChoices] = useState([]);
         const [prompt, setPrompt] = useState(null);
+        // Town menu split state
+        const [townSplit, setTownSplit] = useState({ active: false, inner: false, main: [], innerChoices: [] });
         const [background, setBackground] = useState('labyrinth.png'); // Default to labyrinth for character creation
         const [nextBackground, setNextBackground] = useState(null);
         const [isTransitioning, setIsTransitioning] = useState(false);
@@ -76,7 +78,24 @@ window.initApp = (function () {
                 if (!q.length && currentLineRef.current == null) {
                     revealingRef.current = false;
                     if (pendingPromptRef.current) { setPrompt(pendingPromptRef.current); pendingPromptRef.current = null; }
-                    if (pendingChoicesRef.current) { setChoices(pendingChoicesRef.current); pendingChoicesRef.current = null; }
+                    if (pendingChoicesRef.current) {
+                        // Apply Town split and update state when reveal completes
+                        try {
+                            const opts = pendingChoicesRef.current;
+                            const split = computeTownSplit(opts);
+                            if (split.active) {
+                                setTownSplit(split);
+                                setChoices(opts);
+                            } else {
+                                setTownSplit({ active: false, inner: false, main: [], innerChoices: [] });
+                                setChoices(opts);
+                            }
+                        } catch (e) {
+                            setTownSplit({ active: false, inner: false, main: [], innerChoices: [] });
+                            setChoices(pendingChoicesRef.current);
+                        }
+                        pendingChoicesRef.current = null;
+                    }
                     return;
                 }
                 // Start a new line if needed
@@ -206,7 +225,15 @@ window.initApp = (function () {
                 if (revealingRef.current || (revealQueueRef.current && revealQueueRef.current.length)) {
                     pendingChoicesRef.current = opts;
                 } else {
-                    setChoices(opts);
+                    // Apply Town menu split if this looks like the Town menu
+                    const split = computeTownSplit(opts);
+                    if (split.active) {
+                        setTownSplit(split);
+                        setChoices(opts); // keep original for reference
+                    } else {
+                        setTownSplit({ active: false, inner: false, main: [], innerChoices: [] });
+                        setChoices(opts);
+                    }
                 }
             });
             // 'pause' is informational; engine will follow with proper menu id for Continue
@@ -303,6 +330,8 @@ window.initApp = (function () {
                 pendingPromptRef.current = null;
                 currentLineRef.current = null;
                 currentIdxRef.current = 0;
+                // Reset Town split state
+                setTownSplit({ active: false, inner: false, main: [], innerChoices: [] });
             });
             s.on('connect_error', (e) => setError(String(e)));
             s.on('error', (e) => setError(String(e)));
@@ -400,6 +429,149 @@ window.initApp = (function () {
                 img.src = path;
             } catch (e) { if (cb) cb(false); }
         };
+
+        // ----- Town menu split helpers (inside App scope to access state) -----
+        function normalizeLabel(lbl) {
+            return ('' + (lbl || '')).trim().toLowerCase();
+        }
+        // Prefer grouping by action IDs for robustness; labels are fallbacks
+        const MAIN_ID_ORDER = [
+            'town:enter',      // Labyrinth
+            'town:shop',
+            'town:inventory',
+            'town:companion',  // ensure Companion is in Main
+            'town:quests',
+            'town:level',
+            'town:save',
+            'town:quit',
+            'town:sleep'
+        ];
+        const INNER_ID_ORDER = [
+            'town:gamble',
+            'town:remove_curses',
+            'town:repair',
+            'town:train',
+            'town:rest',     // Inn
+            'town:tavern',
+            'town:pray',     // Temple
+            'town:eat',
+            'town:healer'
+        ];
+        // Label-based fallback synonyms (used only if IDs are missing/unexpected)
+        const MAIN_ORDER = [
+            'labyrinth', 'shop', 'inventory', 'companion', 'quest', 'quests', 'level up', 'save', 'quit', 'sleep'
+        ];
+        const INNER_ORDER = [
+            'gamble', 'remove curses', 'curses', 'repair', 'train', 'training', 'inn', 'tavern', 'temple', 'eat', 'healer'
+        ];
+        function computeTownSplit(opts) {
+            try {
+                if (!Array.isArray(opts) || !opts.length) return { active: false, inner: false, main: [], innerChoices: [] };
+                const byId = new Map();
+                const byLabel = new Map();
+                const presentIds = new Set();
+                let townScore = 0;
+                for (const o of opts) {
+                    const oid = String(o.id || '').toLowerCase();
+                    const lbl = normalizeLabel(o.label);
+                    if (oid) byId.set(oid, o);
+                    if (lbl) byLabel.set(lbl, o);
+                    if (oid.startsWith('town:')) { townScore++; presentIds.add(oid); }
+                    else if (MAIN_ORDER.includes(lbl) || INNER_ORDER.includes(lbl)) townScore++;
+                }
+                // Heuristic: detect the root Town menu robustly
+                const hasAnyMainId = MAIN_ID_ORDER.some(id => presentIds.has(id));
+                const hasAnyInnerId = INNER_ID_ORDER.some(id => presentIds.has(id));
+                const likelyTownRoot = (townScore >= 8) || (hasAnyMainId && hasAnyInnerId);
+                if (!likelyTownRoot) return { active: false, inner: false, main: [], innerChoices: [] };
+                // Build main/inner from IDs first (preferred)
+                const main = [];
+                for (const k of MAIN_ID_ORDER) if (byId.has(k)) main.push(byId.get(k));
+                const innerChoices = [];
+                for (const k of INNER_ID_ORDER) if (byId.has(k)) innerChoices.push(byId.get(k));
+                // If ID-based grouping yields too few, fall back to labels
+                if (main.length === 0 && innerChoices.length === 0) {
+                    for (const k of MAIN_ORDER) if (byLabel.has(k)) main.push(byLabel.get(k));
+                    for (const k of INNER_ORDER) if (byLabel.has(k)) innerChoices.push(byLabel.get(k));
+                }
+                return { active: true, inner: false, main, innerChoices };
+            } catch (e) {
+                return { active: false, inner: false, main: [], innerChoices: [] };
+            }
+        }
+        function focusFirstButtonSoon() {
+            try { setTimeout(() => { const btn = document.querySelector('.options .option-btn'); if (btn) btn.focus(); }, 0); } catch (e) { }
+        }
+        // Shorten labels for buttons for better fit while preserving meaning
+        function shortenLabel(id, label) {
+            const idKey = String(id || '').toLowerCase();
+            let t = String(label || '').trim();
+            // Remove leading numbering like '12) '
+            t = t.replace(/^\s*\d+\)\s*/, '');
+            // Remove trailing gold price like ' (10g)'
+            t = t.replace(/\s*\(\d+g\)\s*$/i, '');
+            // Specific compressions by ID
+            const map = {
+                'town:enter': 'Enter',
+                'town:shop': 'Shop',
+                'town:inventory': 'Inventory',
+                'town:rest': 'Inn',
+                'town:healer': 'Healer',
+                'town:tavern': 'Tavern',
+                'town:eat': 'Eat',
+                'town:gamble': 'Gamble',
+                'town:pray': 'Temple',
+                'town:level': 'Level',
+                'town:quests': 'Quests',
+                'town:train': 'Train',
+                'town:sleep': 'Sleep',
+                'town:companion': 'Companion',
+                'town:repair': 'Repair',
+                'town:remove_curses': 'Uncurse',
+                'town:save': 'Save',
+                'town:quit': 'Quit',
+                // Shop root
+                'shop:weapons': 'Weapons',
+                'shop:armor': 'Armor',
+                'shop:potions': 'Potions',
+                'shop:spells': 'Spells',
+                'shop:sell': 'Sell',
+                'shop:back': 'Back',
+                // Level/back/general
+                'level:continue': 'Continue',
+                'quests:continue': 'Continue',
+                'prompt:submit': 'OK'
+            };
+            if (map[idKey]) return map[idKey];
+            // Generic compressions
+            t = t.replace(/\bLevel Up\b/i, 'Level');
+            t = t.replace(/\bRemove Curses?\b/i, 'Uncurse');
+            t = t.replace(/\bLeave Shop\b/i, 'Leave');
+            t = t.replace(/\bBack to main shop\b/i, 'Back');
+            t = t.replace(/\bHeal companion.*$/i, 'Heal companion');
+            return t.trim();
+        }
+
+        function getRenderableChoices() {
+            if (townSplit.active) {
+                if (!townSplit.inner) {
+                    const innerVirtual = { label: 'Inner town', _virtual: 'go-inner' };
+                    // Preserve original backend labels for real options; only add the virtual toggle
+                    return [...townSplit.main, innerVirtual];
+                } else {
+                    const returnVirtual = { label: 'Return to outskirts', _virtual: 'go-main' };
+                    // Preserve original backend labels for real options; only add the virtual toggle
+                    return [...townSplit.innerChoices, returnVirtual];
+                }
+            }
+            // No split: return options exactly as provided by backend
+            return choices;
+        }
+        function handleChoiceClick(c) {
+            if (c && c._virtual === 'go-inner') { setTownSplit(prev => ({ ...prev, inner: true })); focusFirstButtonSoon(); return; }
+            if (c && c._virtual === 'go-main') { setTownSplit(prev => ({ ...prev, inner: false })); focusFirstButtonSoon(); return; }
+            if (c && c.id) { sendAction(c.id); clearUI(); }
+        }
 
         return (
             // Note: This is JSX and will be compiled by Babel to JS in app.js
@@ -509,8 +681,15 @@ window.initApp = (function () {
                                     </div>
                                 ) : null}
                                 <div className="options" style={{ marginTop: 0 }}>
-                                    {choices.map((c, i) => (
-                                        <button key={i} className="option-btn" onClick={() => { sendAction(c.id); clearUI(); }}>{c.label}</button>
+                                    {getRenderableChoices().map((c, i) => (
+                                        <button
+                                            key={i}
+                                            className="option-btn"
+                                            onClick={() => handleChoiceClick(c)}
+                                            aria-label={c.label}
+                                        >
+                                            {c.label}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -520,5 +699,6 @@ window.initApp = (function () {
             </div>
         );
     }
+    // (moved helper functions inside App; this outer block is now redundant and removed)
     ReactDOM.createRoot(document.getElementById('root')).render(<App />)
 });

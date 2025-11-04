@@ -6,14 +6,35 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_socketio import SocketIO, emit
 from typing import Dict
 import os
+import uuid
+from datetime import datetime
+
+from pymongo import MongoClient, ASCENDING
+from pymongo.errors import PyMongoError
+from dotenv import load_dotenv
 
 from game.engine import GameEngine
 
 app = Flask(__name__, static_folder="static")
+
+# Load environment variables from a local .env file if present (no effect in prod)
+try:
+    load_dotenv()
+except Exception:
+    pass
+
+# Set a secret key for Flask (cookie signing, sessions). In this app we set our
+# own device_id cookie, but providing SECRET_KEY is still good hygiene.
+_secret_key = os.getenv("SECRET_KEY")
+if _secret_key:
+    try:
+        app.secret_key = _secret_key
+    except Exception:
+        pass
 
 # Configuration via environment variables for deployment flexibility
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*")
@@ -44,15 +65,168 @@ socketio = SocketIO(
 engines: Dict[str, GameEngine] = {}
 
 
+# ---- MongoDB setup ----
+_mongo_client = None
+_mongo_coll = None
+
+
+def _get_mongo_collection():
+    global _mongo_client, _mongo_coll
+    if _mongo_coll is not None:
+        return _mongo_coll
+    # Env vars (support multiple common names)
+    uri = os.getenv("MONGODB_URI") or os.getenv("MONGO_URI") or os.getenv("ATLAS_URI")
+    if not uri:
+        raise RuntimeError(
+            "MongoDB URI not configured. Set MONGODB_URI (or MONGO_URI)."
+        )
+    db_name = os.getenv("MONGODB_DB") or os.getenv("MONGO_DB_NAME") or "labyrinth"
+    coll_name = os.getenv("MONGODB_COLLECTION") or os.getenv(
+        "MONGO_COLLECTION_NAME", "player_saves"
+    )
+
+    _mongo_client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+    db = _mongo_client[db_name]
+    _mongo_coll = db[coll_name]
+    try:
+        # Ensure unique index on device_id for upserts/overwrites per device
+        _mongo_coll.create_index([("device_id", ASCENDING)], unique=True)
+    except Exception:
+        pass
+    return _mongo_coll
+
+
+def _get_device_id_from_request():
+    # Prefer explicit header, then cookie
+    did = request.headers.get("X-Device-ID") or request.args.get("device_id")
+    if not did:
+        try:
+            did = request.cookies.get("device_id")
+        except Exception:
+            did = None
+    return (did or "").strip()
+
+
 @app.route("/")
 def index():
-    return send_from_directory("static", "index.html")
+    # Serve index; no-cache headers are applied in after_request
+    resp = make_response(send_from_directory("static", "index.html"))
+    # Ensure a stable device_id cookie without changing UI
+    try:
+        device_id = request.cookies.get("device_id")
+    except Exception:
+        device_id = None
+    if not device_id:
+        device_id = str(uuid.uuid4())
+        # HttpOnly for security; SameSite=Lax is friendly for in-app REST calls
+        # Secure only if running under HTTPS
+        secure = os.getenv("FORCE_SECURE_COOKIES", "").lower() in ("1", "true", "yes")
+        resp.set_cookie(
+            "device_id",
+            device_id,
+            httponly=True,
+            samesite="Lax",
+            secure=secure,
+            max_age=60 * 60 * 24 * 365 * 2,  # 2 years
+        )
+    return resp
+
+
+@app.after_request
+def add_no_cache_headers(resp):
+    """Prevent aggressive caching of critical frontend assets to avoid stale UI.
+
+    This targets index.html and the compiled app.js so updates are reflected
+    immediately without requiring manual hard refresh.
+    """
+    try:
+        p = request.path or ""
+        if (
+            p in ("/", "/index.html")
+            or p.endswith("/index.html")
+            or p == "/static/app.js"
+        ):
+            resp.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, max-age=0"
+            )
+            resp.headers["Pragma"] = "no-cache"
+            resp.headers["Expires"] = "0"
+    except Exception:
+        pass
+    return resp
 
 
 @app.route("/health")
 def health():
     """Lightweight health endpoint for Render health checks."""
     return jsonify({"ok": True}), 200
+
+
+@app.route("/save-game", methods=["POST"])
+def save_game():
+    """Save a game state for a device. Overwrites existing by device_id.
+
+    Expected JSON body: { "device_id": str (optional if cookie present), "game_state": {...} }
+    """
+    try:
+        data = request.get_json(force=True, silent=False) or {}
+    except Exception:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    device_id = (data.get("device_id") or _get_device_id_from_request() or "").strip()
+    game_state = data.get("game_state")
+    if not device_id:
+        return (
+            jsonify({"error": "device_id is required (header, cookie, or JSON)"}),
+            400,
+        )
+    if not isinstance(game_state, dict):
+        return jsonify({"error": "game_state must be an object"}), 400
+
+    try:
+        coll = _get_mongo_collection()
+        doc = {
+            "device_id": device_id,
+            "game_state": game_state,
+            "updated_at": datetime.utcnow(),
+        }
+        coll.update_one({"device_id": device_id}, {"$set": doc}, upsert=True)
+        return jsonify({"ok": True}), 200
+    except PyMongoError as e:
+        return jsonify({"error": "Database error", "detail": str(e)}), 500
+
+
+@app.route("/load-game", methods=["GET"])
+def load_game():
+    """Load a saved game state for a device.
+
+    Accepts device_id via query string, header X-Device-ID, or device_id cookie.
+    """
+    device_id = _get_device_id_from_request()
+    if not device_id:
+        return (
+            jsonify(
+                {"error": "device_id is required (header, cookie, or query param)"}
+            ),
+            400,
+        )
+    try:
+        coll = _get_mongo_collection()
+        doc = coll.find_one({"device_id": device_id}, {"_id": 0})
+        if not doc:
+            return jsonify({"error": "No save found for this device"}), 404
+        return (
+            jsonify(
+                {
+                    "ok": True,
+                    "device_id": device_id,
+                    "game_state": doc.get("game_state", {}),
+                }
+            ),
+            200,
+        )
+    except PyMongoError as e:
+        return jsonify({"error": "Database error", "detail": str(e)}), 500
 
 
 @app.route("/test-dragon")
@@ -276,6 +450,131 @@ def on_engine_action(data):
     print(
         f"🎮 WEBAPP DEBUG: Current engine phase={eng.s.phase}, subphase={eng.s.subphase}"
     )
+
+    # Intercept web save to persist state without changing client UI
+    if action == "town:save":
+        try:
+            device_id = _get_device_id_from_request()
+            # If still missing, attempt from payload
+            if not device_id:
+                device_id = (payload.get("device_id") or "").strip()
+            if not device_id:
+                # Emit a gentle message and route back to town
+                _emit_events(
+                    [
+                        {"type": "dialogue", "text": "Cannot save: missing device ID."},
+                    ],
+                    to_sid=sid,
+                )
+                events = eng.handle_action("town", {})
+                _emit_events(events, to_sid=sid)
+                return
+            # Save current snapshot
+            state = eng.snapshot()
+            coll = _get_mongo_collection()
+            doc = {
+                "device_id": device_id,
+                "game_state": state,
+                "updated_at": datetime.utcnow(),
+            }
+            coll.update_one({"device_id": device_id}, {"$set": doc}, upsert=True)
+            # Tell the user and gate with a Continue so the message is visible
+            _emit_events(
+                [
+                    {"type": "dialogue", "text": "Game saved for this device."},
+                    {"type": "pause"},
+                    {"type": "menu", "items": [{"id": "town", "label": "Continue"}]},
+                ],
+                to_sid=sid,
+            )
+            return
+        except Exception as e:
+            _emit_events(
+                [
+                    {"type": "dialogue", "text": f"Save failed: {e}"},
+                ],
+                to_sid=sid,
+            )
+            events = eng.handle_action("town", {})
+            _emit_events(events, to_sid=sid)
+            return
+
+    # Intercept main menu load to restore state from Mongo for this device
+    if action == "main:load":
+        try:
+            device_id = _get_device_id_from_request()
+            if not device_id:
+                device_id = (payload.get("device_id") or "").strip()
+            if not device_id:
+                _emit_events(
+                    [
+                        {
+                            "type": "dialogue",
+                            "text": "Cannot load: missing device ID.",
+                        }
+                    ],
+                    to_sid=sid,
+                )
+                # Re-render main menu
+                events = eng.start()
+                _emit_events(events, to_sid=sid)
+                return
+            coll = _get_mongo_collection()
+            doc = coll.find_one({"device_id": device_id}, {"_id": 0})
+            if not doc or not isinstance(doc.get("game_state"), dict):
+                _emit_events(
+                    [
+                        {"type": "dialogue", "text": "No saved game found."},
+                        {
+                            "type": "menu",
+                            "items": [
+                                {"id": "main:new", "label": "New Game"},
+                                {"id": "main:menu", "label": "Back"},
+                            ],
+                        },
+                    ],
+                    to_sid=sid,
+                )
+                return
+            ok = False
+            try:
+                ok = bool(eng.load_snapshot(doc["game_state"]))
+            except Exception:
+                ok = False
+            if not ok:
+                _emit_events(
+                    [
+                        {
+                            "type": "dialogue",
+                            "text": "Failed to load save data.",
+                        }
+                    ],
+                    to_sid=sid,
+                )
+                events = eng.start()
+                _emit_events(events, to_sid=sid)
+                return
+            # On success, tell the player and show the appropriate screen (town)
+            _emit_events(
+                [
+                    {"type": "dialogue", "text": "Loaded saved game."},
+                ],
+                to_sid=sid,
+            )
+            # Render town menu
+            events = eng.handle_action("town", {})
+            _emit_events(events, to_sid=sid)
+            return
+        except Exception as e:
+            _emit_events(
+                [
+                    {"type": "dialogue", "text": f"Load failed: {e}"},
+                ],
+                to_sid=sid,
+            )
+            events = eng.start()
+            _emit_events(events, to_sid=sid)
+            return
 
     events = eng.handle_action(action, payload)
 

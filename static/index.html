@@ -230,7 +230,8 @@
         <div id="root"></div>
     </div>
 
-    <script src="/static/app.js"></script>
+    <!-- Versioned to bust caches reliably -->
+    <script src="/static/app.js?v=20251103-01"></script>
     <script>
         // If socket.io has already loaded, initialize immediately after app bundle loads
         if (window.__socketio_loader_done) {

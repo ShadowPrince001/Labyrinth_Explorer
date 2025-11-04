@@ -23,6 +23,21 @@ services:
         value: "0"
       - key: NODE_VERSION
         value: "20"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+      # Force Secure cookies in production (device_id cookie)
+      - key: FORCE_SECURE_COOKIES
+        value: "1"
+      # Flask secret key (used for any secure cookies/session signing)
+      - key: SECRET_KEY
+        generateValue: true
+      # MongoDB Atlas connection (set this in the Render dashboard or via env var sync)
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: labyrinth
+      - key: MONGODB_COLLECTION
+        value: player_saves
       - key: SOCKET_TRANSPORTS
         value: websocket,polling
       - key: ALLOW_UPGRADES

@@ -162,6 +162,44 @@ class GameEngine:
             "character": self.s.character.to_dict() if self.s.character else None,
         }
 
+    def load_snapshot(self, data: Dict[str, Any]) -> bool:
+        """Load a previously saved minimal snapshot. Returns True on success.
+
+        Expected shape:
+          { "phase": str, "depth": int, "character": {...} }
+        """
+        try:
+            if not isinstance(data, dict):
+                return False
+            depth = int(data.get("depth", 1))
+            ch = data.get("character")
+            from .entities import Character as _Char
+
+            char = _Char.from_dict(ch) if isinstance(ch, dict) else None
+
+            # Apply to engine state (normalize to town for safety)
+            self.s.buffer.clear()
+            self.s.character = char
+            self.s.depth = max(1, depth)
+            self.s.phase = "town" if char else "main_menu"
+            self.s.subphase = ""
+            self.s.current_room = None
+            self.s.room_history = []
+            self.s.monster_encounters = 0
+            self.s.combat = {}
+            self.s.gamble = {}
+            # Clear utilities preview/flags
+            try:
+                setattr(self.s, "used_divine_depth", None)
+                setattr(self.s, "used_listen_depth", None)
+                setattr(self.s, "next_forced_monster", None)
+                setattr(self.s, "peek_next", None)
+            except Exception:
+                pass
+            return True
+        except Exception:
+            return False
+
     def handle_action(
         self, action: str, payload: Optional[Dict[str, Any]] = None
     ) -> List[Event]:
@@ -2907,11 +2945,17 @@ class GameEngine:
         entry = next((m for m in monsters if m.get("name") == mon.get("name")), None)
         base_xp = int(entry.get("xp", 10)) if entry else 10
         depth = max(1, int(getattr(self.s, "depth", 1)))
-        xp_reward = max(0, int(base_xp * depth))
+        # Progressive depth multiplier: 1.0, 1.5, 2.0, 2.5, ...
+        depth_mult = 1.0 + 0.5 * (depth - 1)
+        xp_reward = max(0, int(base_xp * depth_mult))
         msgs = self.s.character.gain_xp(xp_reward)
         self._emit_combat_update(
             f"You defeated the {mon['name']} and gain {xp_reward} XP!"
         )
+        try:
+            self._emit_combat_update(f"(Depth x{depth_mult:.1f} applied)")
+        except Exception:
+            pass
         for m in msgs:
             self._emit_combat_update(m)
 
@@ -2936,9 +2980,12 @@ class GameEngine:
                 base_gold = 0
         if base_gold is None:
             base_gold = int(room.get("gold_reward", 0))
-        gold = max(0, int(base_gold * depth))
+        gold = max(0, int(base_gold * depth_mult))
         self.s.character.gold += gold
-        self._emit_combat_update(f"You loot {gold} gold!")
+        try:
+            self._emit_combat_update(f"You loot {gold} gold! (Depth x{depth_mult:.1f})")
+        except Exception:
+            self._emit_combat_update(f"You loot {gold} gold!")
 
         # Side quests progression and auto turn-in for relevant kills
         try:
@@ -3373,6 +3420,20 @@ class GameEngine:
         mon = room.get("monster")
         # Dedicated charm result screen
         self._emit_clear()
+        # Enforce one charm attempt per monster/combat
+        used = self.s.combat.setdefault("actions_used", {}).get("charm", False)
+        if used:
+            self._emit_combat_update(
+                "You've already attempted to charm this creature in this fight."
+            )
+            # Gate next turn behind a Continue and proceed to monster's action
+            self.s.subphase = "charm_continue"
+            self._emit_pause()
+            self._emit_menu([("combat:after_charm", "Continue")])
+            self._emit_state()
+            return self._flush()
+        # Mark as used now (counts even if immune)
+        self.s.combat.setdefault("actions_used", {})["charm"] = True
         # Dragons are immune to charm
         try:
             mname = (mon.get("name") or "").lower()
@@ -3389,29 +3450,38 @@ class GameEngine:
         cha = c.attributes.get("Charisma", 10)
         # Include any temporary charisma bonus from buffs (e.g., potion)
         cha_bonus = self.s.combat.get("buffs", {}).get("cha_bonus", 0)
-        rollv = roll_damage("5d4") + cha + cha_bonus
+        roll_raw = roll_damage("5d4")
+        rollv = roll_raw + cha + cha_bonus
+        # Difficulty-based threshold scaling using monsters.json difficulty
+        try:
+            from .data_loader import load_monsters
+
+            monsters = load_monsters() or []
+            entry = next(
+                (m for m in monsters if m.get("name") == mon.get("name")),
+                None,
+            )
+            diff = int(entry.get("difficulty", 1)) if entry else 1
+        except Exception:
+            entry = None
+            diff = 1
+        threshold = int(28 + math.ceil(1.5 * diff))
         self._emit_combat_update(
-            f"You attempt to charm the {mon['name']}... Roll {rollv}"
+            f"You attempt to charm the {mon['name']}... Roll {rollv} ({roll_raw} + CHA({cha}) + bonus({cha_bonus})) (need >{threshold}, diff {diff})"
         )
-        if rollv > 30:
+        if rollv > threshold:
             self._emit_combat_update(
                 f"The {mon['name']} is charmed and leaves peacefully."
             )
-            # Award reduced rewards on charm: 50% of depth-scaled XP and gold.
+            # Award reduced rewards on charm: 25% of depth-scaled XP and gold.
             try:
-                from .data_loader import load_monsters
-
-                monsters = load_monsters() or []
-                entry = next(
-                    (m for m in monsters if m.get("name") == mon.get("name")),
-                    None,
-                )
                 base_xp = int(entry.get("xp", 10)) if entry else 10
             except Exception:
                 base_xp = 10
             depth = max(1, int(getattr(self.s, "depth", 1)))
-            xp_reward = max(0, int(base_xp * depth * 0.5))
-            # Gold based on monsters.json gold_range, depth-scaled then halved
+            depth_mult = 1.0 + 0.5 * (depth - 1)
+            xp_reward = max(0, int(base_xp * depth_mult * 0.25))
+            # Gold based on monsters.json gold_range, depth-scaled then quartered
             base_gold = None
             try:
                 if (
@@ -3432,7 +3502,7 @@ class GameEngine:
                     base_gold = 0
             if base_gold is None:
                 base_gold = int(room.get("gold_reward", 0))
-            gold = max(0, int(base_gold * depth * 0.5))
+            gold = max(0, int(base_gold * depth_mult * 0.25))
             # Apply rewards (no quests or drops on charm)
             try:
                 _ = self.s.character.gain_xp(xp_reward)
@@ -3443,9 +3513,14 @@ class GameEngine:
             except Exception:
                 pass
             if xp_reward or gold:
-                self._emit_combat_update(
-                    f"Charmed reward: +{xp_reward} XP and +{gold} gold (no loot/quests)."
-                )
+                try:
+                    self._emit_combat_update(
+                        f"Charmed reward: +{xp_reward} XP and +{gold} gold (Depth x{depth_mult:.1f}, Charm 25%, no loot/quests)."
+                    )
+                except Exception:
+                    self._emit_combat_update(
+                        f"Charmed reward: +{xp_reward} XP and +{gold} gold (no loot/quests)."
+                    )
             self._emit_update_stats()
             room["monster"] = None
             # Stay on a dedicated result screen; route to room after Continue
@@ -3542,11 +3617,11 @@ class GameEngine:
         # Labels pulled from dialogues.json with fallbacks to match CLI numbering
         g = lambda key, dflt: get_dialogue("town", key, None, self.s.character) or dflt
         return [
-            ("town:enter", g("menu_enter", "1) Venture into the Labyrinth")),
-            ("town:shop", g("menu_shop", "2) Visit Shop")),
+            ("town:enter", g("menu_enter", "1) Enter Labyrinth")),
+            ("town:shop", g("menu_shop", "2) Shop")),
             ("town:inventory", g("menu_inventory", "3) Inventory")),
-            ("town:rest", g("menu_rest", "4) Rest at the Inn (10g)")),
-            ("town:healer", g("menu_healer", "5) Visit Healer (40g)")),
+            ("town:rest", g("menu_rest", "4) Inn (10g)")),
+            ("town:healer", g("menu_healer", "5) Healer (40g)")),
             ("town:tavern", g("menu_tavern", "6) Tavern (10g)")),
             ("town:eat", g("menu_eat", "7) Eat (10g)")),
             ("town:gamble", g("menu_gamble", "8) Gamble")),
