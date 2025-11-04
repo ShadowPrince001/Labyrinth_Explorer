@@ -17,3 +17,8 @@ node_modules/
 
 # VS Code
 .vscode/
+
+# OS cruft and binaries
+.DS_Store
+Thumbs.db
+*.exe
