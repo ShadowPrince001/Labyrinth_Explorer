@@ -481,7 +481,7 @@ def on_engine_action(data):
                 events = eng.handle_action("town", {})
                 _emit_events(events, to_sid=sid)
                 return
-            # Save current snapshot
+            # Save current snapshot; detect whether we are overwriting an existing save
             state = eng.snapshot()
             coll = _get_mongo_collection()
             doc = {
@@ -489,11 +489,18 @@ def on_engine_action(data):
                 "game_state": state,
                 "updated_at": datetime.utcnow(),
             }
+            # Check existence first to craft message
+            existed = bool(coll.find_one({"device_id": device_id}, {"_id": 1}))
             coll.update_one({"device_id": device_id}, {"$set": doc}, upsert=True)
             # Tell the user and gate with a Continue so the message is visible
+            msg = (
+                "Overwrote previous save for this device."
+                if existed
+                else "Game saved for this device."
+            )
             _emit_events(
                 [
-                    {"type": "dialogue", "text": "Game saved for this device."},
+                    {"type": "dialogue", "text": msg},
                     {"type": "pause"},
                     {"type": "menu", "items": [{"id": "town", "label": "Continue"}]},
                 ],
