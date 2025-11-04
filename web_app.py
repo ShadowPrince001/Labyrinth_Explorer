@@ -6,6 +6,16 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
+# IMPORTANT: prevent eventlet from monkey-patching ssl, which causes recursion
+# on Python 3.13 with PyMongo/TLS. This is safe and recommended when using
+# drivers that manage their own SSL (like PyMongo).
+try:
+    import eventlet  # type: ignore
+
+    eventlet.monkey_patch(ssl=False)
+except Exception:
+    pass
+
 from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_socketio import SocketIO, emit
 from typing import Dict, Any
