@@ -9,6 +9,8 @@ services:
     plan: free
     autoDeploy: true
     region: oregon
+    # Use Python 3.11 to avoid known SSL recursion issues with eventlet/pymongo on 3.13
+    # Render respects runtime.txt; this comment is documentary.
     buildCommand: |
       pip install -r requirements.txt && npm ci && npm run build
     startCommand: |
