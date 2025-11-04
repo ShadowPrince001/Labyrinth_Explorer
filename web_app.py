@@ -206,6 +206,194 @@ def _sanitize_for_bson(obj: Any, *, _depth: int = 0, _max: int = 8, _seen=None) 
             return None
 
 
+def _safe_weapon(w: Any) -> Dict[str, Any]:
+    try:
+        return {
+            "name": str(getattr(w, "name", "")),
+            "damage_die": str(getattr(w, "damage_die", "")),
+            "damaged": bool(getattr(w, "damaged", False)),
+        }
+    except Exception:
+        return {"name": "", "damage_die": "", "damaged": False}
+
+
+def _safe_armor(a: Any) -> Dict[str, Any]:
+    try:
+        return {
+            "name": str(getattr(a, "name", "")),
+            "armor_class": int(getattr(a, "armor_class", 0)),
+            "damaged": bool(getattr(a, "damaged", False)),
+        }
+    except Exception:
+        return {"name": "", "armor_class": 0, "damaged": False}
+
+
+def _safe_magic_item(mi: Any) -> Dict[str, Any]:
+    try:
+        return {
+            "name": str(getattr(mi, "name", "")),
+            "type": str(getattr(mi, "type", "")),
+            "effect": str(getattr(mi, "effect", "")),
+            "cursed": bool(getattr(mi, "cursed", False)),
+            "description": str(getattr(mi, "description", "")),
+            "bonus": int(getattr(mi, "bonus", 0)),
+            "penalty": int(getattr(mi, "penalty", 0)),
+            "damage_die": str(getattr(mi, "damage_die", "")),
+            "bonus_damage": str(getattr(mi, "bonus_damage", "")),
+        }
+    except Exception:
+        return {
+            "name": "",
+            "type": "",
+            "effect": "",
+            "cursed": False,
+            "description": "",
+            "bonus": 0,
+            "penalty": 0,
+            "damage_die": "",
+            "bonus_damage": "",
+        }
+
+
+def _safe_companion(cp: Any) -> Dict[str, Any]:
+    try:
+        return {
+            "name": str(getattr(cp, "name", "")),
+            "species": str(getattr(cp, "species", "")),
+            "hp": int(getattr(cp, "hp", 0)),
+            "max_hp": int(getattr(cp, "max_hp", 0)),
+            "armor_class": int(getattr(cp, "armor_class", 0)),
+            "damage_die": str(getattr(cp, "damage_die", "")),
+            "strength": int(getattr(cp, "strength", 0)),
+        }
+    except Exception:
+        return {
+            "name": "",
+            "species": "",
+            "hp": 0,
+            "max_hp": 0,
+            "armor_class": 0,
+            "damage_die": "",
+            "strength": 0,
+        }
+
+
+def _safe_character(c: Any) -> Dict[str, Any]:
+    try:
+        weapons = []
+        try:
+            for w in list(getattr(c, "weapons", []) or []):
+                weapons.append(_safe_weapon(w))
+        except Exception:
+            pass
+        armors_owned = []
+        try:
+            for a in list(getattr(c, "armors_owned", []) or []):
+                armors_owned.append(_safe_armor(a))
+        except Exception:
+            pass
+        magic_items = []
+        try:
+            for mi in list(getattr(c, "magic_items", []) or []):
+                magic_items.append(_safe_magic_item(mi))
+        except Exception:
+            pass
+        comp = None
+        try:
+            _cp = getattr(c, "companion", None)
+            if _cp is not None:
+                comp = _safe_companion(_cp)
+        except Exception:
+            comp = None
+        side_q = []
+        try:
+            for q in list(getattr(c, "side_quests", []) or []):
+                if isinstance(q, dict):
+                    side_q.append({str(k): q[k] for k in q.keys()})
+                else:
+                    side_q.append(str(q))
+        except Exception:
+            pass
+        return {
+            "name": str(getattr(c, "name", "Adventurer")),
+            "clazz": str(getattr(c, "clazz", "Adventurer")),
+            "max_hp": int(getattr(c, "max_hp", 1)),
+            "gold": int(getattr(c, "gold", 0)),
+            "hp": int(getattr(c, "hp", 0)),
+            "weapons": weapons,
+            "armor": (
+                _safe_armor(getattr(c, "armor")) if getattr(c, "armor", None) else None
+            ),
+            "attributes": dict(getattr(c, "attributes", {})),
+            "potions": int(getattr(c, "potions", 0)),
+            "potion_uses": dict(getattr(c, "potion_uses", {})),
+            "spells": dict(getattr(c, "spells", {})),
+            "trained_times": int(getattr(c, "trained_times", 0)),
+            "persistent_buffs": dict(getattr(c, "persistent_buffs", {})),
+            "companion": comp,
+            "xp": int(getattr(c, "xp", 0)),
+            "magic_items": magic_items,
+            "equipped_weapon_index": int(getattr(c, "equipped_weapon_index", -1)),
+            "armors_owned": armors_owned,
+            "level": int(getattr(c, "level", 1)),
+            "rest_attempted": bool(getattr(c, "rest_attempted", False)),
+            "prayed": bool(getattr(c, "prayed", False)),
+            "side_quests": side_q,
+            "death_count": int(getattr(c, "death_count", 0)),
+            "examine_used_this_turn": bool(getattr(c, "examine_used_this_turn", False)),
+            "attribute_training": dict(getattr(c, "attribute_training", {})),
+        }
+    except Exception:
+        return {
+            "name": "Adventurer",
+            "clazz": "Adventurer",
+            "max_hp": 1,
+            "gold": 0,
+            "hp": 0,
+            "weapons": [],
+            "armor": None,
+            "attributes": {},
+            "potions": 0,
+            "potion_uses": {},
+            "spells": {},
+            "trained_times": 0,
+            "persistent_buffs": {},
+            "companion": None,
+            "xp": 0,
+            "magic_items": [],
+            "equipped_weapon_index": -1,
+            "armors_owned": [],
+            "level": 1,
+            "rest_attempted": False,
+            "prayed": False,
+            "side_quests": [],
+            "death_count": 0,
+            "examine_used_this_turn": False,
+            "attribute_training": {},
+        }
+
+
+def _safe_snapshot(eng: GameEngine) -> Dict[str, Any]:
+    """Return a robust minimal snapshot, avoiding dataclasses.asdict recursion."""
+    try:
+        # Try the engine's snapshot first (fast path)
+        return eng.snapshot()
+    except Exception:
+        pass
+    # Manual fallback
+    try:
+        phase = str(getattr(getattr(eng, "s", None), "phase", "town"))
+        depth = int(getattr(getattr(eng, "s", None), "depth", 1))
+        ch = getattr(getattr(eng, "s", None), "character", None)
+        return {
+            "phase": phase,
+            "depth": depth,
+            "character": _safe_character(ch) if ch else None,
+        }
+    except Exception:
+        return {"phase": "town", "depth": 1, "character": None}
+
+
 @app.route("/")
 def index():
     # Serve index; no-cache headers are applied in after_request
@@ -586,7 +774,11 @@ def on_engine_action(data):
                 _emit_events(events, to_sid=sid)
                 return
             # Save current snapshot; detect whether we are overwriting an existing save
-            state = eng.snapshot()
+            try:
+                state = eng.snapshot()
+            except Exception:
+                # Fallback to a manual safe snapshot to avoid recursion
+                state = _safe_snapshot(eng)
             # Best-effort sanitize to prevent recursion/non-serializable types in prod
             safe_state = _sanitize_for_bson(state)
             # Quick validation: ensure JSON serializable (avoids surprising BSON failures)
@@ -665,6 +857,13 @@ def on_engine_action(data):
             )
             return
         except Exception as e:
+            # Print full traceback to help diagnose recursion source on Render
+            try:
+                import traceback as _tb
+
+                print("💥 SAVE TRACE:\n" + _tb.format_exc())
+            except Exception:
+                pass
             try:
                 print(
                     f"💥 SAVE ERROR device_id={device_id if 'device_id' in locals() else None}: {e}"
