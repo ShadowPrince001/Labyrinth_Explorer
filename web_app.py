@@ -63,6 +63,8 @@ socketio = SocketIO(
 
 # Keep engine instances per client session (sid)
 engines: Dict[str, GameEngine] = {}
+# Map Socket.IO session IDs to device IDs captured at connect time
+sid_device: Dict[str, str] = {}
 
 
 # ---- MongoDB setup ----
@@ -105,6 +107,42 @@ def _get_device_id_from_request():
         except Exception:
             did = None
     return (did or "").strip()
+
+
+def _resolve_device_id(sid: str, payload: Dict = None) -> str:
+    """Best-effort device_id resolution for Socket.IO events.
+
+    Priority:
+    1) Value captured at connect (sid_device)
+    2) Explicit header/cookie on current request (when available)
+    3) Payload-provided device_id
+    """
+    # 1) From connect-captured mapping
+    try:
+        did = sid_device.get(sid, "")
+        if did:
+            return did
+    except Exception:
+        pass
+    # 2) From current request (handshake/polling may include cookies)
+    try:
+        did = _get_device_id_from_request()
+        if did:
+            # cache for future events
+            sid_device[sid] = did
+            return did
+    except Exception:
+        pass
+    # 3) From payload (non-HttpOnly flows)
+    try:
+        if payload and isinstance(payload, dict):
+            did = (payload.get("device_id") or "").strip()
+            if did:
+                sid_device[sid] = did
+                return did
+    except Exception:
+        pass
+    return ""
 
 
 @app.route("/")
@@ -411,6 +449,13 @@ def on_connect():
     except Exception:
         pass
     engines[sid] = eng
+    # Capture device_id from the handshake cookies if present
+    try:
+        did = _get_device_id_from_request()
+        if did:
+            sid_device[sid] = did
+    except Exception:
+        pass
     emit("connected", {"ok": True})
 
 
@@ -418,6 +463,7 @@ def on_connect():
 def on_disconnect():
     sid = request.sid
     engines.pop(sid, None)
+    sid_device.pop(sid, None)
 
 
 @socketio.on("engine_start")
@@ -466,10 +512,7 @@ def on_engine_action(data):
     # Intercept web save to persist state without changing client UI
     if action == "town:save":
         try:
-            device_id = _get_device_id_from_request()
-            # If still missing, attempt from payload
-            if not device_id:
-                device_id = (payload.get("device_id") or "").strip()
+            device_id = _resolve_device_id(sid, payload)
             if not device_id:
                 # Emit a gentle message and route back to town
                 _emit_events(
@@ -521,9 +564,7 @@ def on_engine_action(data):
     # Intercept main menu load to restore state from Mongo for this device
     if action == "main:load":
         try:
-            device_id = _get_device_id_from_request()
-            if not device_id:
-                device_id = (payload.get("device_id") or "").strip()
+            device_id = _resolve_device_id(sid, payload)
             if not device_id:
                 _emit_events(
                     [
