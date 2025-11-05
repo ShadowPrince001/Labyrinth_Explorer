@@ -12,3 +12,4 @@ certifi>=2024.7.4
 gevent>=23.9.1
 gevent-websocket>=0.10.1
 uvicorn>=0.30.0
+asgiref>=3.8.0

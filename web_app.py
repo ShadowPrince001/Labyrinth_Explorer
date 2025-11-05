@@ -9,7 +9,9 @@ to the frontend. The frontend sends back actions to drive the engine.
 # Avoid importing eventlet to prevent unintended monkey patching attempts on Python 3.13.
 
 from flask import Flask, send_from_directory, request, jsonify, make_response
-from flask_socketio import SocketIO, emit, ASGIApp
+from flask_socketio import SocketIO, emit
+from socketio import ASGIApp
+from asgiref.wsgi import WsgiToAsgi
 from typing import Dict
 import os
 import uuid
@@ -47,7 +49,8 @@ socketio = SocketIO(
 
 # Expose an ASGI application for uvicorn/gunicorn workers. This avoids monkey patching
 # and is compatible with Python 3.13 while preserving true WebSockets.
-asgi_app = ASGIApp(socketio, app)
+# Wrap the Flask WSGI app so it can be served alongside Socket.IO under ASGI
+asgi_app = ASGIApp(socketio.server, other_asgi_app=WsgiToAsgi(app))
 
 # Keep engine instances per client session (sid)
 engines: Dict[str, GameEngine] = {}
