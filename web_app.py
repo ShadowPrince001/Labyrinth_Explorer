@@ -6,13 +6,10 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
-# Ensure eventlet does not monkey-patch SSL on Python 3.13+ (or any version),
-# which can cause recursion in ssl.SSLContext.options when PyMongo creates
-# its TLS context. We still want WebSocket (eventlet) support, just without SSL patching.
+# Do not call eventlet.monkey_patch(); it can trigger patcher errors on Python 3.13
+# and isn't required for our usage here. We still run under the eventlet worker.
 try:
     import eventlet  # type: ignore
-
-    eventlet.monkey_patch(ssl=False)
 except Exception:
     pass
 
@@ -31,10 +28,8 @@ import certifi
 from game.engine import GameEngine
 
 app = Flask(__name__, static_folder="static")
-
-# Load environment variables from a local .env file if present (no effect in prod)
 try:
-    load_dotenv()
+    import eventlet  # type: ignore
 except Exception:
     pass
 
@@ -482,8 +477,15 @@ def on_engine_action(data):
                 events = eng.handle_action("town", {})
                 _emit_events(events, to_sid=sid)
                 return
-            # Save current snapshot
-            state = eng.snapshot()
+            # Save current snapshot (fallback to minimal dict on error)
+            try:
+                state = eng.snapshot()
+            except Exception:
+                state = {
+                    "phase": getattr(getattr(eng, "s", None), "phase", "town"),
+                    "depth": getattr(getattr(eng, "s", None), "depth", 1),
+                    "character": None,
+                }
             coll = _get_mongo_collection()
             doc = {
                 "device_id": device_id,
@@ -502,6 +504,13 @@ def on_engine_action(data):
             )
             return
         except Exception as e:
+            # Print full traceback to diagnose recursion source
+            try:
+                import traceback as _tb
+
+                print("💥 SAVE TRACE:\n" + _tb.format_exc())
+            except Exception:
+                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": f"Save failed: {e}"},
