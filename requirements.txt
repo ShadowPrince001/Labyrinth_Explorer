@@ -8,3 +8,4 @@ gunicorn>=21.2
 pymongo>=4.6
 dnspython>=2.4
 python-dotenv>=1.0
+certifi>=2024.7.4

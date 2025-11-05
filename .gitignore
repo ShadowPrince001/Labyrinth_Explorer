@@ -1,24 +1,39 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
-.Python
-env/
-venv/
+*.pdb
+*.pyc
+
+# Virtual environments
 .venv/
+venv/
+ENV/
+env/
 
-# Local env files
-.env
-
-# Node/Frontend
+# Node
 node_modules/
+
+# Logs and runtime files
 *.log
+logs/
+server.err.log
+server.out.log
+venv-create.log
+web_app_run.log
 
-# VS Code
-.vscode/
-
-# OS cruft and binaries
+# OS files
 .DS_Store
 Thumbs.db
-*.exe
+
+# Binaries/Installers
+python-installer.exe
+
+# Coverage / test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Build outputs
+static/*.map

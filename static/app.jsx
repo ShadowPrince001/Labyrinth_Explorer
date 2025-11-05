@@ -184,13 +184,9 @@ window.initApp = (function () {
         useEffect(() => {
             if (typeof io !== 'function') { setError('Socket.IO not loaded'); return; }
             const s = io({
-                transports: ['websocket', 'polling'],
-                withCredentials: true,
-                timeout: 15000,
-                reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 500,
-                reconnectionDelayMax: 3000
+                transports: ['polling'],
+                forceNew: true,
+                timeout: 10000
             }); socketRef.current = s;
             s.on('connect', () => {
                 setConnected(true);
@@ -574,13 +570,7 @@ window.initApp = (function () {
         function handleChoiceClick(c) {
             if (c && c._virtual === 'go-inner') { setTownSplit(prev => ({ ...prev, inner: true })); focusFirstButtonSoon(); return; }
             if (c && c._virtual === 'go-main') { setTownSplit(prev => ({ ...prev, inner: false })); focusFirstButtonSoon(); return; }
-            if (c && c.id) {
-                // Request an immediate flush so any pending text finishes before the action response
-                flushNow();
-                // Send the action; do NOT clear UI immediately. We'll wait for the server 'clear' event
-                // or incoming events (dialogue/pause/menu) to update the UI, avoiding a blank state on slow networks.
-                sendAction(c.id);
-            }
+            if (c && c.id) { sendAction(c.id); clearUI(); }
         }
 
         return (
