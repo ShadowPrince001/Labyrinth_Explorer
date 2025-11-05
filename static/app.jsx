@@ -184,7 +184,9 @@ window.initApp = (function () {
         useEffect(() => {
             if (typeof io !== 'function') { setError('Socket.IO not loaded'); return; }
             const s = io({
-                transports: ['polling'],
+                // Enforce WebSocket transport to match server config (no polling fallback)
+                transports: ['websocket'],
+                upgrade: false,
                 forceNew: true,
                 timeout: 10000
             }); socketRef.current = s;
