@@ -6,12 +6,7 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
-# Do not call eventlet.monkey_patch(); it can trigger patcher errors on Python 3.13
-# and isn't required for our usage here. We still run under the eventlet worker.
-try:
-    import eventlet  # type: ignore
-except Exception:
-    pass
+# Avoid importing eventlet to prevent unintended monkey patching attempts on Python 3.13.
 
 from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_socketio import SocketIO, emit
@@ -28,10 +23,6 @@ import certifi
 from game.engine import GameEngine
 
 app = Flask(__name__, static_folder="static")
-try:
-    import eventlet  # type: ignore
-except Exception:
-    pass
 
 # Configuration via environment variables for deployment flexibility
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*")
@@ -40,8 +31,8 @@ _transports = ["websocket"]
 _allow_upgrades = True
 _message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE")  # e.g. redis URL for scale-out
 
-# Let Flask-SocketIO auto-detect async mode by default (eventlet/gevent/threading)
-_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "").strip() or None
+# Prefer gevent by default (works with gevent-websocket worker); allow override via env
+_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "gevent").strip() or "gevent"
 
 socketio = SocketIO(
     app,

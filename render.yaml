@@ -14,7 +14,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt && npm ci && npm run build
     startCommand: |
-      gunicorn -k eventlet -w 1 -b 0.0.0.0:$PORT web_app:app
+      gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:$PORT web_app:app
     healthCheckPath: "/health"
     envVars:
       - key: PYTHONUNBUFFERED
@@ -41,11 +41,11 @@ services:
       - key: MONGODB_COLLECTION
         value: player_saves
       - key: SOCKET_TRANSPORTS
-        value: websocket,polling
+        value: websocket
       - key: ALLOW_UPGRADES
         value: "1"
       - key: SOCKETIO_ASYNC_MODE
-        value: eventlet
+        value: gevent
       # For WebSockets, you can enable eventlet and upgrades by setting:
       # (Already enabled above.)
       # If you scale to multiple instances, add a Redis and set:
