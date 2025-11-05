@@ -14,7 +14,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt && npm ci && npm run build
     startCommand: |
-      gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:$PORT web_app:app
+      gunicorn -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:$PORT web_app:asgi_app
     healthCheckPath: "/health"
     envVars:
       - key: PYTHONUNBUFFERED
@@ -45,7 +45,7 @@ services:
       - key: ALLOW_UPGRADES
         value: "1"
       - key: SOCKETIO_ASYNC_MODE
-        value: gevent
+        value: asgi
       # For WebSockets, you can enable eventlet and upgrades by setting:
       # (Already enabled above.)
       # If you scale to multiple instances, add a Redis and set:
