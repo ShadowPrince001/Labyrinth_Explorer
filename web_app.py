@@ -6,9 +6,9 @@ GameEngine instance per Socket.IO client and relays structured JSON events
 to the frontend. The frontend sends back actions to drive the engine.
 """
 
-# IMPORTANT: prevent eventlet from monkey-patching ssl, which causes recursion
-# on Python 3.13 with PyMongo/TLS. This is safe and recommended when using
-# drivers that manage their own SSL (like PyMongo).
+# Ensure eventlet does not monkey-patch SSL on Python 3.13+ (or any version),
+# which can cause recursion in ssl.SSLContext.options when PyMongo creates
+# its TLS context. We still want WebSocket (eventlet) support, just without SSL patching.
 try:
     import eventlet  # type: ignore
 
@@ -18,15 +18,15 @@ except Exception:
 
 from flask import Flask, send_from_directory, request, jsonify, make_response
 from flask_socketio import SocketIO, emit
-from typing import Dict, Any
+from typing import Dict
 import os
 import uuid
 from datetime import datetime
-import json
 
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import PyMongoError
 from dotenv import load_dotenv
+import certifi
 
 from game.engine import GameEngine
 
@@ -38,24 +38,11 @@ try:
 except Exception:
     pass
 
-# Set a secret key for Flask (cookie signing, sessions). In this app we set our
-# own device_id cookie, but providing SECRET_KEY is still good hygiene.
-_secret_key = os.getenv("SECRET_KEY")
-if _secret_key:
-    try:
-        app.secret_key = _secret_key
-    except Exception:
-        pass
-
 # Configuration via environment variables for deployment flexibility
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*")
-_transports_env = os.getenv(
-    "SOCKET_TRANSPORTS", "websocket,polling"
-)  # e.g. "websocket,polling"
-_transports = [t.strip() for t in _transports_env.split(",") if t.strip()]
-_allow_upgrades = "websocket" in _transports or os.getenv(
-    "ALLOW_UPGRADES", ""
-).lower() in ("1", "true", "yes")
+# Enforce WebSocket transport per requirements; no polling fallback
+_transports = ["websocket"]
+_allow_upgrades = True
 _message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE")  # e.g. redis URL for scale-out
 
 # Let Flask-SocketIO auto-detect async mode by default (eventlet/gevent/threading)
@@ -67,15 +54,13 @@ socketio = SocketIO(
     cors_allowed_origins=_cors_origins,
     logger=True,
     engineio_logger=True,
-    transports=_transports or ["polling"],
+    transports=_transports,
     allow_upgrades=_allow_upgrades,
     message_queue=_message_queue,
 )
 
 # Keep engine instances per client session (sid)
 engines: Dict[str, GameEngine] = {}
-# Map Socket.IO session IDs to device IDs captured at connect time
-sid_device: Dict[str, str] = {}
 
 
 # ---- MongoDB setup ----
@@ -98,7 +83,13 @@ def _get_mongo_collection():
         "MONGO_COLLECTION_NAME", "player_saves"
     )
 
-    _mongo_client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+    # Initialize the global MongoClient once using certifi's CA bundle for TLS
+    if _mongo_client is None:
+        _mongo_client = MongoClient(
+            uri,
+            serverSelectionTimeoutMS=5000,
+            tlsCAFile=certifi.where(),
+        )
     db = _mongo_client[db_name]
     _mongo_coll = db[coll_name]
     try:
@@ -107,6 +98,15 @@ def _get_mongo_collection():
     except Exception:
         pass
     return _mongo_coll
+
+
+# Initialize Mongo client at app startup to avoid per-request creation
+try:
+    _ = _get_mongo_collection()
+    print("🔗 MongoDB client initialized at startup")
+except Exception as _e:
+    # Defer error handling to actual usage routes, but log for visibility
+    print(f"⚠️ MongoDB init skipped/failed: {_e}")
 
 
 def _get_device_id_from_request():
@@ -118,290 +118,6 @@ def _get_device_id_from_request():
         except Exception:
             did = None
     return (did or "").strip()
-
-
-def _resolve_device_id(sid: str, payload: Dict = None) -> str:
-    """Best-effort device_id resolution for Socket.IO events.
-
-    Priority:
-    1) Value captured at connect (sid_device)
-    2) Explicit header/cookie on current request (when available)
-    3) Payload-provided device_id
-    """
-    # 1) From connect-captured mapping
-    try:
-        did = sid_device.get(sid, "")
-        if did:
-            return did
-    except Exception:
-        pass
-    # 2) From current request (handshake/polling may include cookies)
-    try:
-        did = _get_device_id_from_request()
-        if did:
-            # cache for future events
-            sid_device[sid] = did
-            return did
-    except Exception:
-        pass
-    # 3) From payload (non-HttpOnly flows)
-    try:
-        if payload and isinstance(payload, dict):
-            did = (payload.get("device_id") or "").strip()
-            if did:
-                sid_device[sid] = did
-                return did
-    except Exception:
-        pass
-    return ""
-
-
-def _sanitize_for_bson(obj: Any, *, _depth: int = 0, _max: int = 8, _seen=None) -> Any:
-    """Best-effort sanitizer to ensure data is BSON/JSON-serializable and acyclic.
-    - Limits nesting depth
-    - Converts unknown types to strings
-    - Avoids cycles using an id() set
-    """
-    if _seen is None:
-        _seen = set()
-    try:
-        oid = id(obj)
-        if oid in _seen:
-            return str(obj)
-        _seen.add(oid)
-    except Exception:
-        pass
-
-    if _depth > _max:
-        return str(obj)
-
-    # Primitives
-    if obj is None or isinstance(obj, (bool, int, float, str)):
-        return obj
-
-    # Datetime is BSON-compatible via PyMongo
-    try:
-        from datetime import datetime as _dt
-
-        if isinstance(obj, _dt):
-            return obj
-    except Exception:
-        pass
-
-    # Dict-like
-    if isinstance(obj, dict):
-        out = {}
-        for k, v in obj.items():
-            try:
-                key = str(k)
-            except Exception:
-                key = repr(k)
-            out[key] = _sanitize_for_bson(v, _depth=_depth + 1, _max=_max, _seen=_seen)
-        return out
-
-    # List/tuple
-    if isinstance(obj, (list, tuple)):
-        return [
-            _sanitize_for_bson(x, _depth=_depth + 1, _max=_max, _seen=_seen)
-            for x in obj
-        ]
-
-    # Fallback to string
-    try:
-        return json.loads(json.dumps(obj, default=str))
-    except Exception:
-        try:
-            return str(obj)
-        except Exception:
-            return None
-
-
-def _safe_weapon(w: Any) -> Dict[str, Any]:
-    try:
-        return {
-            "name": str(getattr(w, "name", "")),
-            "damage_die": str(getattr(w, "damage_die", "")),
-            "damaged": bool(getattr(w, "damaged", False)),
-        }
-    except Exception:
-        return {"name": "", "damage_die": "", "damaged": False}
-
-
-def _safe_armor(a: Any) -> Dict[str, Any]:
-    try:
-        return {
-            "name": str(getattr(a, "name", "")),
-            "armor_class": int(getattr(a, "armor_class", 0)),
-            "damaged": bool(getattr(a, "damaged", False)),
-        }
-    except Exception:
-        return {"name": "", "armor_class": 0, "damaged": False}
-
-
-def _safe_magic_item(mi: Any) -> Dict[str, Any]:
-    try:
-        return {
-            "name": str(getattr(mi, "name", "")),
-            "type": str(getattr(mi, "type", "")),
-            "effect": str(getattr(mi, "effect", "")),
-            "cursed": bool(getattr(mi, "cursed", False)),
-            "description": str(getattr(mi, "description", "")),
-            "bonus": int(getattr(mi, "bonus", 0)),
-            "penalty": int(getattr(mi, "penalty", 0)),
-            "damage_die": str(getattr(mi, "damage_die", "")),
-            "bonus_damage": str(getattr(mi, "bonus_damage", "")),
-        }
-    except Exception:
-        return {
-            "name": "",
-            "type": "",
-            "effect": "",
-            "cursed": False,
-            "description": "",
-            "bonus": 0,
-            "penalty": 0,
-            "damage_die": "",
-            "bonus_damage": "",
-        }
-
-
-def _safe_companion(cp: Any) -> Dict[str, Any]:
-    try:
-        return {
-            "name": str(getattr(cp, "name", "")),
-            "species": str(getattr(cp, "species", "")),
-            "hp": int(getattr(cp, "hp", 0)),
-            "max_hp": int(getattr(cp, "max_hp", 0)),
-            "armor_class": int(getattr(cp, "armor_class", 0)),
-            "damage_die": str(getattr(cp, "damage_die", "")),
-            "strength": int(getattr(cp, "strength", 0)),
-        }
-    except Exception:
-        return {
-            "name": "",
-            "species": "",
-            "hp": 0,
-            "max_hp": 0,
-            "armor_class": 0,
-            "damage_die": "",
-            "strength": 0,
-        }
-
-
-def _safe_character(c: Any) -> Dict[str, Any]:
-    try:
-        weapons = []
-        try:
-            for w in list(getattr(c, "weapons", []) or []):
-                weapons.append(_safe_weapon(w))
-        except Exception:
-            pass
-        armors_owned = []
-        try:
-            for a in list(getattr(c, "armors_owned", []) or []):
-                armors_owned.append(_safe_armor(a))
-        except Exception:
-            pass
-        magic_items = []
-        try:
-            for mi in list(getattr(c, "magic_items", []) or []):
-                magic_items.append(_safe_magic_item(mi))
-        except Exception:
-            pass
-        comp = None
-        try:
-            _cp = getattr(c, "companion", None)
-            if _cp is not None:
-                comp = _safe_companion(_cp)
-        except Exception:
-            comp = None
-        side_q = []
-        try:
-            for q in list(getattr(c, "side_quests", []) or []):
-                if isinstance(q, dict):
-                    side_q.append({str(k): q[k] for k in q.keys()})
-                else:
-                    side_q.append(str(q))
-        except Exception:
-            pass
-        return {
-            "name": str(getattr(c, "name", "Adventurer")),
-            "clazz": str(getattr(c, "clazz", "Adventurer")),
-            "max_hp": int(getattr(c, "max_hp", 1)),
-            "gold": int(getattr(c, "gold", 0)),
-            "hp": int(getattr(c, "hp", 0)),
-            "weapons": weapons,
-            "armor": (
-                _safe_armor(getattr(c, "armor")) if getattr(c, "armor", None) else None
-            ),
-            "attributes": dict(getattr(c, "attributes", {})),
-            "potions": int(getattr(c, "potions", 0)),
-            "potion_uses": dict(getattr(c, "potion_uses", {})),
-            "spells": dict(getattr(c, "spells", {})),
-            "trained_times": int(getattr(c, "trained_times", 0)),
-            "persistent_buffs": dict(getattr(c, "persistent_buffs", {})),
-            "companion": comp,
-            "xp": int(getattr(c, "xp", 0)),
-            "magic_items": magic_items,
-            "equipped_weapon_index": int(getattr(c, "equipped_weapon_index", -1)),
-            "armors_owned": armors_owned,
-            "level": int(getattr(c, "level", 1)),
-            "rest_attempted": bool(getattr(c, "rest_attempted", False)),
-            "prayed": bool(getattr(c, "prayed", False)),
-            "side_quests": side_q,
-            "death_count": int(getattr(c, "death_count", 0)),
-            "examine_used_this_turn": bool(getattr(c, "examine_used_this_turn", False)),
-            "attribute_training": dict(getattr(c, "attribute_training", {})),
-        }
-    except Exception:
-        return {
-            "name": "Adventurer",
-            "clazz": "Adventurer",
-            "max_hp": 1,
-            "gold": 0,
-            "hp": 0,
-            "weapons": [],
-            "armor": None,
-            "attributes": {},
-            "potions": 0,
-            "potion_uses": {},
-            "spells": {},
-            "trained_times": 0,
-            "persistent_buffs": {},
-            "companion": None,
-            "xp": 0,
-            "magic_items": [],
-            "equipped_weapon_index": -1,
-            "armors_owned": [],
-            "level": 1,
-            "rest_attempted": False,
-            "prayed": False,
-            "side_quests": [],
-            "death_count": 0,
-            "examine_used_this_turn": False,
-            "attribute_training": {},
-        }
-
-
-def _safe_snapshot(eng: GameEngine) -> Dict[str, Any]:
-    """Return a robust minimal snapshot, avoiding dataclasses.asdict recursion."""
-    try:
-        # Try the engine's snapshot first (fast path)
-        return eng.snapshot()
-    except Exception:
-        pass
-    # Manual fallback
-    try:
-        phase = str(getattr(getattr(eng, "s", None), "phase", "town"))
-        depth = int(getattr(getattr(eng, "s", None), "depth", 1))
-        ch = getattr(getattr(eng, "s", None), "character", None)
-        return {
-            "phase": phase,
-            "depth": depth,
-            "character": _safe_character(ch) if ch else None,
-        }
-    except Exception:
-        return {"phase": "town", "depth": 1, "character": None}
 
 
 @app.route("/")
@@ -457,18 +173,6 @@ def add_no_cache_headers(resp):
 def health():
     """Lightweight health endpoint for Render health checks."""
     return jsonify({"ok": True}), 200
-
-
-@app.route("/health/db")
-def health_db():
-    """Optional health endpoint to verify Mongo connectivity in deployments."""
-    try:
-        coll = _get_mongo_collection()
-        # quick roundtrip without creating or reading large docs
-        coll.estimated_document_count()  # may use metadata
-        return jsonify({"ok": True}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @app.route("/save-game", methods=["POST"])
@@ -708,13 +412,6 @@ def on_connect():
     except Exception:
         pass
     engines[sid] = eng
-    # Capture device_id from the handshake cookies if present
-    try:
-        did = _get_device_id_from_request()
-        if did:
-            sid_device[sid] = did
-    except Exception:
-        pass
     emit("connected", {"ok": True})
 
 
@@ -722,7 +419,6 @@ def on_connect():
 def on_disconnect():
     sid = request.sid
     engines.pop(sid, None)
-    sid_device.pop(sid, None)
 
 
 @socketio.on("engine_start")
@@ -771,7 +467,10 @@ def on_engine_action(data):
     # Intercept web save to persist state without changing client UI
     if action == "town:save":
         try:
-            device_id = _resolve_device_id(sid, payload)
+            device_id = _get_device_id_from_request()
+            # If still missing, attempt from payload
+            if not device_id:
+                device_id = (payload.get("device_id") or "").strip()
             if not device_id:
                 # Emit a gentle message and route back to town
                 _emit_events(
@@ -783,83 +482,19 @@ def on_engine_action(data):
                 events = eng.handle_action("town", {})
                 _emit_events(events, to_sid=sid)
                 return
-            # Save current snapshot; detect whether we are overwriting an existing save
-            try:
-                state = eng.snapshot()
-            except Exception:
-                # Fallback to a manual safe snapshot to avoid recursion
-                state = _safe_snapshot(eng)
-            # Best-effort sanitize to prevent recursion/non-serializable types in prod
-            safe_state = _sanitize_for_bson(state)
-            # Quick validation: ensure JSON serializable (avoids surprising BSON failures)
-            try:
-                json.dumps(safe_state, default=str)
-            except Exception:
-                # Fallback to a minimal shape if needed
-                try:
-                    ch = state.get("character") if isinstance(state, dict) else None
-                except Exception:
-                    ch = None
-                safe_state = {
-                    "depth": (
-                        int(state.get("depth", 1)) if isinstance(state, dict) else 1
-                    ),
-                    "character": {
-                        "name": (
-                            (ch or {}).get("name") if isinstance(ch, dict) else None
-                        ),
-                        "clazz": (
-                            (ch or {}).get("clazz") if isinstance(ch, dict) else None
-                        ),
-                        "hp": (
-                            int((ch or {}).get("hp", 0)) if isinstance(ch, dict) else 0
-                        ),
-                        "max_hp": (
-                            int((ch or {}).get("max_hp", 0))
-                            if isinstance(ch, dict)
-                            else 0
-                        ),
-                        "gold": (
-                            int((ch or {}).get("gold", 0))
-                            if isinstance(ch, dict)
-                            else 0
-                        ),
-                        "level": (
-                            int((ch or {}).get("level", 1))
-                            if isinstance(ch, dict)
-                            else 1
-                        ),
-                        "attributes": (
-                            dict((ch or {}).get("attributes", {}))
-                            if isinstance(ch, dict)
-                            else {}
-                        ),
-                    },
-                }
+            # Save current snapshot
+            state = eng.snapshot()
             coll = _get_mongo_collection()
             doc = {
                 "device_id": device_id,
-                "game_state": safe_state,
+                "game_state": state,
                 "updated_at": datetime.utcnow(),
             }
-            # Check existence first to craft message
-            existed = bool(coll.find_one({"device_id": device_id}, {"_id": 1}))
             coll.update_one({"device_id": device_id}, {"$set": doc}, upsert=True)
             # Tell the user and gate with a Continue so the message is visible
-            msg = (
-                "Overwrote previous save for this device."
-                if existed
-                else "Game saved for this device."
-            )
-            try:
-                print(
-                    f"💾 SAVE OK device_id={device_id} existed={existed} depth={safe_state.get('depth')} char={(safe_state.get('character') or {}).get('name')}"
-                )
-            except Exception:
-                pass
             _emit_events(
                 [
-                    {"type": "dialogue", "text": msg},
+                    {"type": "dialogue", "text": "Game saved for this device."},
                     {"type": "pause"},
                     {"type": "menu", "items": [{"id": "town", "label": "Continue"}]},
                 ],
@@ -867,19 +502,6 @@ def on_engine_action(data):
             )
             return
         except Exception as e:
-            # Print full traceback to help diagnose recursion source on Render
-            try:
-                import traceback as _tb
-
-                print("💥 SAVE TRACE:\n" + _tb.format_exc())
-            except Exception:
-                pass
-            try:
-                print(
-                    f"💥 SAVE ERROR device_id={device_id if 'device_id' in locals() else None}: {e}"
-                )
-            except Exception:
-                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": f"Save failed: {e}"},
@@ -893,7 +515,9 @@ def on_engine_action(data):
     # Intercept main menu load to restore state from Mongo for this device
     if action == "main:load":
         try:
-            device_id = _resolve_device_id(sid, payload)
+            device_id = _get_device_id_from_request()
+            if not device_id:
+                device_id = (payload.get("device_id") or "").strip()
             if not device_id:
                 _emit_events(
                     [
@@ -925,51 +549,10 @@ def on_engine_action(data):
                     to_sid=sid,
                 )
                 return
-            # Sanitize the loaded snapshot to avoid unexpected/cyclic data
-            raw = doc.get("game_state", {})
-            safe: Dict[str, any] = {}
-            try:
-                safe["depth"] = int(raw.get("depth", 1))
-            except Exception:
-                safe["depth"] = 1
-            ch = raw.get("character")
-            if isinstance(ch, dict):
-                # Whitelist allowed character fields only
-                allowed_keys = {
-                    "name",
-                    "clazz",
-                    "max_hp",
-                    "gold",
-                    "hp",
-                    "weapons",
-                    "armor",
-                    "attributes",
-                    "potions",
-                    "potion_uses",
-                    "spells",
-                    "trained_times",
-                    "persistent_buffs",
-                    "companion",
-                    "xp",
-                    "magic_items",
-                    "equipped_weapon_index",
-                    "armors_owned",
-                    "level",
-                    "rest_attempted",
-                    "prayed",
-                    "side_quests",
-                    "death_count",
-                    "examine_used_this_turn",
-                    "attribute_training",
-                }
-                safe["character"] = {k: v for k, v in ch.items() if k in allowed_keys}
-            else:
-                safe["character"] = None
-
             ok = False
             try:
-                ok = bool(eng.load_snapshot(safe))
-            except Exception as _e:
+                ok = bool(eng.load_snapshot(doc["game_state"]))
+            except Exception:
                 ok = False
             if not ok:
                 _emit_events(
@@ -984,30 +567,18 @@ def on_engine_action(data):
                 events = eng.start()
                 _emit_events(events, to_sid=sid)
                 return
-            # On success, tell the player and gate with a Continue so message is visible
-            try:
-                print(
-                    f"📥 LOAD OK device_id={device_id} depth={safe.get('depth')} char={(safe.get('character') or {}).get('name')}"
-                )
-            except Exception:
-                pass
+            # On success, tell the player and show the appropriate screen (town)
             _emit_events(
                 [
                     {"type": "dialogue", "text": "Loaded saved game."},
-                    {"type": "pause"},
-                    {"type": "menu", "items": [{"id": "town", "label": "Continue"}]},
                 ],
                 to_sid=sid,
             )
-            # Do not immediately render town; wait for client to click Continue (id: 'town')
+            # Render town menu
+            events = eng.handle_action("town", {})
+            _emit_events(events, to_sid=sid)
             return
         except Exception as e:
-            try:
-                print(
-                    f"💥 LOAD ERROR device_id={device_id if 'device_id' in locals() else None}: {e}"
-                )
-            except Exception:
-                pass
             _emit_events(
                 [
                     {"type": "dialogue", "text": f"Load failed: {e}"},
