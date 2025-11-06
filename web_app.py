@@ -9,7 +9,7 @@ to the frontend. The frontend sends back actions to drive the engine.
 # Avoid importing eventlet to prevent unintended monkey patching attempts on Python 3.13.
 
 from flask import Flask, send_from_directory, request, jsonify, make_response
-from flask_socketio import SocketIO, emit
+import socketio
 from socketio import ASGIApp
 from asgiref.wsgi import WsgiToAsgi
 from typing import Dict
@@ -19,8 +19,8 @@ from datetime import datetime
 
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import PyMongoError
-from dotenv import load_dotenv
 import certifi
+from http.cookies import SimpleCookie
 
 from game.engine import GameEngine
 
@@ -33,14 +33,9 @@ _transports = ["websocket"]
 _allow_upgrades = True
 _message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE")  # e.g. redis URL for scale-out
 
-# Use a safe default that avoids monkey patching and is widely supported
-# Valid options include: 'threading', 'eventlet', 'gevent', 'gevent_uwsgi', 'aiohttp'
-# We'll default to 'threading' and serve via ASGI (uvicorn) for true WebSockets.
-_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "threading").strip() or "threading"
-
-socketio = SocketIO(
-    app,
-    async_mode=_async_mode,
+# Native ASGI Socket.IO server (no monkey patching)
+sio = socketio.AsyncServer(
+    async_mode="asgi",
     cors_allowed_origins=_cors_origins,
     logger=True,
     engineio_logger=True,
@@ -49,13 +44,13 @@ socketio = SocketIO(
     message_queue=_message_queue,
 )
 
-# Expose an ASGI application for uvicorn/gunicorn workers. This avoids monkey patching
-# and is compatible with Python 3.13 while preserving true WebSockets.
-# Wrap the Flask WSGI app so it can be served alongside Socket.IO under ASGI
-asgi_app = ASGIApp(socketio.server, other_asgi_app=WsgiToAsgi(app))
+# Combined ASGI app: Socket.IO + Flask (wrapped for ASGI)
+asgi_app = ASGIApp(sio, other_asgi_app=WsgiToAsgi(app))
 
 # Keep engine instances per client session (sid)
 engines: Dict[str, GameEngine] = {}
+# Track device_id per sid for Socket.IO connections
+sid_device: Dict[str, str] = {}
 
 
 # ---- MongoDB setup ----
@@ -255,7 +250,7 @@ def direct_test():
     return send_from_directory("static", "direct_test.html")
 
 
-def _emit_events(events, to_sid=None):
+async def _emit_events(events, to_sid=None):
     """Emit engine events to frontend using consistent event names and payloads.
     Each emit includes: { type, text, options, state }.
     Additionally, message text is split into lines and sent as multiple game_output events
@@ -275,9 +270,9 @@ def _emit_events(events, to_sid=None):
                 "state": last_state,
             }
             # Legacy/state update
-            socketio.emit("game_update", payload, to=to_sid)
+            await sio.emit("game_update", payload, to=to_sid)
             # New explicit stats update
-            socketio.emit("update_stats", payload, to=to_sid)
+            await sio.emit("update_stats", payload, to=to_sid)
             continue
 
         if etype in ("message", "dialogue"):
@@ -291,9 +286,9 @@ def _emit_events(events, to_sid=None):
                     "state": last_state,
                 }
                 # Legacy dialogue/output
-                socketio.emit("game_output", payload, to=to_sid)
+                await sio.emit("game_output", payload, to=to_sid)
                 # New explicit dialogue channel
-                socketio.emit("dialogue", {**payload, "type": "dialogue"}, to=to_sid)
+                await sio.emit("dialogue", {**payload, "type": "dialogue"}, to=to_sid)
             continue
 
         if etype == "pause":
@@ -303,8 +298,8 @@ def _emit_events(events, to_sid=None):
                 "options": [],
                 "state": last_state,
             }
-            socketio.emit("game_pause", payload, to=to_sid)
-            socketio.emit("pause", {**payload, "type": "pause"}, to=to_sid)
+            await sio.emit("game_pause", payload, to=to_sid)
+            await sio.emit("pause", {**payload, "type": "pause"}, to=to_sid)
             continue
 
         if etype in ("choices", "menu"):
@@ -315,8 +310,8 @@ def _emit_events(events, to_sid=None):
                 "options": items,
                 "state": last_state,
             }
-            socketio.emit("game_menu", payload, to=to_sid)
-            socketio.emit("menu", {**payload, "type": "menu"}, to=to_sid)
+            await sio.emit("game_menu", payload, to=to_sid)
+            await sio.emit("menu", {**payload, "type": "menu"}, to=to_sid)
             continue
 
         if etype == "combat_update":
@@ -328,7 +323,7 @@ def _emit_events(events, to_sid=None):
                     "options": [],
                     "state": last_state,
                 }
-                socketio.emit("combat_update", payload, to=to_sid)
+                await sio.emit("combat_update", payload, to=to_sid)
             continue
 
         if etype == "update_stats":
@@ -338,11 +333,11 @@ def _emit_events(events, to_sid=None):
                 "options": [],
                 "state": ev.get("data", last_state),
             }
-            socketio.emit("update_stats", payload, to=to_sid)
+            await sio.emit("update_stats", payload, to=to_sid)
             continue
 
         if etype == "clear":
-            socketio.emit("clear", {"type": "clear"}, to=to_sid)
+            await sio.emit("clear", {"type": "clear"}, to=to_sid)
             continue
 
         if etype == "scene":
@@ -356,7 +351,7 @@ def _emit_events(events, to_sid=None):
                 "data": {"background": background, "text": text},
             }
             print(f"🎬 Emitting scene event: {payload}")
-            socketio.emit("scene", payload, to=to_sid)
+            await sio.emit("scene", payload, to=to_sid)
             continue
 
         if etype == "prompt":
@@ -367,9 +362,9 @@ def _emit_events(events, to_sid=None):
                 "options": [],
                 "state": last_state,
             }
-            socketio.emit("game_update", payload, to=to_sid)
+            await sio.emit("game_update", payload, to=to_sid)
             # Also emit a dedicated prompt event for UI binding
-            socketio.emit(
+            await sio.emit(
                 "game_prompt",
                 {
                     "type": "game_prompt",
@@ -389,15 +384,28 @@ def _emit_events(events, to_sid=None):
             "options": [],
             "state": last_state,
         }
-        socketio.emit("game_update", payload, to=to_sid)
+    await sio.emit("game_update", payload, to=to_sid)
 
 
-@socketio.on("connect")
-def on_connect():
-    sid = request.sid
+@sio.event
+async def connect(sid, environ):
+    # Capture device_id from headers or cookies
+    did = environ.get("HTTP_X_DEVICE_ID") or ""
+    if not did:
+        try:
+            raw_cookie = environ.get("HTTP_COOKIE", "")
+            if raw_cookie:
+                c = SimpleCookie()
+                c.load(raw_cookie)
+                if "device_id" in c:
+                    did = c["device_id"].value
+        except Exception:
+            did = ""
+    if did:
+        sid_device[sid] = did
+
     # Create engine for this session
     eng = GameEngine()
-    # Gate engine verbose prints via env var LE_ENGINE_DEBUG
     try:
         eng.debug = str(os.getenv("LE_ENGINE_DEBUG", "")).strip().lower() in (
             "1",
@@ -407,25 +415,23 @@ def on_connect():
     except Exception:
         pass
     engines[sid] = eng
-    emit("connected", {"ok": True})
+    await sio.emit("connected", {"ok": True}, to=sid)
 
 
-@socketio.on("disconnect")
-def on_disconnect():
-    sid = request.sid
+@sio.event
+async def disconnect(sid):
     engines.pop(sid, None)
+    sid_device.pop(sid, None)
 
 
-@socketio.on("engine_start")
-@socketio.on("player_start")
-def on_engine_start():
-    sid = request.sid
-
+@sio.on("engine_start")
+@sio.on("player_start")
+async def on_engine_start(sid):
     # Set initial background to labyrinth.png for character creation
     from game.scene_manager import set_labyrinth_background
 
     initial_bg_event = set_labyrinth_background()
-    _emit_events([initial_bg_event], to_sid=sid)
+    await _emit_events([initial_bg_event], to_sid=sid)
 
     eng = engines.get(sid)
     if not eng:
@@ -440,18 +446,17 @@ def on_engine_start():
             pass
         engines[sid] = eng
     events = eng.start()
-    _emit_events(events, to_sid=sid)
+    await _emit_events(events, to_sid=sid)
 
 
-@socketio.on("engine_action")
-@socketio.on("player_action")
-def on_engine_action(data):
-    sid = request.sid
+@sio.on("engine_action")
+@sio.on("player_action")
+async def on_engine_action(sid, data):
     eng = engines.get(sid)
     if not eng:
         return
-    action = data.get("action") or ""
-    payload = data.get("payload") or {}
+    action = (data or {}).get("action") or ""
+    payload = (data or {}).get("payload") or {}
 
     # Debug logging
     print(f"🎮 WEBAPP DEBUG: Received action={action}")
@@ -462,20 +467,21 @@ def on_engine_action(data):
     # Intercept web save to persist state without changing client UI
     if action == "town:save":
         try:
-            device_id = _get_device_id_from_request()
+            # Prefer mapped device id from connect; fall back to payload
+            device_id = (sid_device.get(sid) or "").strip()
             # If still missing, attempt from payload
             if not device_id:
                 device_id = (payload.get("device_id") or "").strip()
             if not device_id:
                 # Emit a gentle message and route back to town
-                _emit_events(
+                await _emit_events(
                     [
                         {"type": "dialogue", "text": "Cannot save: missing device ID."},
                     ],
                     to_sid=sid,
                 )
                 events = eng.handle_action("town", {})
-                _emit_events(events, to_sid=sid)
+                await _emit_events(events, to_sid=sid)
                 return
             # Save current snapshot (fallback to minimal dict on error)
             try:
@@ -494,7 +500,7 @@ def on_engine_action(data):
             }
             coll.update_one({"device_id": device_id}, {"$set": doc}, upsert=True)
             # Tell the user and gate with a Continue so the message is visible
-            _emit_events(
+            await _emit_events(
                 [
                     {"type": "dialogue", "text": "Game saved for this device."},
                     {"type": "pause"},
@@ -511,24 +517,24 @@ def on_engine_action(data):
                 print("💥 SAVE TRACE:\n" + _tb.format_exc())
             except Exception:
                 pass
-            _emit_events(
+            await _emit_events(
                 [
                     {"type": "dialogue", "text": f"Save failed: {e}"},
                 ],
                 to_sid=sid,
             )
             events = eng.handle_action("town", {})
-            _emit_events(events, to_sid=sid)
+            await _emit_events(events, to_sid=sid)
             return
 
     # Intercept main menu load to restore state from Mongo for this device
     if action == "main:load":
         try:
-            device_id = _get_device_id_from_request()
+            device_id = (sid_device.get(sid) or "").strip()
             if not device_id:
                 device_id = (payload.get("device_id") or "").strip()
             if not device_id:
-                _emit_events(
+                await _emit_events(
                     [
                         {
                             "type": "dialogue",
@@ -539,12 +545,12 @@ def on_engine_action(data):
                 )
                 # Re-render main menu
                 events = eng.start()
-                _emit_events(events, to_sid=sid)
+                await _emit_events(events, to_sid=sid)
                 return
             coll = _get_mongo_collection()
             doc = coll.find_one({"device_id": device_id}, {"_id": 0})
             if not doc or not isinstance(doc.get("game_state"), dict):
-                _emit_events(
+                await _emit_events(
                     [
                         {"type": "dialogue", "text": "No saved game found."},
                         {
@@ -564,7 +570,7 @@ def on_engine_action(data):
             except Exception:
                 ok = False
             if not ok:
-                _emit_events(
+                await _emit_events(
                     [
                         {
                             "type": "dialogue",
@@ -574,10 +580,10 @@ def on_engine_action(data):
                     to_sid=sid,
                 )
                 events = eng.start()
-                _emit_events(events, to_sid=sid)
+                await _emit_events(events, to_sid=sid)
                 return
             # On success, tell the player and show the appropriate screen (town)
-            _emit_events(
+            await _emit_events(
                 [
                     {"type": "dialogue", "text": "Loaded saved game."},
                 ],
@@ -585,17 +591,17 @@ def on_engine_action(data):
             )
             # Render town menu
             events = eng.handle_action("town", {})
-            _emit_events(events, to_sid=sid)
+            await _emit_events(events, to_sid=sid)
             return
         except Exception as e:
-            _emit_events(
+            await _emit_events(
                 [
                     {"type": "dialogue", "text": f"Load failed: {e}"},
                 ],
                 to_sid=sid,
             )
             events = eng.start()
-            _emit_events(events, to_sid=sid)
+            await _emit_events(events, to_sid=sid)
             return
 
     events = eng.handle_action(action, payload)
@@ -605,7 +611,7 @@ def on_engine_action(data):
     )
     print(f"🎮 WEBAPP DEBUG: Emitting {len(events)} events")
 
-    _emit_events(events, to_sid=sid)
+    await _emit_events(events, to_sid=sid)
 
 
 if __name__ == "__main__":
@@ -614,5 +620,9 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
     host = os.getenv("HOST", "0.0.0.0")
     debug = os.getenv("FLASK_DEBUG", "").lower() in ("1", "true", "yes")
-    print(f"🚀 Starting Flask-SocketIO server on {host}:{port} (debug={debug})...")
-    socketio.run(app, host=host, port=port, debug=debug)
+    print(f"🚀 Starting ASGI server with uvicorn on {host}:{port} (debug={debug})...")
+    try:
+        import uvicorn
+        uvicorn.run(asgi_app, host=host, port=port, log_level="debug" if debug else "info")
+    except Exception:
+        app.run(host=host, port=port, debug=debug)
