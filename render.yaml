@@ -45,7 +45,7 @@ services:
       - key: ALLOW_UPGRADES
         value: "1"
       - key: SOCKETIO_ASYNC_MODE
-        value: asgi
+        value: threading
       # For WebSockets, you can enable eventlet and upgrades by setting:
       # (Already enabled above.)
       # If you scale to multiple instances, add a Redis and set:

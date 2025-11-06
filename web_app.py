@@ -33,8 +33,10 @@ _transports = ["websocket"]
 _allow_upgrades = True
 _message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE")  # e.g. redis URL for scale-out
 
-# Prefer ASGI by default to avoid monkey patching; allow override via env
-_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "asgi").strip() or "asgi"
+# Use a safe default that avoids monkey patching and is widely supported
+# Valid options include: 'threading', 'eventlet', 'gevent', 'gevent_uwsgi', 'aiohttp'
+# We'll default to 'threading' and serve via ASGI (uvicorn) for true WebSockets.
+_async_mode = os.getenv("SOCKETIO_ASYNC_MODE", "threading").strip() or "threading"
 
 socketio = SocketIO(
     app,
