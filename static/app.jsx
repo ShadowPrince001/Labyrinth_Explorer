@@ -36,6 +36,9 @@ window.initApp = (function () {
         const [connected, setConnected] = useState(false);
         const [error, setError] = useState('');
         const socketRef = useRef(null);
+        // Save-state tracking for beforeunload safeguard
+        const unsavedRef = useRef(true);      // assume unsaved until we know
+        const savingRef = useRef(false);      // becomes true while a save is in-flight
         const inputRef = useRef(null);
         // Dynamic story container: refs and state
         const overlayRef = useRef(null); // story/dialogue container
@@ -150,7 +153,17 @@ window.initApp = (function () {
             if (!revealingRef.current) startRevealLoop();
             // fastForwardRef will be turned off by the reveal loop after flushing
         }
-        function sendAction(action, payload) { if (!socketRef.current) return; socketRef.current.emit('player_action', { action, payload }); }
+        function sendAction(action, payload) {
+            if (!socketRef.current) return;
+            // Mark unsaved on any action that isn't an explicit save
+            if (String(action).toLowerCase() === 'town:save') {
+                savingRef.current = true; // wait for confirmation from server dialogue
+            } else {
+                unsavedRef.current = true;
+                savingRef.current = false;
+            }
+            socketRef.current.emit('player_action', { action, payload });
+        }
         function startEngine() { if (!socketRef.current) return; socketRef.current.emit('player_start'); }
         useEffect(() => {
             // Prevent mobile zoom gestures (double-tap, pinch) for better game UX
@@ -220,7 +233,17 @@ window.initApp = (function () {
                 }
             });
             // New richer event types
-            s.on('dialogue', (data) => { if (data && data.text != null) enqueueDialogue(String(data.text)); });
+            s.on('dialogue', (data) => {
+                if (data && data.text != null) {
+                    const txt = String(data.text);
+                    // Consider these as confirmations that progress is safely saved/loaded
+                    if (/^\s*Game saved for this device\.?\s*$/i.test(txt) || /^\s*Loaded saved game\.?\s*$/i.test(txt)) {
+                        unsavedRef.current = false;
+                        savingRef.current = false;
+                    }
+                    enqueueDialogue(txt);
+                }
+            });
             s.on('menu', (data) => {
                 const opts = Array.isArray(data.options) ? data.options : [];
                 // Defer showing choices until after reveal completes
@@ -386,6 +409,21 @@ window.initApp = (function () {
                     window.removeEventListener('orientationchange', handler);
                 }
             };
+        }, []);
+        // Warn before closing/refreshing if there are unsaved changes
+        useEffect(() => {
+            if (typeof window === 'undefined') return;
+            const handler = (e) => {
+                if (unsavedRef.current && !savingRef.current) {
+                    e.preventDefault();
+                    const msg = 'You have unsaved progress! Do you really want to leave?';
+                    e.returnValue = msg; // For legacy browsers
+                    return msg;
+                }
+                return undefined;
+            };
+            window.addEventListener('beforeunload', handler);
+            return () => window.removeEventListener('beforeunload', handler);
         }, []);
         // Track orientation and device type; optionally show rotate hint on mobile portrait
         useEffect(() => {
@@ -569,6 +607,10 @@ window.initApp = (function () {
             // No split: return options exactly as provided by backend
             return choices;
         }
+        // Strip leading enumeration like "12) " but keep prices like "(10g)"
+        function displayLabel(label) {
+            return String(label || '').replace(/^\s*\d+\)\s*/, '').trim();
+        }
         function handleChoiceClick(c) {
             if (c && c._virtual === 'go-inner') { setTownSplit(prev => ({ ...prev, inner: true })); focusFirstButtonSoon(); return; }
             if (c && c._virtual === 'go-main') { setTownSplit(prev => ({ ...prev, inner: false })); focusFirstButtonSoon(); return; }
@@ -688,9 +730,9 @@ window.initApp = (function () {
                                             key={i}
                                             className="option-btn"
                                             onClick={() => handleChoiceClick(c)}
-                                            aria-label={c.label}
+                                            aria-label={displayLabel(c.label)}
                                         >
-                                            {c.label}
+                                            {displayLabel(c.label)}
                                         </button>
                                     ))}
                                 </div>

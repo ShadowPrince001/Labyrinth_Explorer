@@ -47,12 +47,16 @@ window.initApp = function () {
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState('');
     const socketRef = useRef(null);
+    // Save-state tracking for beforeunload safeguard
+    const unsavedRef = useRef(true); // assume unsaved until we know
+    const savingRef = useRef(false); // becomes true while a save is in-flight
     const inputRef = useRef(null);
     // Dynamic story container: refs and state
     const overlayRef = useRef(null); // story/dialogue container
     const outputRef = useRef(null); // inner text content
     const bottomRef = useRef(null); // prompt + buttons wrapper
     const [textBoxHeight, setTextBoxHeight] = useState(null);
+    const [needsScroll, setNeedsScroll] = useState(false);
     const [bottomHeight, setBottomHeight] = useState(0);
     const [bottomGapPx, setBottomGapPx] = useState(12); // small gap below textbox
     function append(text) {
@@ -186,6 +190,13 @@ window.initApp = function () {
     }
     function sendAction(action, payload) {
       if (!socketRef.current) return;
+      // Mark unsaved on any action that isn't an explicit save
+      if (String(action).toLowerCase() === 'town:save') {
+        savingRef.current = true; // wait for confirmation from server dialogue
+      } else {
+        unsavedRef.current = true;
+        savingRef.current = false;
+      }
       socketRef.current.emit('player_action', {
         action,
         payload
@@ -278,7 +289,15 @@ window.initApp = function () {
       });
       // New richer event types
       s.on('dialogue', data => {
-        if (data && data.text != null) enqueueDialogue(String(data.text));
+        if (data && data.text != null) {
+          const txt = String(data.text);
+          // Consider these as confirmations that progress is safely saved/loaded
+          if (/^\s*Game saved for this device\.?\s*$/i.test(txt) || /^\s*Loaded saved game\.?\s*$/i.test(txt)) {
+            unsavedRef.current = false;
+            savingRef.current = false;
+          }
+          enqueueDialogue(txt);
+        }
       });
       s.on('menu', data => {
         const opts = Array.isArray(data.options) ? data.options : [];
@@ -457,9 +476,11 @@ window.initApp = function () {
         const available = Math.max(60, viewport - bottomGap);
         setBottomGapPx(bottomGap);
         setTextBoxHeight(Math.max(60, Math.min(desired, available)));
+        setNeedsScroll(desired > available);
       } else {
         setBottomGapPx(20);
         setTextBoxHeight(desired);
+        setNeedsScroll(false);
       }
     }, [log, choices, prompt]);
 
@@ -479,6 +500,21 @@ window.initApp = function () {
           window.removeEventListener('orientationchange', handler);
         }
       };
+    }, []);
+    // Warn before closing/refreshing if there are unsaved changes
+    useEffect(() => {
+      if (typeof window === 'undefined') return;
+      const handler = e => {
+        // Only warn if unsaved progress and not in the middle of a save
+        if (unsavedRef.current && !savingRef.current) {
+          const msg = 'You have unsaved progress! Do you really want to leave?';
+          e.preventDefault();
+          e.returnValue = msg; // Chrome/Edge/Firefox legacy support
+          return msg;
+        }
+      };
+      window.addEventListener('beforeunload', handler);
+      return () => window.removeEventListener('beforeunload', handler);
     }, []);
     // Track orientation and device type; optionally show rotate hint on mobile portrait
     useEffect(() => {
@@ -679,6 +715,18 @@ window.initApp = function () {
       // No split: return options exactly as provided by backend
       return choices;
     }
+    // Sanitize button labels for display:
+    // - Remove leading enumeration like "12)", "1.", "(3)", "4-", "5:"
+    // - Preserve inline prices like "(10g)" and any numbers within the text
+    function displayLabel(label) {
+      let t = String(label || '');
+      // Common enumeration patterns at the very start
+      // Examples: "1) ", "1. ", "(1) ", "1- ", "1: "
+      t = t.replace(/^\s*(?:\(?\d+\)?[.)\-:]\s*|\d+\)\s*)/, '');
+      // Rare formats like lettered menus: "A) ", "b) "
+      t = t.replace(/^\s*[A-Za-z]\)\s*/, '');
+      return t.trim();
+    }
     function handleChoiceClick(c) {
       if (c && c._virtual === 'go-inner') {
         setTownSplit(prev => ({
@@ -842,8 +890,8 @@ window.initApp = function () {
           transition: 'height 200ms ease',
           // Height is computed in JS to fit content and remain fully visible
           minHeight: 60,
-          overflow: 'hidden',
-          // never show internal scrollbars
+          overflowY: needsScroll ? 'auto' : 'hidden',
+          overflowX: 'hidden',
           paddingTop: 8,
           paddingRight: 20,
           paddingBottom: 8,
@@ -895,8 +943,8 @@ window.initApp = function () {
         key: i,
         className: "option-btn",
         onClick: () => handleChoiceClick(c),
-        "aria-label": c.label
-      }, c.label))))))))
+        "aria-label": displayLabel(c.label)
+      }, displayLabel(c.label)))))))))
     );
   }
   // (moved helper functions inside App; this outer block is now redundant and removed)

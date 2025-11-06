@@ -2383,11 +2383,12 @@ class GameEngine:
             self._emit_state()
         elif self.s.subphase == "monster_defend":
             self._emit_combat_update("Prepare your guard before the attack lands.")
+            # Use single-name labels for clarity; internal zones unchanged
             self._emit_menu(
                 [
-                    ("defend:high", "1) Head/Upper"),
-                    ("defend:middle", "2) Torso/Middle"),
-                    ("defend:low", "3) Legs/Lower"),
+                    ("defend:high", "1) Head"),
+                    ("defend:middle", "2) Torso"),
+                    ("defend:low", "3) Legs"),
                 ]
             )
             self._emit_state()
@@ -2398,11 +2399,12 @@ class GameEngine:
             self.s.subphase = "attack_aim"
             # Provide a prompt line so users see guidance, not only buttons
             self._emit_combat_update("Choose where to aim your attack.")
+            # Use single-name labels; action ids remain the same
             self._emit_menu(
                 [
-                    ("aim:high", "1) Head/Upper"),
-                    ("aim:middle", "2) Torso/Middle"),
-                    ("aim:low", "3) Legs/Lower"),
+                    ("aim:high", "1) Head"),
+                    ("aim:middle", "2) Torso"),
+                    ("aim:low", "3) Legs"),
                 ]
             )
             self._emit_state()
@@ -3450,9 +3452,12 @@ class GameEngine:
         cha = c.attributes.get("Charisma", 10)
         # Include any temporary charisma bonus from buffs (e.g., potion)
         cha_bonus = self.s.combat.get("buffs", {}).get("cha_bonus", 0)
+        eff_cha = cha + cha_bonus
         roll_raw = roll_damage("5d4")
-        rollv = roll_raw + cha + cha_bonus
-        # Difficulty-based threshold scaling using monsters.json difficulty
+        # New charm check: roll(5d4) + ceil(CHA/2) >= 20 + floor(difficulty/2)
+        cha_term = math.ceil(eff_cha / 2)
+        rollv = roll_raw + cha_term
+        # Difficulty-based threshold from monsters.json difficulty
         try:
             from .data_loader import load_monsters
 
@@ -3465,11 +3470,11 @@ class GameEngine:
         except Exception:
             entry = None
             diff = 1
-        threshold = int(28 + math.ceil(1.5 * diff))
+        threshold = int(20 + math.floor(diff / 2))
         self._emit_combat_update(
-            f"You attempt to charm the {mon['name']}... Roll {rollv} ({roll_raw} + CHA({cha}) + bonus({cha_bonus})) (need >{threshold}, diff {diff})"
+            f"You attempt to charm the {mon['name']}... Roll {rollv} (5d4={roll_raw} + ceil(CHA/2)={cha_term} where CHA={cha}+{cha_bonus}) (need \u2265{threshold}, diff {diff})"
         )
-        if rollv > threshold:
+        if rollv >= threshold:
             self._emit_combat_update(
                 f"The {mon['name']} is charmed and leaves peacefully."
             )

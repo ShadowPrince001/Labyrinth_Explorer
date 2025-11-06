@@ -623,6 +623,9 @@ if __name__ == "__main__":
     print(f"🚀 Starting ASGI server with uvicorn on {host}:{port} (debug={debug})...")
     try:
         import uvicorn
-        uvicorn.run(asgi_app, host=host, port=port, log_level="debug" if debug else "info")
+
+        uvicorn.run(
+            asgi_app, host=host, port=port, log_level="debug" if debug else "info"
+        )
     except Exception:
         app.run(host=host, port=port, debug=debug)
