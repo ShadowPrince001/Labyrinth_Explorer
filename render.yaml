@@ -40,6 +40,8 @@ services:
         value: labyrinth
       - key: MONGODB_COLLECTION
         value: player_saves
+      - key: MONGODB_LEADERBOARD_COLLECTION
+        value: leaderboard_winners
       - key: SOCKET_TRANSPORTS
         value: websocket
       - key: ALLOW_UPGRADES
@@ -51,3 +53,17 @@ services:
       # If you scale to multiple instances, add a Redis and set:
       # - key: SOCKETIO_MESSAGE_QUEUE
       #   value: redis://:password@host:port/0
+      # --- Review submission GitHub integration ---
+      # Personal access token (classic with repo scope OR fine-grained with contents: write) used
+      # to create review text files via the GitHub Contents API. Do NOT echo this in logs.
+      - key: GITHUB_TOKEN
+        sync: false
+      # Target repository in owner/repo form (defaults are not inferred at runtime)
+      - key: GITHUB_REPO
+        value: ShadowPrince001/Labyrinth_Explorer
+      # Optional subfolder path for review files (default reviews). Must exist or will be created in commits.
+      - key: GITHUB_REVIEWS_PATH
+        value: reviews
+      # Optional branch name for commits (default: repo default branch). Keep this "main" unless customized.
+      - key: GITHUB_REVIEWS_BRANCH
+        value: main

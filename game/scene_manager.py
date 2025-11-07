@@ -5,6 +5,8 @@ This module provides helper functions for emitting scene events with background
 images and overlay text to create immersive visual experiences.
 """
 
+import re
+
 
 def create_scene_event(background=None, text=""):
     """
@@ -36,26 +38,64 @@ def set_death_background():
 
 
 def set_room_background(room_description):
-    """Set background based on room description - match to actual image filenames"""
-    room_desc = room_description.lower()
+    """Set background based on room description with precise matching.
 
-    # Map room descriptions to actual image filenames
-    if "circular" in room_desc or "chamber" in room_desc:
-        return create_scene_event("rooms/circular_chamber.png")
-    elif "rectangular" in room_desc or "hall" in room_desc:
-        return create_scene_event("rooms/rectangular_hall.png")
-    elif "hexagonal" in room_desc or "pillared" in room_desc:
-        return create_scene_event("rooms/hexagonal_pillared_room.png")
-    elif "triangular" in room_desc:
-        return create_scene_event(
-            "rooms/traingular_chamber.png"
-        )  # Note: image has typo "traingular"
-    elif "oval" in room_desc or "gallery" in room_desc:
-        return create_scene_event("rooms/oval_gallery.png")
-    elif "square" in room_desc or "vault" in room_desc:
+    Strategy:
+    - Prefer explicit shape near a room noun (room|hall|chamber|gallery|vault).
+    - Use word boundaries to avoid false positives (e.g., "square-cut").
+    - Fall back to generic nouns if no shape is found.
+    """
+    room_desc = (room_description or "").lower()
+
+    # Common room nouns and shapes
+    nouns = r"(?:room|hall|chamber|gallery|vault)"
+
+    patterns = [
+        # Rectangular explicitly near a noun
+        (
+            rf"\brectangular\b[^\n\r]*\b{nouns}\b|\b{nouns}\b[^\n\r]*\brectangular\b",
+            "rooms/rectangular_hall.png",
+        ),
+        (
+            rf"\brectangle\b[^\n\r]*\b{nouns}\b|\b{nouns}\b[^\n\r]*\brectangle\b",
+            "rooms/rectangular_hall.png",
+        ),
+        # Square explicitly near a noun or clear phrases like "perfectly square"
+        (
+            rf"\bsquare\b[^\n\r]*\b{nouns}\b|\b{nouns}\b[^\n\r]*\bsquare\b",
+            "rooms/square_vault.png",
+        ),
+        (r"\bperfectly\s+square\b", "rooms/square_vault.png"),
+        # Hexagonal / Triangular / Oval / Circular
+        (r"\bhexagonal\b", "rooms/hexagonal_pillared_room.png"),
+        # Note: image file is intentionally misspelled as "traingular_chamber.png"
+        (r"\btriangular\b", "rooms/traingular_chamber.png"),
+        (r"\boval\b", "rooms/oval_gallery.png"),
+        (r"\bcircular\b|\bcircle\b", "rooms/circular_chamber.png"),
+    ]
+
+    for pat, img in patterns:
+        try:
+            if re.search(pat, room_desc):
+                return create_scene_event(img)
+        except re.error:
+            # If a pattern fails to compile for some reason, skip it safely
+            continue
+
+    # Secondary heuristics (no explicit shape found)
+    if re.search(r"\bvault\b", room_desc):
         return create_scene_event("rooms/square_vault.png")
-    else:
-        return create_scene_event("labyrinth.png")  # fallback
+    if re.search(r"\bpillared\b", room_desc):
+        return create_scene_event("rooms/hexagonal_pillared_room.png")
+    if re.search(r"\bgallery\b", room_desc):
+        return create_scene_event("rooms/oval_gallery.png")
+    if re.search(r"\bhall\b", room_desc):
+        return create_scene_event("rooms/rectangular_hall.png")
+    if re.search(r"\bchamber\b|\broom\b", room_desc):
+        return create_scene_event("rooms/circular_chamber.png")
+
+    # Fallback
+    return create_scene_event("labyrinth.png")
 
 
 def dragon_entrance_scene():

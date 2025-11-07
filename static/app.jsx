@@ -45,6 +45,7 @@ window.initApp = (function () {
         const outputRef = useRef(null); // inner text content
         const bottomRef = useRef(null); // prompt + buttons wrapper
         const [textBoxHeight, setTextBoxHeight] = useState(null);
+        const [needsScroll, setNeedsScroll] = useState(false);
         const [bottomHeight, setBottomHeight] = useState(0);
         const [bottomGapPx, setBottomGapPx] = useState(12); // small gap below textbox
         function append(text) { setLog(prev => [...prev, text]); const el = document.getElementById('output'); if (el) setTimeout(() => { try { el.scrollTop = el.scrollHeight; } catch (e) { } }, 0); }
@@ -303,7 +304,8 @@ window.initApp = (function () {
                             setNextBackground(newBackground);
                             requestAnimationFrame(() => {
                                 setIsTransitioning(true);
-                                const duration = (typeof window !== 'undefined' && (window.innerWidth <= 1024) && (("ontouchstart" in window) || (navigator.maxTouchPoints || 0) > 0)) ? 600 : 800;
+                                // Match fadeMs above (mobile 400ms, desktop 500ms)
+                                const duration = (typeof window !== 'undefined' && (window.innerWidth <= 1024) && (("ontouchstart" in window) || (navigator.maxTouchPoints || 0) > 0)) ? 400 : 500;
                                 transitionTimeoutRef.current = setTimeout(() => {
                                     setBackground(newBackground);
                                     setNextBackground(null);
@@ -387,9 +389,11 @@ window.initApp = (function () {
                 const available = Math.max(60, viewport - bottomGap);
                 setBottomGapPx(bottomGap);
                 setTextBoxHeight(Math.max(60, Math.min(desired, available)));
+                setNeedsScroll(desired > available);
             } else {
                 setBottomGapPx(20);
                 setTextBoxHeight(desired);
+                setNeedsScroll(false);
             }
         }, [log, choices, prompt]);
 
@@ -414,13 +418,11 @@ window.initApp = (function () {
         useEffect(() => {
             if (typeof window === 'undefined') return;
             const handler = (e) => {
-                if (unsavedRef.current && !savingRef.current) {
-                    e.preventDefault();
-                    const msg = 'You have unsaved progress! Do you really want to leave?';
-                    e.returnValue = msg; // For legacy browsers
-                    return msg;
-                }
-                return undefined;
+                const msg = 'Remember to save before closing';
+                e.preventDefault();
+                // Always set returnValue to trigger the browser prompt on desktop and mobile
+                e.returnValue = msg; // Chrome/Edge/Firefox legacy support
+                return msg;
             };
             window.addEventListener('beforeunload', handler);
             return () => window.removeEventListener('beforeunload', handler);
@@ -458,7 +460,8 @@ window.initApp = (function () {
         const isMonster = (bg) => (typeof bg === 'string') && bg.toLowerCase().includes('/monsters/') || (typeof bg === 'string') && bg.toLowerCase().startsWith('monsters/');
         const currentObjPos = isMonster(background) ? 'top center' : 'center';
         const nextObjPos = isMonster(nextBackground) ? 'top center' : 'center';
-        const fadeMs = (typeof window !== 'undefined' && (window.innerWidth <= 1024) && (("ontouchstart" in window) || (navigator.maxTouchPoints || 0) > 0)) ? 600 : 800;
+        // Shorter fade: 2/3 of previous, rounded down to nearest 50ms (mobile 400ms, desktop 500ms)
+        const fadeMs = (typeof window !== 'undefined' && (window.innerWidth <= 1024) && (("ontouchstart" in window) || (navigator.maxTouchPoints || 0) > 0)) ? 400 : 500;
 
         // Preload helper for smoother transitions
         const preloadImage = (path, cb) => {
@@ -607,9 +610,17 @@ window.initApp = (function () {
             // No split: return options exactly as provided by backend
             return choices;
         }
-        // Strip leading enumeration like "12) " but keep prices like "(10g)"
+        // Sanitize button labels for display:
+        // - Remove leading enumeration like "12)", "1.", "(3)", "4-", "5:"
+        // - Preserve inline prices like "(10g)" and any numbers within the text
         function displayLabel(label) {
-            return String(label || '').replace(/^\s*\d+\)\s*/, '').trim();
+            let t = String(label || '');
+            // Common enumeration patterns at the very start
+            // Examples: "1) ", "1. ", "(1) ", "1- ", "1: "
+            t = t.replace(/^\s*(?:\(?\d+\)?[.)\-:]\s*|\d+\)\s*)/, '');
+            // Rare formats like lettered menus: "A) ", "b) "
+            t = t.replace(/^\s*[A-Za-z]\)\s*/, '');
+            return t.trim();
         }
         function handleChoiceClick(c) {
             if (c && c._virtual === 'go-inner') { setTownSplit(prev => ({ ...prev, inner: true })); focusFirstButtonSoon(); return; }
@@ -692,7 +703,8 @@ window.initApp = (function () {
                                 transition: 'height 200ms ease',
                                 // Height is computed in JS to fit content and remain fully visible
                                 minHeight: 60,
-                                overflow: 'hidden', // never show internal scrollbars
+                                overflowY: needsScroll ? 'auto' : 'hidden',
+                                overflowX: 'hidden',
                                 paddingTop: 8, paddingRight: 20, paddingBottom: 8, paddingLeft: 20,
                                 // Anchor at bottom with a tiny responsive gap; grow upward
                                 marginTop: 'auto',

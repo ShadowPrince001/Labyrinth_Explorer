@@ -10,6 +10,8 @@ class Weapon:
     name: str
     damage_die: str
     damaged: bool = False
+    # Rewards from the labyrinth cannot be sold in shops
+    unsellable: bool = False
 
 
 @dataclass
@@ -17,6 +19,8 @@ class Armor:
     name: str
     armor_class: int
     damaged: bool = False
+    # Rewards from the labyrinth cannot be sold in shops
+    unsellable: bool = False
 
 
 @dataclass
@@ -52,6 +56,8 @@ class MagicItem:
     penalty: int = 0
     damage_die: str = ""
     bonus_damage: str = ""
+    # Auto-equipped/bound items cannot be removed or sold
+    bound: bool = False
 
 
 @dataclass

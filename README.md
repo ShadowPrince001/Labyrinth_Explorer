@@ -5,11 +5,36 @@ A compact Python labyrinth crawler with a modern browser UI. The app uses a stru
 
 ## Features
 
-- Character creation with selectable difficulty (Easy/Normal/Hard) that sets the roll dice (6d5/5d5/4d5); HP and Gold based on rules and dialogue-driven narration
-- Town hub: Shop, Healer, Tavern, Eat, Gamble, Temple (Divine), Level Up, Quests, Train, Sleep, Companion, Repair, Remove Curses, Save
-- Labyrinth exploration: generated rooms, traps, ambient flavor, chests, rare item drops, and monster encounters
-- Turn-based combat with aimed attacks, potions, spells, divine aid, charm, run, and examine; XP/leveling and loot
-- Web UI: button-driven menus, character-by-character reveal, and a compact HUD (can be toggled off)
+* External review & rating system: From the main menu select "Review" to submit a required rating (1–5) and optional text. Each review becomes a standalone text file committed to the GitHub repository (folder `reviews/`). Reviews are not viewable in‑game; open the repo on GitHub to read them.
+
+* Leaderboard of winners: From the main menu select "Leaderboard" to view recent characters who defeated the Dragon. Entries show level, date, and a detail view with run statistics (monsters defeated, quests completed, potions/spells used, gold earned/spent, equipment, and companion). The game auto‑saves on victory and auto‑wipes the save on permanent death.
+
+- Equipment damage: Weapons/armor can be damaged (5% on relevant events). Repairs cost 30g at the weaponsmith.
+- Magic gear drops: 25% chance after victories. Rings bind and apply attribute changes immediately; labyrinth gear (weapons/armor) is unsellable.
+
+### Review submission environment variables
+
+To enable committing reviews directly to GitHub you must define the following environment variables (locally in `.env`, in Render dashboard, and/or as repo variables/secrets for CI):
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITHUB_TOKEN` | Yes | Personal access token with permission to write contents to the target repo (classic: `repo`, or fine‑grained: contents:write). In GitHub Actions you can reuse the built‑in token ONLY if committing to the same repo. |
+| `GITHUB_REPO` | Yes | Target repository in `owner/repo` form (e.g. `ShadowPrince001/Labyrinth_Explorer`). |
+| `GITHUB_REVIEWS_PATH` | No | Subfolder for review files (default `reviews`). |
+| `GITHUB_REVIEWS_BRANCH` | No | Branch name to commit to (defaults to repo default branch). |
+
+If `GITHUB_TOKEN` or `GITHUB_REPO` are missing, the review submission flow will display an error instead of committing a file.
+
+Example `.env` entries:
+
+```
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GITHUB_REPO=ShadowPrince001/Labyrinth_Explorer
+GITHUB_REVIEWS_PATH=reviews
+GITHUB_REVIEWS_BRANCH=main
+```
+
+You can run `python tools/check_review_env.py` to verify required variables are present before starting the server.
 
 ## Run the web app
 
@@ -27,6 +52,25 @@ python .\web_app.py
 Then open http://127.0.0.1:5000/ in your browser.
 
 Note: The legacy CLI entry point (`python -m game`) has been removed. Use the web app.
+
+### Persistence (MongoDB)
+
+Saved games and the leaderboard are stored in MongoDB.
+
+Required variables (example defaults provided in `.env.example`):
+
+```
+MONGODB_URI=mongodb+srv://user:pass@cluster.example.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB=labyrinth
+MONGODB_COLLECTION=player_saves
+MONGODB_LEADERBOARD_COLLECTION=leaderboard_winners
+```
+
+Auto‑save on win: triggers when you continue after defeating the Dragon and also inserts a leaderboard entry.
+
+Auto‑wipe on death: triggers when revival fails and removes your save for the current device.
+
+Saves and the leaderboard live in the same database (separate collections), using the same MongoDB connection.
 
 ## Responsive scene images (no UI changes)
 

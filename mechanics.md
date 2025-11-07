@@ -113,11 +113,18 @@ Note: “Spell resistance” in combat reduces incoming spell damage by a flat a
  - XP on kill: XP = floor(base_xp * depth_mult) (base_xp from monsters.json)
  - Gold on kill: base_gold = random in gold_range; Gold = floor(base_gold * depth_mult) (fallbacks to monster/room values if missing)
 - Charm reward: 25% of the above depth‑scaled rewards; no item drops or quest turn‑ins
-- Drops (based on monster difficulty diff):
-  - Potion chance: min(0.20, 0.05 + 0.01 * diff)
-  - Scroll chance: min(0.20, 0.05 + 0.01 * diff)
-  - Magic item chance: min(0.12, 0.02 + 0.01 * diff)
-  - Only one of the three can drop per victory (checked in order with one random draw)
+- Drops:
+  - Potion: min(0.20, 0.05 + 0.01 * diff)
+  - Scroll: min(0.20, 0.05 + 0.01 * diff)
+  - Magic gear: flat 25% chance (independent of diff). If it drops:
+    - 40% Ring (equal chance per ring in `magic_items.json`)
+    - 30% Armor (labyrinth‑only entries in `armors.json`, weighted by their `chance`)
+    - 30% Weapon (labyrinth‑only entries in `weapons.json`, weighted by their `chance`)
+  - Rings bind automatically and immediately apply their attribute effect:
+    - Effects with `_bonus` grant a random +2 to +5 to that attribute
+    - Effects with `_penalty` apply a random −1 to −3
+    - Constitution changes also adjust Max HP by ±5 per attribute point; current HP is clamped to new max
+  - Labyrinth gear rewards (weapons/armors) are added to inventory and are unsellable.
 - Leveling:
   - Total XP to reach level L: 50 * (L - 1) * L / 2
   - On level‑up: +1 unspent stat point; spending a point increases an attribute by +1 (if you increase CON, max HP +5)
@@ -125,9 +132,9 @@ Note: “Spell resistance” in combat reduces incoming spell damage by a flat a
 
 ## Equipment Wear and Degradation
 
- - Player weapon can be damaged on a blocked or successful hit: chance = 0.001 * enemy AC (0.1% per AC point). Damaged weapons deal half damage until repaired.
- - Player armor can be damaged on a blocked or successful monster hit: chance = 0.001 * monster STR. Damaged armor provides half its AC until repaired.
-- Critical hits may also “cripple” the monster’s defenses with increased chance proportional to its AC.
+ - Player weapon: 5% chance to become damaged when your attack is blocked or hits (including crit). No damage chance on a plain miss.
+ - Player armor: 5% chance to become damaged when you block an incoming attack or when you get hit.
+ - Damaged weapons deal half damage (pre‑crit). Damaged armor provides half of its listed AC.
  - Repair cost at weaponsmith: flat 30g per damaged weapon or armor.
 
 ## Rooms, Traps, and Encounters
@@ -299,3 +306,9 @@ All numeric values sourced from JSON under `data/` and logic in Python modules; 
 
 ## Notes
 See Data Sources section. This document aims for mechanical clarity; flavor text (dialogues) may alter narration but not numbers.
+
+### Reviews (external)
+- From the Main Menu choose "Review (Rate /5)".
+- You must enter a rating 1–5 (text is optional).
+- Submitting creates a new text file in the repository (in `reviews/`) via the GitHub API.
+- Reviews aren’t viewable in‑game; open the GitHub repo to see them.

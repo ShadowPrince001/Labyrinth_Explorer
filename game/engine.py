@@ -87,6 +87,17 @@ class EngineState:
     last_assignment: Optional[Tuple[str, int]] = None
     # Difficulty selection (affects stat rolling only)
     difficulty: str = "normal"  # "easy" | "normal" | "hard"
+    # Review draft storage (for GitHub review flow)
+    review_draft: Dict[str, Any] = field(default_factory=dict)
+    # Run statistics for leaderboard summaries
+    monsters_defeated: int = 0
+    potions_used: int = 0
+    spells_used: int = 0
+    quests_completed: int = 0
+    gold_earned: int = 0
+    gold_spent: int = 0
+    weapon_use: Dict[str, int] = field(default_factory=dict)
+    armor_equip: Dict[str, int] = field(default_factory=dict)
 
 
 class GameEngine:
@@ -148,8 +159,10 @@ class GameEngine:
             [
                 ("main:new", "1) New Game"),
                 ("main:load", "2) Load Game"),
-                ("main:howto", "3) How to Play"),
-                ("main:quit", "4) Quit"),
+                ("main:leaderboard", "3) Leaderboard"),
+                ("main:howto", "4) How to Play"),
+                ("main:review", "5) Review (Rate /5)"),
+                ("main:quit", "6) Quit"),
             ]
         )
         self._emit_state()
@@ -329,6 +342,14 @@ class GameEngine:
         return self._flush()
 
     def _handle_main_menu(self, action: str) -> List[Event]:
+        # Review flow delegation early
+        if (
+            action == "main:review"
+            or (self.s.subphase or "").startswith("review:")
+            or action in ("prompt:submit", "review:skip_text", "review:commit")
+            and (self.s.subphase or "").startswith("review:")
+        ):
+            return self._handle_review_flow(action, {})
         if action == "main:new":
             # Go to difficulty selection screen
             self.s.phase = "select_difficulty"
@@ -430,8 +451,10 @@ class GameEngine:
                 [
                     ("main:new", "1) New Game"),
                     ("main:load", "2) Load Game"),
-                    ("main:howto", "3) How to Play"),
-                    ("main:quit", "4) Quit"),
+                    ("main:leaderboard", "3) Leaderboard"),
+                    ("main:howto", "4) How to Play"),
+                    ("main:review", "5) Review (Rate /5)"),
+                    ("main:quit", "6) Quit"),
                 ]
             )
             self._emit_state()
@@ -469,10 +492,104 @@ class GameEngine:
                 [
                     ("main:new", "1) New Game"),
                     ("main:load", "2) Load Game"),
-                    ("main:howto", "3) How to Play"),
-                    ("main:quit", "4) Quit"),
+                    ("main:leaderboard", "3) Leaderboard"),
+                    ("main:howto", "4) How to Play"),
+                    ("main:review", "5) Review (Rate /5)"),
+                    ("main:quit", "6) Quit"),
                 ]
             )
+        self._emit_state()
+        return self._flush()
+
+    def _handle_review_flow(self, action: str, payload: Dict[str, Any]) -> List[Event]:
+        """Internal helper for review rating/comment collection.
+
+        Subphases:
+          review:rating -> expect prompt:submit with numeric rating 1-5
+          review:text   -> expect prompt:submit with optional comment
+          review:confirm -> menu choices to submit or cancel
+        """
+        # Ensure we are on main_menu phase but in review subphase
+        if self.s.phase != "main_menu":
+            self._emit_dialogue("Review flow only available from main menu.")
+            self._emit_state()
+            return self._flush()
+        sd = self.s.subphase or ""
+        # Start flow
+        if action == "main:review":
+            self.s.subphase = "review:rating"
+            self.s.review_draft = {}
+            self._emit_clear()
+            self._emit_dialogue(
+                "Rate the game (1-5). Rating is required. Enter a number 1-5:"
+            )
+            self._emit_prompt("review_rating", "Rating (1-5)")
+            self._emit_menu([("prompt:submit", "Submit Rating"), ("main:menu", "Back")])
+            self._emit_state()
+            return self._flush()
+        # Capture rating
+        if sd == "review:rating" and action == "prompt:submit":
+            val = (payload.get("value") or "").strip()
+            try:
+                rating = int(val)
+            except Exception:
+                rating = -1
+            if rating < 1 or rating > 5:
+                self._emit_dialogue("Invalid rating. Please enter a number 1-5:")
+                self._emit_prompt("review_rating", "Rating (1-5)")
+                self._emit_menu(
+                    [("prompt:submit", "Submit Rating"), ("main:menu", "Back")]
+                )
+                self._emit_state()
+                return self._flush()
+            self.s.review_draft["rating"] = rating
+            self.s.subphase = "review:text"
+            self._emit_clear()
+            self._emit_dialogue(
+                "Optional: enter a short text review (or leave blank and press Submit)."
+            )
+            self._emit_prompt("review_text", "Review text (optional)")
+            self._emit_menu(
+                [
+                    ("prompt:submit", "Submit Text"),
+                    ("review:skip_text", "Skip Text"),
+                    ("main:menu", "Back"),
+                ]
+            )
+            self._emit_state()
+            return self._flush()
+        # Capture text
+        if sd == "review:text" and action == "prompt:submit":
+            txt = (payload.get("value") or "").strip()
+            if txt:
+                self.s.review_draft["text"] = txt
+            self.s.subphase = "review:confirm"
+        elif sd == "review:text" and action == "review:skip_text":
+            self.s.subphase = "review:confirm"
+        # Confirm
+        if sd == "review:confirm":
+            self._emit_clear()
+            rating = self.s.review_draft.get("rating")
+            text_present = (
+                "text" in self.s.review_draft and self.s.review_draft["text"].strip()
+            )
+            self._emit_dialogue(
+                f"Review summary: Rating {rating}/5"
+                + (" with comment." if text_present else " (no comment).")
+            )
+            self._emit_dialogue(
+                "Submit will create a new review file in the GitHub repository."
+            )
+            self._emit_menu(
+                [
+                    ("review:commit", "Submit Review"),
+                    ("main:menu", "Cancel"),
+                ]
+            )
+            self._emit_state()
+            return self._flush()
+        # Unknown step
+        self._emit_dialogue("Unexpected review action.")
         self._emit_state()
         return self._flush()
 
@@ -980,6 +1097,10 @@ class GameEngine:
                 )
                 c.gold -= 10
                 try:
+                    self.s.gold_spent += 10
+                except Exception:
+                    pass
+                try:
                     self._emit_dialogue("Paid 10g.")
                 except Exception:
                     pass
@@ -1049,6 +1170,10 @@ class GameEngine:
                     pass
                 c.gold -= 40
                 try:
+                    self.s.gold_spent += 40
+                except Exception:
+                    pass
+                try:
                     self._emit_dialogue("Paid 40g.")
                 except Exception:
                     pass
@@ -1090,6 +1215,10 @@ class GameEngine:
                 )
                 self._emit_dialogue(f"{cook_name}: {meal}")
                 c.gold -= 10
+                try:
+                    self.s.gold_spent += 10
+                except Exception:
+                    pass
                 try:
                     self._emit_dialogue("Paid 10g.")
                 except Exception:
@@ -1194,6 +1323,10 @@ class GameEngine:
                     )
                     self._emit_dialogue(f"{bark_name}: {talk}")
                 c.gold -= 10
+                try:
+                    self.s.gold_spent += 10
+                except Exception:
+                    pass
                 try:
                     self._emit_dialogue("Paid 10g.")
                 except Exception:
@@ -1360,6 +1493,48 @@ class GameEngine:
             # Healer background (curse removal)
             self._emit_scene("town_menu/healer.png")
             return self._remove_curses_menu()
+        # Handle selecting an item to remove its curse (10g)
+        if action.startswith("curse:"):
+            c = self.s.character
+            try:
+                idx = int(action.split(":", 1)[1]) - 1
+            except Exception:
+                return self._remove_curses_menu()
+            cursed = [item for item in getattr(c, "magic_items", []) if getattr(item, "cursed", False)]
+            if not cursed or idx < 0 or idx >= len(cursed):
+                return self._remove_curses_menu()
+            COST = 10
+            if c.gold < COST:
+                self._emit_dialogue(f"Removing a curse costs {COST}g; you don't have enough.")
+                try:
+                    self._emit_dialogue(f"You need {COST}g but have {c.gold}g.")
+                except Exception:
+                    pass
+                self._emit_pause()
+                self._emit_menu([("town:remove_curses", "Continue")])
+                self._emit_state()
+                return self._flush()
+            # Pay and lift the curse
+            c.gold -= COST
+            try:
+                self.s.gold_spent += int(COST)
+            except Exception:
+                pass
+            item = cursed[idx]
+            try:
+                setattr(item, "cursed", False)
+            except Exception:
+                pass
+            self._emit_dialogue(f"The curse on {getattr(item, 'name', 'the item')} is lifted. You feel the weight fade.")
+            # Hint about selling (unless it's a bound artifact)
+            if not getattr(item, "bound", False):
+                self._emit_dialogue("You can now sell it in the shop if you wish.")
+            else:
+                self._emit_dialogue("It remains bound to you and cannot be sold.")
+            self._emit_pause()
+            self._emit_menu([("town", "Continue")])
+            self._emit_state()
+            return self._flush()
         if action == "town:save":
             self._emit_dialogue(
                 get_dialogue("system", "save_not_implemented", None, c)
@@ -1897,6 +2072,10 @@ class GameEngine:
             if gold:
                 c.gold += gold
                 try:
+                    self.s.gold_earned += int(gold)
+                except Exception:
+                    pass
+                try:
                     line = get_dialogue("system", "open_chest_gold", None, c)
                     self._emit_dialogue(
                         line.format(gold=gold)
@@ -1989,6 +2168,10 @@ class GameEngine:
                         heal += max(1, roll_damage("2d2"))
                     c.hp = min(c.max_hp, c.hp + heal)
                     c.potions -= 1
+                    try:
+                        self.s.potions_used += 1
+                    except Exception:
+                        pass
                     self._emit_dialogue(
                         f"You drink a healing potion and recover {heal} HP."
                     )
@@ -2008,6 +2191,10 @@ class GameEngine:
                         c.potion_uses[potion_name] -= 1
                         if c.potion_uses[potion_name] <= 0:
                             del c.potion_uses[potion_name]
+                        try:
+                            self.s.potions_used += 1
+                        except Exception:
+                            pass
                         self._emit_dialogue(
                             f"You drink a healing potion and recover {heal} HP."
                         )
@@ -2017,6 +2204,10 @@ class GameEngine:
                         if c.potion_uses[potion_name] <= 0:
                             del c.potion_uses[potion_name]
                         c.persistent_buffs.pop("debuff_poison", None)
+                        try:
+                            self.s.potions_used += 1
+                        except Exception:
+                            pass
                         self._emit_dialogue(
                             "You drink the antidote and feel the poison leave your system."
                         )
@@ -2483,6 +2674,12 @@ class GameEngine:
         weapon = None
         if c.weapons and 0 <= weapon_index < len(c.weapons):
             weapon = c.weapons[weapon_index]
+        # Track weapon usage for leaderboard stats
+        try:
+            wname = getattr(weapon, "name", "Unarmed") if weapon else "Unarmed"
+            self.s.weapon_use[wname] = self.s.weapon_use.get(wname, 0) + 1
+        except Exception:
+            pass
         enemy_ac = max(
             1,
             mon.get("armor_class", 10)
@@ -2532,6 +2729,15 @@ class GameEngine:
             self._emit_combat_update(
                 f"Critical hit! You deal {crit} damage. {mname} HP: {max(mon['hp'], 0)}"
             )
+            # 5% chance weapon becomes damaged on any non-miss (hit or blocked)
+            try:
+                if weapon and random.random() < 0.05:
+                    setattr(weapon, "damaged", True)
+                    self._emit_combat_update(
+                        f"Your {weapon.name} suffers strain and is now damaged."
+                    )
+            except Exception:
+                pass
             if mon["hp"] <= 0:
                 # Gate victory so the attack text is visible before summary screen
                 self.s.subphase = "victory_pending"
@@ -2546,6 +2752,15 @@ class GameEngine:
             self._emit_combat_update(
                 f"Your attack is blocked by the {monster_defend_zone} guard!"
             )
+            # 5% chance weapon becomes damaged on block
+            try:
+                if weapon and random.random() < 0.05:
+                    setattr(weapon, "damaged", True)
+                    self._emit_combat_update(
+                        f"Your {weapon.name} takes the brunt and is damaged."
+                    )
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         # Normal resolve
         if attack_roll >= enemy_ac:
@@ -2570,14 +2785,12 @@ class GameEngine:
             self._emit_combat_update(
                 f"Hit! You deal {dmg} damage. {mname} HP: {max(mon['hp'], 0)}"
             )
-            # Chance to damage player's weapon on successful hit (0.1% per monster AC)
+            # 5% chance weapon becomes damaged on hit
             try:
-                mc = int(mon.get("armor_class", 10))
-                chance = mc * 0.001
-                if random.random() < chance and weapon:
+                if weapon and random.random() < 0.05:
                     setattr(weapon, "damaged", True)
                     self._emit_combat_update(
-                        f"Unlucky! Your {weapon.name} is damaged and now less effective."
+                        f"Your {weapon.name} is damaged and now less effective."
                     )
             except Exception:
                 pass
@@ -2600,18 +2813,7 @@ class GameEngine:
                 return self._flush()
         else:
             self._emit_combat_update("You miss!")
-            # Even blocked/missed attacks can sometimes damage weapons on perfect defense
-            try:
-                if monster_defend_zone == zone and weapon:
-                    mc = int(mon.get("armor_class", 10))
-                    chance = mc * 0.001
-                    if random.random() < chance:
-                        setattr(weapon, "damaged", True)
-                        self._emit_combat_update(
-                            f"Unlucky! Your {weapon.name} is damaged and now less effective."
-                        )
-            except Exception:
-                pass
+            # No weapon damage on plain miss (only on hit or block)
         self._emit_update_stats()
         return self._combat_next_turn("monster")
 
@@ -2745,11 +2947,9 @@ class GameEngine:
             self._emit_combat_update(
                 f"You successfully defend against the {monster_zone} attack!"
             )
-            # Blocked attacks still can damage armor per new rules
+            # 5% chance armor is damaged when you block
             try:
-                ms = int(mon.get("strength", 10))
-                chance = ms * 0.001
-                if random.random() < chance and c.armor:
+                if c.armor and random.random() < 0.05:
                     setattr(c.armor, "damaged", True)
                     self._emit_combat_update(
                         f"Ouch! Your {c.armor.name} is damaged and provides reduced protection."
@@ -2766,11 +2966,9 @@ class GameEngine:
             self._emit_combat_update(
                 f"You are hit for {dmg} damage. Your HP: {max(c.hp, 0)}"
             )
-            # Chance to damage player's armor on successful monster hit (0.1% per monster strength)
+            # 5% chance armor is damaged when you get hit
             try:
-                ms = int(mon.get("strength", 10))
-                chance = ms * 0.001
-                if random.random() < chance and c.armor:
+                if c.armor and random.random() < 0.05:
                     setattr(c.armor, "damaged", True)
                     self._emit_combat_update(
                         f"Ouch! Your {c.armor.name} is damaged and provides reduced protection."
@@ -2937,7 +3135,13 @@ class GameEngine:
             return self._flush()
 
     def _combat_victory(self, room: Dict[str, Any], mon: Dict[str, Any]) -> List[Event]:
-        from .data_loader import load_monsters, load_spells, load_magic_items
+        from .data_loader import (
+            load_monsters,
+            load_spells,
+            load_magic_items,
+            load_weapons,
+            load_armors,
+        )
 
         # Show victory on a clean page
         self._emit_clear()
@@ -2985,6 +3189,10 @@ class GameEngine:
         gold = max(0, int(base_gold * depth_mult))
         self.s.character.gold += gold
         try:
+            self.s.gold_earned += int(gold)
+        except Exception:
+            pass
+        try:
             self._emit_combat_update(f"You loot {gold} gold! (Depth x{depth_mult:.1f})")
         except Exception:
             self._emit_combat_update(f"You loot {gold} gold!")
@@ -3002,11 +3210,20 @@ class GameEngine:
             )
             changed = quest_manager.check_kill(self.s.character, mobj)
             if changed:
+                # Track quests completed and gold earned from them
+                try:
+                    self.s.quests_completed += len(changed)
+                except Exception:
+                    pass
                 for q in changed:
                     try:
                         rw = int(getattr(q, "reward", q.get("reward", 0)))
                     except Exception:
                         rw = 0
+                    try:
+                        self.s.gold_earned += int(rw)
+                    except Exception:
+                        pass
                     line = get_dialogue(
                         "town", "quest_turnin_success", None, self.s.character
                     )
@@ -3024,58 +3241,30 @@ class GameEngine:
         except Exception:
             pass
 
-        # Drops: weight by monster difficulty when available
+        # Potion/scroll drops stay as before (based on difficulty)
         diff = int(entry.get("difficulty", 1)) if entry else 1
         potion_chance = min(0.20, 0.05 + diff * 0.01)
         scroll_chance = min(0.20, 0.05 + diff * 0.01)
-        item_chance = min(0.12, 0.02 + diff * 0.01)
-        rollv = random.random()
-        if rollv < potion_chance:
+        r1 = random.random()
+        if r1 < potion_chance:
             self.s.character.potions += 1
             self._emit_combat_update("You find a healing potion!")
-        elif rollv < potion_chance + scroll_chance:
+        elif r1 < potion_chance + scroll_chance:
             spells = load_spells()
             if spells:
                 sp = random.choice(spells)
                 name = sp.get("name", "Unknown Spell")
                 self.s.character.spells[name] = self.s.character.spells.get(name, 0) + 1
                 self._emit_combat_update(f"You find a scroll of {name}!")
-        elif rollv < potion_chance + scroll_chance + item_chance:
-            items = load_magic_items() or []
-            if items:
-                from .entities import MagicItem
 
-                it = random.choice(items)
-                try:
-                    mi = MagicItem(
-                        name=it.get("name", "Mysterious Item"),
-                        type=it.get("type", "misc"),
-                        effect=it.get("effect", ""),
-                        cursed=bool(it.get("cursed", False)),
-                        description=it.get("description", ""),
-                        bonus=(
-                            int(it.get("bonus", 0))
-                            if isinstance(it.get("bonus", 0), int)
-                            else 0
-                        ),
-                        penalty=(
-                            int(it.get("penalty", 0))
-                            if isinstance(it.get("penalty", 0), int)
-                            else 0
-                        ),
-                        damage_die=it.get("damage_die", ""),
-                        bonus_damage=it.get("bonus_damage", ""),
-                    )
-                except Exception:
-                    mi = MagicItem(
-                        name=str(it.get("name", "Mysterious Item")),
-                        type=str(it.get("type", "misc")),
-                        effect=str(it.get("effect", "")),
-                    )
-                self.s.character.magic_items.append(mi)
-                self._emit_combat_update(f"You discover a {mi.name}!")
+        # New: Magic item/gear drop — flat 25% chance
+        self._maybe_drop_magic_loot(load_magic_items, load_weapons, load_armors)
 
         room["monster"] = None
+        try:
+            self.s.monsters_defeated += 1
+        except Exception:
+            pass
         self._emit_update_stats()
 
         # If this was the Dragon, trigger end-game victory flow
@@ -3107,6 +3296,172 @@ class GameEngine:
         self._emit_menu([("combat:victory_continue", "Continue")])
         self._emit_state()
         return self._flush()
+
+    def _maybe_drop_magic_loot(
+        self, load_magic_items, load_weapons, load_armors
+    ) -> None:
+        c = self.s.character
+        if not c:
+            return
+        if random.random() >= 0.25:
+            return
+        # Decide category: 40% ring, 30% armor, 30% weapon
+        r = random.random()
+        try:
+            if r < 0.40:
+                # Ring: equal chance among rings
+                items = [
+                    i for i in (load_magic_items() or []) if (i.get("type") == "ring")
+                ]
+                if not items:
+                    return
+                it = random.choice(items)
+                from .entities import MagicItem
+
+                mi = MagicItem(
+                    name=str(it.get("name", "Mysterious Ring")),
+                    type=str(it.get("type", "ring")),
+                    effect=str(it.get("effect", "")),
+                    cursed=bool(it.get("cursed", False)),
+                    description=str(it.get("description", "")),
+                    bound=True,
+                )
+                # Add, auto-equip/bind, and apply stat effects with feedback
+                c.magic_items.append(mi)
+                self._apply_ring_effect(mi)
+                return
+            elif r < 0.70:
+                # Armor: weighted by 'chance', only availability == 'labyrinth'
+                src = [
+                    a
+                    for a in (load_armors() or [])
+                    if str(a.get("availability")) == "labyrinth"
+                ]
+                if not src:
+                    return
+                pick = self._weighted_choice(src, weight_key="chance")
+                from .entities import Armor as EArmor
+
+                a = EArmor(
+                    name=str(pick.get("name")),
+                    armor_class=int(pick.get("armor_class", 10)),
+                    unsellable=True,
+                )
+                # Add to inventory (not equipped automatically)
+                c.armors_owned.append(a)
+                try:
+                    self._emit_combat_update(
+                        f"You discover {a.name}! It has been added to your pack (unsellable)."
+                    )
+                except Exception:
+                    self._emit_combat_update(f"You discover {a.name}!")
+                return
+            else:
+                # Weapon: weighted by 'chance', only availability == 'labyrinth'
+                src = [
+                    w
+                    for w in (load_weapons() or [])
+                    if str(w.get("availability")) == "labyrinth"
+                ]
+                if not src:
+                    return
+                pick = self._weighted_choice(src, weight_key="chance")
+                from .entities import Weapon as EWeapon
+
+                w = EWeapon(
+                    name=str(pick.get("name")),
+                    damage_die=str(pick.get("damage_die", "1d4")),
+                    unsellable=True,
+                )
+                c.weapons.append(w)
+                try:
+                    self._emit_combat_update(
+                        f"You discover {w.name}! It has been added to your pack (unsellable)."
+                    )
+                except Exception:
+                    self._emit_combat_update(f"You discover {w.name}!")
+                return
+        except Exception:
+            # Non-fatal: ignore drop on any error
+            return
+
+    def _weighted_choice(
+        self, items: List[Dict[str, Any]], weight_key: str = "chance"
+    ) -> Dict[str, Any]:
+        total = 0
+        weights = []
+        for it in items:
+            w = int(it.get(weight_key, 0) or 0)
+            if w < 0:
+                w = 0
+            weights.append(w)
+            total += w
+        import random as _r
+
+        if total <= 0:
+            return _r.choice(items)
+        pick = _r.randint(1, total)
+        acc = 0
+        for it, w in zip(items, weights):
+            acc += w
+            if pick <= acc:
+                return it
+        return items[-1]
+
+    def _apply_ring_effect(self, mi) -> None:
+        c = self.s.character
+        if not c:
+            return
+        eff = str(getattr(mi, "effect", ""))
+        # Map effect to attribute and sign
+        attr_map = {
+            "strength": "Strength",
+            "dexterity": "Dexterity",
+            "constitution": "Constitution",
+            "intelligence": "Intelligence",
+            "wisdom": "Wisdom",
+            "charisma": "Charisma",
+            "perception": "Perception",
+        }
+        attr = None
+        delta = 0
+        if eff:
+            parts = eff.split("_")
+            if parts:
+                attr = attr_map.get(parts[0].lower())
+                kind = parts[1].lower() if len(parts) > 1 else "bonus"
+                if attr:
+                    if kind == "penalty":
+                        import random as _r
+
+                        delta = -_r.choice([1, 2, 3])
+                    else:
+                        import random as _r
+
+                        delta = _r.choice([2, 3, 4, 5])
+        if not attr or delta == 0:
+            # Fallback: charisma +2
+            attr = "Charisma"
+            delta = 2
+        # Apply change
+        old_val = int(c.attributes.get(attr, 10))
+        new_val = max(1, old_val + delta)
+        c.attributes[attr] = new_val
+        # Constitution changes affect max HP (+/- 5 per point)
+        if attr == "Constitution":
+            try:
+                c.max_hp = max(1, int(c.max_hp) + (5 * delta))
+                c.hp = min(c.hp, c.max_hp)
+            except Exception:
+                pass
+        # Feedback
+        sign = "+" if delta > 0 else ""
+        try:
+            self._emit_combat_update(
+                f"The {mi.name} binds to you. {attr} {sign}{delta}."
+            )
+        except Exception:
+            self._emit_combat_update(f"A ring binds to you. {attr} {sign}{delta}.")
 
     # --- Potions ---
     def _combat_use_potion(self, action: Optional[str]) -> List[Event]:
@@ -3150,6 +3505,10 @@ class GameEngine:
                 heal += max(1, roll_damage("2d2"))
             c.hp = min(c.max_hp, c.hp + heal)
             c.potions -= 1
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             self._emit_combat_update(
                 f"You drink a healing potion and recover {heal} HP."
             )
@@ -3176,6 +3535,10 @@ class GameEngine:
             c.potion_uses[name] -= 1
             if c.potion_uses[name] <= 0:
                 del c.potion_uses[name]
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             self._emit_update_stats()
             return self._combat_next_turn("monster")
         if lname == "charisma":
@@ -3184,11 +3547,19 @@ class GameEngine:
             self._emit_combat_update(
                 "Your charm glows brighter. (+2 Charisma this combat)"
             )
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         if lname == "intelligence":
             buffs["damage_bonus"] = buffs.get("damage_bonus", 0) + 1
             c.potion_uses[name] -= 1
             self._emit_combat_update("You feel more focused. (+1 damage this combat)")
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         if lname == "speed":
             buffs["extra_attack_charges"] = buffs.get("extra_attack_charges", 0) + 1
@@ -3196,11 +3567,19 @@ class GameEngine:
             self._emit_combat_update(
                 "Your reflexes quicken. (1 extra attack this combat)"
             )
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         if lname == "strength":
             buffs["damage_bonus"] = buffs.get("damage_bonus", 0) + 2
             c.potion_uses[name] -= 1
             self._emit_combat_update("Your muscles surge. (+2 damage this combat)")
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         if lname == "protection":
             buffs["ac_bonus"] = buffs.get("ac_bonus", 0) + 3
@@ -3208,6 +3587,10 @@ class GameEngine:
             self._emit_combat_update(
                 "A shimmering barrier surrounds you. (+3 AC this combat)"
             )
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         if lname == "invisibility":
             buffs["invisibility_charges"] = buffs.get("invisibility_charges", 0) + 1
@@ -3215,6 +3598,10 @@ class GameEngine:
             self._emit_combat_update(
                 "You fade from sight. (Monster's next attack automatically misses)"
             )
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         if lname == "antidote":
             c.potion_uses[name] -= 1
@@ -3222,6 +3609,10 @@ class GameEngine:
             self._emit_combat_update(
                 "You drink the antidote and feel the poison leave your system."
             )
+            try:
+                self.s.potions_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         self._emit_combat_update("Nothing happens...")
         return self._combat_next_turn("monster")
@@ -3326,6 +3717,10 @@ class GameEngine:
                 except Exception:
                     self._emit_combat_update("A companion joins you!")
                 c.spells[name] -= 1
+                try:
+                    self.s.spells_used += 1
+                except Exception:
+                    pass
                 return self._combat_next_turn("monster")
             else:
                 self._emit_combat_update(
@@ -3370,6 +3765,10 @@ class GameEngine:
         elif lname == "teleport to town" or lname == "magic portal":
             self._emit_combat_update("A portal whisks you away to town!")
             c.spells[name] -= 1
+            try:
+                self.s.spells_used += 1
+            except Exception:
+                pass
             self.s.phase = "town"
             self._emit_menu(self._town_choices())
             self._emit_state()
@@ -3377,8 +3776,16 @@ class GameEngine:
         else:
             self._emit_combat_update("The spell fizzles...")
             c.spells[name] -= 1
+            try:
+                self.s.spells_used += 1
+            except Exception:
+                pass
             return self._combat_next_turn("monster")
         c.spells[name] -= 1
+        try:
+            self.s.spells_used += 1
+        except Exception:
+            pass
         if mon["hp"] <= 0:
             return self._combat_victory(self.s.current_room, mon)
         self._emit_update_stats()
@@ -3515,6 +3922,7 @@ class GameEngine:
                 pass
             try:
                 self.s.character.gold += gold
+                self.s.gold_earned += int(gold)
             except Exception:
                 pass
             if xp_reward or gold:
@@ -4081,6 +4489,10 @@ class GameEngine:
             from .entities import Weapon
 
             c.gold -= price
+            try:
+                self.s.gold_spent += int(price)
+            except Exception:
+                pass
             c.weapons.append(
                 Weapon(
                     name=item.get("name", "Weapon"),
@@ -4123,6 +4535,10 @@ class GameEngine:
             from .entities import Armor
 
             c.gold -= price
+            try:
+                self.s.gold_spent += int(price)
+            except Exception:
+                pass
             new_armor = Armor(
                 name=item.get("name", "Armor"),
                 armor_class=int(item.get("armor_class", 12)),
@@ -4164,6 +4580,10 @@ class GameEngine:
                 self._emit_state()
                 return self._flush()
             c.gold -= price
+            try:
+                self.s.gold_spent += int(price)
+            except Exception:
+                pass
             c.potion_uses[name] = c.potion_uses.get(name, 0) + uses
             if name.lower() == "healing":
                 c.potions += 1
@@ -4202,6 +4622,10 @@ class GameEngine:
                 self._emit_state()
                 return self._flush()
             c.gold -= price
+            try:
+                self.s.gold_spent += int(price)
+            except Exception:
+                pass
             c.spells[name] = c.spells.get(name, 0) + uses
             self._emit_dialogue(
                 get_dialogue("shop", "buy", None, c)
@@ -4231,23 +4655,29 @@ class GameEngine:
         self._emit_dialogue(f"Gold: {c.gold}g")
         # Build sellable lists (exclude equipped/damaged)
         sellable: List[Tuple[str, int, str]] = []  # (kind, index, label)
-        # Weapons
+        # Weapons (exclude unsellable)
         for i, w in enumerate(c.weapons):
             if getattr(w, "damaged", False):
+                continue
+            if getattr(w, "unsellable", False):
                 continue
             if i == c.equipped_weapon_index:
                 continue
             sellable.append(("w", i, w.name))
-        # Armors (owned and not currently equipped)
+        # Armors (owned and not currently equipped; exclude unsellable)
         for i, a in enumerate(c.armors_owned):
             if getattr(a, "damaged", False):
+                continue
+            if getattr(a, "unsellable", False):
                 continue
             if c.armor and a.name == c.armor.name:
                 continue
             sellable.append(("a", i, a.name))
-        # Magic items (non-cursed)
+        # Magic items (non-cursed and not bound)
         for i, mi in enumerate(c.magic_items):
             if getattr(mi, "cursed", False):
+                continue
+            if getattr(mi, "bound", False):
                 continue
             sellable.append(("m", i, getattr(mi, "name", "Mysterious Item")))
 
@@ -4321,6 +4751,12 @@ class GameEngine:
                     or "You cannot sell an equipped weapon. Unequip it first."
                 )
                 return self._shop_sell_menu()
+            if getattr(w, "unsellable", False):
+                self._emit_dialogue(
+                    get_dialogue("shop", "cannot_sell_reward", None, c)
+                    or "You cannot sell that item."
+                )
+                return self._shop_sell_menu()
             name = w.name
         elif kind == "a":
             if index < 0 or index >= len(c.armors_owned):
@@ -4332,12 +4768,18 @@ class GameEngine:
                     or "You cannot sell equipped armor. Unequip it first."
                 )
                 return self._shop_sell_menu()
+            if getattr(a, "unsellable", False):
+                self._emit_dialogue(
+                    get_dialogue("shop", "cannot_sell_reward", None, c)
+                    or "You cannot sell that item."
+                )
+                return self._shop_sell_menu()
             name = a.name
         else:
             if index < 0 or index >= len(c.magic_items):
                 return self._shop_sell_menu()
             mi = c.magic_items[index]
-            if getattr(mi, "cursed", False):
+            if getattr(mi, "cursed", False) or getattr(mi, "bound", False):
                 return self._shop_sell_menu()
             name = getattr(mi, "name", "Mysterious Item")
         base = self._shop_item_base_price(kind, name)
@@ -4396,6 +4838,10 @@ class GameEngine:
             del c.magic_items[index]
         if sold_name:
             c.gold += offer
+            try:
+                self.s.gold_earned += int(offer)
+            except Exception:
+                pass
             msg = (
                 get_dialogue("shop", "sold_item", None, c)
                 or "Sold {name} for {price}g."
@@ -4746,6 +5192,10 @@ class GameEngine:
         # Perform training
         c.gold -= cost
         try:
+            self.s.gold_spent += int(cost)
+        except Exception:
+            pass
+        try:
             self._emit_dialogue(f"Paid {cost}g.")
         except Exception:
             pass
@@ -4883,6 +5333,10 @@ class GameEngine:
                 return self._weaponsmith_menu()
             c.gold -= COST
             try:
+                self.s.gold_spent += int(COST)
+            except Exception:
+                pass
+            try:
                 self._emit_dialogue(f"Paid {COST}g.")
             except Exception:
                 pass
@@ -4918,6 +5372,10 @@ class GameEngine:
                     pass
                 return self._weaponsmith_menu()
             c.gold -= COST
+            try:
+                self.s.gold_spent += int(COST)
+            except Exception:
+                pass
             try:
                 self._emit_dialogue(f"Paid {COST}g.")
             except Exception:

@@ -11,18 +11,20 @@ to the frontend. The frontend sends back actions to drive the engine.
 from flask import Flask, send_from_directory, request, jsonify, make_response
 import socketio
 from socketio import ASGIApp
-from asgiref.wsgi import WsgiToAsgi
+from asgiref.wsgi import WsgiToAsgi  # type: ignore
 from typing import Dict
 import os
 import uuid
 from datetime import datetime
 
-from pymongo import MongoClient, ASCENDING
+from pymongo import MongoClient, ASCENDING, DESCENDING
 from pymongo.errors import PyMongoError
 import certifi
 from http.cookies import SimpleCookie
+from bson import ObjectId
 
 from game.engine import GameEngine
+from game.reviews import submit_review, ReviewError
 
 app = Flask(__name__, static_folder="static")
 
@@ -56,6 +58,7 @@ sid_device: Dict[str, str] = {}
 # ---- MongoDB setup ----
 _mongo_client = None
 _mongo_coll = None
+_mongo_lb = None
 
 
 def _get_mongo_collection():
@@ -88,6 +91,22 @@ def _get_mongo_collection():
     except Exception:
         pass
     return _mongo_coll
+
+
+def _get_leaderboard_collection():
+    """Get or create the leaderboard collection for winners."""
+    global _mongo_lb
+    if _mongo_lb is not None:
+        return _mongo_lb
+    coll = _get_mongo_collection()
+    db = coll.database
+    coll_name = os.getenv("MONGODB_LEADERBOARD_COLLECTION", "leaderboard_winners")
+    _mongo_lb = db[coll_name]
+    try:
+        _mongo_lb.create_index([("won_at", DESCENDING)])
+    except Exception:
+        pass
+    return _mongo_lb
 
 
 # Initialize Mongo client at app startup to avoid per-request creation
@@ -603,6 +622,252 @@ async def on_engine_action(sid, data):
             events = eng.start()
             await _emit_events(events, to_sid=sid)
             return
+
+    # Intercept review commit before normal engine handling
+    if action == "review:commit":
+        # Extract draft from engine state
+        draft = getattr(getattr(eng, "s", None), "review_draft", {}) or {}
+        rating = int(draft.get("rating", 0))
+        text = draft.get("text") if isinstance(draft.get("text"), str) else None
+        if rating < 1 or rating > 5:
+            await _emit_events(
+                [
+                    {
+                        "type": "dialogue",
+                        "text": "Cannot submit: rating missing or invalid.",
+                    },
+                    {"type": "menu", "items": [("main:menu", "Back")]},
+                ],
+                to_sid=sid,
+            )
+            return
+        # Perform submission
+        try:
+            res = submit_review(rating, text)
+            msg = (
+                f"Review submitted: rating {rating}/5. File: {res.path}"
+                if res.path
+                else "Review submitted."
+            )
+            await _emit_events(
+                [
+                    {"type": "dialogue", "text": msg},
+                    {"type": "pause"},
+                    {"type": "menu", "items": [("main:menu", "Continue")]},
+                ],
+                to_sid=sid,
+            )
+            # Clear draft after success
+            try:
+                eng.s.review_draft = {}
+                eng.s.subphase = ""
+            except Exception:
+                pass
+            return
+        except ReviewError as e:
+            await _emit_events(
+                [
+                    {"type": "dialogue", "text": f"Review failed: {e}"},
+                    {"type": "menu", "items": [("main:menu", "Back")]},
+                ],
+                to_sid=sid,
+            )
+            return
+
+    # Intercept Leaderboard open
+    if action == "main:leaderboard":
+        try:
+            coll = _get_leaderboard_collection()
+            cur = (
+                coll.find({}, {"name": 1, "level": 1, "won_at": 1})
+                .sort("won_at", DESCENDING)
+                .limit(25)
+            )
+            items = []
+            lines = ["=== Leaderboard — Dragon Slayers ==="]
+            for doc in cur:
+                name = doc.get("name", "Unknown")
+                lvl = int(doc.get("level", 1))
+                ts = doc.get("won_at")
+                try:
+                    ts_str = ts.strftime("%Y-%m-%d %H:%M UTC") if ts else ""
+                except Exception:
+                    ts_str = str(ts or "")
+                label = f"{name} (Level {lvl}) — {ts_str}"
+                items.append(
+                    {"id": f"leader:detail:{str(doc.get('_id'))}", "label": label}
+                )
+            # If empty
+            if not items:
+                lines.append("No winners yet. Defeat the Dragon to join the legends!")
+            # Emit header + menu
+            evs = [{"type": "clear"}] + [
+                {"type": "dialogue", "text": ln} for ln in lines
+            ]
+            evs.append(
+                {
+                    "type": "menu",
+                    "items": items + [{"id": "main:menu", "label": "Back"}],
+                }
+            )
+            await _emit_events(evs, to_sid=sid)
+            return
+        except Exception as e:
+            await _emit_events(
+                [
+                    {"type": "dialogue", "text": f"Failed to load leaderboard: {e}"},
+                    {"type": "menu", "items": [{"id": "main:menu", "label": "Back"}]},
+                ],
+                to_sid=sid,
+            )
+            return
+
+    # Intercept Leaderboard detail view
+    if action.startswith("leader:detail:"):
+        try:
+            _id = action.split(":", 2)[2]
+            coll = _get_leaderboard_collection()
+            doc = coll.find_one({"_id": ObjectId(_id)})
+            if not doc:
+                await _emit_events(
+                    [
+                        {"type": "dialogue", "text": "Entry not found."},
+                        {
+                            "type": "menu",
+                            "items": [{"id": "main:leaderboard", "label": "Back"}],
+                        },
+                    ],
+                    to_sid=sid,
+                )
+                return
+            # Build a compact summary
+            lines = [
+                f"=== {doc.get('name','Unknown')} (Level {int(doc.get('level',1))}) ===",
+                f"Class: {doc.get('clazz','Adventurer')}  |  Won: {doc.get('won_at')}",
+            ]
+            stats = doc.get("stats", {}) or {}
+            lines.append(
+                f"Monsters defeated: {int(stats.get('monsters_defeated',0))}  |  Quests completed: {int(stats.get('quests_completed',0))}"
+            )
+            lines.append(
+                f"Potions used: {int(stats.get('potions_used',0))}  |  Spells used: {int(stats.get('spells_used',0))}"
+            )
+            lines.append(
+                f"Gold earned: {int(stats.get('gold_earned',0))}  |  Gold spent: {int(stats.get('gold_spent',0))}"
+            )
+            lines.append(
+                f"Weapon (current): {doc.get('current_weapon','Unarmed')}  |  Weapon (most used): {doc.get('most_used_weapon','Unarmed')}"
+            )
+            lines.append(f"Armor (current): {doc.get('current_armor','None')}")
+            comp = doc.get("companion")
+            if comp:
+                cname = comp.get("name")
+                cspecies = comp.get("species")
+                lines.append(f"Companion: {cname} the {cspecies}")
+            # Emit
+            evs = [{"type": "clear"}] + [
+                {"type": "dialogue", "text": ln} for ln in lines
+            ]
+            evs.append(
+                {
+                    "type": "menu",
+                    "items": [
+                        {"id": "main:leaderboard", "label": "Back"},
+                        {"id": "main:menu", "label": "Main Menu"},
+                    ],
+                }
+            )
+            await _emit_events(evs, to_sid=sid)
+            return
+        except Exception as e:
+            await _emit_events(
+                [
+                    {"type": "dialogue", "text": f"Failed to load entry: {e}"},
+                    {
+                        "type": "menu",
+                        "items": [{"id": "main:leaderboard", "label": "Back"}],
+                    },
+                ],
+                to_sid=sid,
+            )
+            return
+
+    # Intercept automatic save on Dragon victory
+    if action == "combat:dragon_victory_continue":
+        try:
+            device_id = (sid_device.get(sid) or "").strip()
+            # Save snapshot
+            state = eng.snapshot()
+            coll = _get_mongo_collection()
+            doc = {
+                "device_id": device_id or str(uuid.uuid4()),
+                "game_state": state,
+                "updated_at": datetime.utcnow(),
+            }
+            coll.update_one({"device_id": doc["device_id"]}, {"$set": doc}, upsert=True)
+            # Record leaderboard entry
+            try:
+                c = getattr(eng.s, "character", None)
+                s = getattr(eng, "s", None)
+                if c and s:
+                    current_weapon = (
+                        c.weapons[c.equipped_weapon_index].name
+                        if 0 <= c.equipped_weapon_index < len(c.weapons)
+                        else "Unarmed"
+                    )
+                    weapon_use = dict(getattr(s, "weapon_use", {}) or {})
+                    most_used_weapon = None
+                    if weapon_use:
+                        most_used_weapon = max(
+                            weapon_use.items(), key=lambda kv: kv[1]
+                        )[0]
+                    armor_name = c.armor.name if getattr(c, "armor", None) else "None"
+                    lb = _get_leaderboard_collection()
+                    entry = {
+                        "device_id": device_id or None,
+                        "won_at": datetime.utcnow(),
+                        "name": c.name,
+                        "clazz": c.clazz,
+                        "level": c.level,
+                        "xp": c.xp,
+                        "attributes": dict(c.attributes or {}),
+                        "current_weapon": current_weapon,
+                        "most_used_weapon": most_used_weapon or current_weapon,
+                        "current_armor": armor_name,
+                        "weapons_owned": [
+                            getattr(w, "name", str(w)) for w in (c.weapons or [])
+                        ],
+                        "armors_owned": [
+                            getattr(a, "name", str(a)) for a in (c.armors_owned or [])
+                        ],
+                        "companion": (c.companion.__dict__ if c.companion else None),
+                        "stats": {
+                            "monsters_defeated": int(
+                                getattr(s, "monsters_defeated", 0)
+                            ),
+                            "potions_used": int(getattr(s, "potions_used", 0)),
+                            "spells_used": int(getattr(s, "spells_used", 0)),
+                            "quests_completed": int(getattr(s, "quests_completed", 0)),
+                            "gold_earned": int(getattr(s, "gold_earned", 0)),
+                            "gold_spent": int(getattr(s, "gold_spent", 0)),
+                        },
+                    }
+                    lb.insert_one(entry)
+            except Exception as _e:
+                print(f"⚠️ Leaderboard insert failed: {_e}")
+        except Exception as e:
+            print(f"⚠️ Auto-save on victory failed: {e}")
+        # Continue to engine handling (epilogue)
+
+    # Intercept automatic wipe on permanent death
+    if action == "combat:revival_fail_continue":
+        try:
+            device_id = (sid_device.get(sid) or "").strip()
+            if device_id:
+                coll = _get_mongo_collection()
+                coll.delete_one({"device_id": device_id})
+        except Exception as e:
+            print(f"⚠️ Auto-wipe on death failed: {e}")
 
     events = eng.handle_action(action, payload)
 

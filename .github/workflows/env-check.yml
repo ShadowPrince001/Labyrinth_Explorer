@@ -1,0 +1,64 @@
+name: Validate Review Env
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+            python-version: '3.11'
+
+      - name: Install runtime deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+
+      - name: Export required env from GitHub Secrets/Variables
+        env:
+          # Prefer secrets; fall back to variables
+          GH_TOKEN_SECRET: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN_VAR: ${{ vars.GITHUB_TOKEN }}
+          GH_REPO_VAR: ${{ vars.GITHUB_REPO }}
+        run: |
+          # Export GITHUB_TOKEN preferring secret, then variable
+          if [ -n "${GH_TOKEN_SECRET}" ]; then echo "GITHUB_TOKEN=${GH_TOKEN_SECRET}" >> $GITHUB_ENV; fi
+          if [ -z "${GH_TOKEN_SECRET}" ] && [ -n "${GH_TOKEN_VAR}" ]; then echo "GITHUB_TOKEN=${GH_TOKEN_VAR}" >> $GITHUB_ENV; fi
+          if [ -n "${GH_REPO_VAR}" ]; then echo "GITHUB_REPO=${GH_REPO_VAR}" >> $GITHUB_ENV; fi
+          # Optional vars
+          if [ -n "${{ vars.GITHUB_REVIEWS_PATH }}" ]; then echo "GITHUB_REVIEWS_PATH=${{ vars.GITHUB_REVIEWS_PATH }}" >> $GITHUB_ENV; fi
+          if [ -n "${{ vars.GITHUB_REVIEWS_BRANCH }}" ]; then echo "GITHUB_REVIEWS_BRANCH=${{ vars.GITHUB_REVIEWS_BRANCH }}" >> $GITHUB_ENV; fi
+
+      - name: Show which envs are set (redacted)
+        run: |
+          echo "GITHUB_TOKEN set: $([ -n "$GITHUB_TOKEN" ] && echo yes || echo no)"
+          echo "GITHUB_REPO: ${GITHUB_REPO:-<not set>}"
+          echo "GITHUB_REVIEWS_PATH: ${GITHUB_REVIEWS_PATH:-reviews}"
+          echo "GITHUB_REVIEWS_BRANCH: ${GITHUB_REVIEWS_BRANCH:-(default)}"
+
+      - name: Run review env checker
+        run: |
+          python tools/check_review_env.py
+
+      - name: Import smoke test for reviews module
+        run: |
+          python - <<'PY'
+          import importlib
+          import sys
+          try:
+              importlib.import_module('game.reviews')
+              print('Imported game.reviews successfully')
+          except Exception as e:
+              print('Import failed:', e)
+              sys.exit(1)
+          PY

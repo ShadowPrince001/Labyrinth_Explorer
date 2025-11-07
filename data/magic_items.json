@@ -6,138 +6,109 @@
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that enhances your charisma"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Charisma",
 		"type": "ring",
 		"effect": "charisma_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that weakens your charisma"
-	  },
-	  {
+	},
+	{
 		"name": "Ring of Strength",
 		"type": "ring",
 		"effect": "strength_bonus",
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that enhances your strength"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Strength",
 		"type": "ring",
 		"effect": "strength_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that weakens your strength"
-	  },
-	  {
+	},
+	{
 		"name": "Ring of Dexterity",
 		"type": "ring",
 		"effect": "dexterity_bonus",
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that enhances your dexterity and agility"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Dexterity",
 		"type": "ring",
 		"effect": "dexterity_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that slows your movements"
-	  },
-	  {
+	},
+	{
 		"name": "Ring of Perception",
 		"type": "ring",
 		"effect": "perception_bonus",
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that sharpens your perception"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Perception",
 		"type": "ring",
 		"effect": "perception_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that dulls your senses"
-	  },
-	  {
+	},
+	{
 		"name": "Ring of Intelligence",
 		"type": "ring",
 		"effect": "intelligence_bonus",
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that enhances your intelligence"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Intelligence",
 		"type": "ring",
 		"effect": "intelligence_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that clouds your thoughts"
-	  },
-	  {
+	},
+	{
 		"name": "Ring of Wisdom",
 		"type": "ring",
 		"effect": "wisdom_bonus",
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that enhances your understanding and clarity"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Wisdom",
 		"type": "ring",
 		"effect": "wisdom_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that clouds your judgment"
-	  },
-	  {
+	},
+	{
 		"name": "Ring of Constitution",
 		"type": "ring",
 		"effect": "constitution_bonus",
 		"bonus": "2–5 (weighted 50%,30%,20%)",
 		"cursed": false,
 		"description": "A ring that enhances your resilience and vitality"
-	  },
-	  {
+	},
+	{
 		"name": "Cursed Ring of Constitution",
 		"type": "ring",
 		"effect": "constitution_penalty",
 		"penalty": "1–3 (weighted 50%,30%,20%)",
 		"cursed": true,
 		"description": "A cursed ring that weakens your health and endurance"
-	  },
-	{
-		"name": "Magical Dagger",
-		"type": "weapon",
-		"damage_die": "1d6",
-		"cursed": false,
-		"description": "A magical dagger with enhanced damage"
-	},
-	{
-		"name": "Magical Morning Star",
-		"type": "weapon",
-		"damage_die": "2d6",
-		"bonus_damage": "2d5",
-		"cursed": false,
-		"description": "A magical morning star with enhanced damage"
-	},
-	{
-		"name": "Vorpal Sword",
-		"type": "weapon",
-		"damage_die": "6d6",
-		"cursed": false,
-		"description": "A legendary vorpal sword"
-	},
-	{
-		"name": "Warhammer",
-		"type": "weapon",
-		"damage_die": "4d12",
-		"cursed": false,
-		"description": "A powerful warhammer"
 	}
 ]

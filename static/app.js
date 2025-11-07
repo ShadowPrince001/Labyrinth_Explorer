@@ -65,7 +65,7 @@ window.initApp = function () {
       if (el) setTimeout(() => {
         try {
           el.scrollTop = el.scrollHeight;
-        } catch (e) {}
+        } catch (e) { }
       }, 0);
     }
     function startRevealLoop() {
@@ -265,11 +265,11 @@ window.initApp = function () {
       s.on('connect_error', error => {
         setError('Connection failed: ' + error.message);
       });
-      s.on('connected', () => {});
+      s.on('connected', () => { });
       // Ignore legacy channels to prevent duplicate text; use only new events below
-      s.on('game_output', _data => {/* legacy ignored */});
-      s.on('game_menu', _data => {/* legacy ignored */});
-      s.on('game_pause', _data => {/* legacy ignored */});
+      s.on('game_output', _data => {/* legacy ignored */ });
+      s.on('game_menu', _data => {/* legacy ignored */ });
+      s.on('game_pause', _data => {/* legacy ignored */ });
       s.on('game_update', data => {
         // Only use legacy state for HUD if present; do not append text
         if (data && data.state && data.state.character) {
@@ -322,7 +322,7 @@ window.initApp = function () {
         }
       });
       // 'pause' is informational; engine will follow with proper menu id for Continue
-      s.on('pause', _data => {/* ignore to avoid wrong continue id */});
+      s.on('pause', _data => {/* ignore to avoid wrong continue id */ });
       // Combat text goes through typed queue for consistency
       s.on('combat_update', data => {
         if (data && data.text != null) enqueueDialogue(String(data.text));
@@ -377,7 +377,8 @@ window.initApp = function () {
               setNextBackground(newBackground);
               requestAnimationFrame(() => {
                 setIsTransitioning(true);
-                const duration = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 600 : 800;
+                // Match fadeMs (mobile 400ms, desktop 500ms)
+                const duration = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 400 : 500;
                 transitionTimeoutRef.current = setTimeout(() => {
                   setBackground(newBackground);
                   setNextBackground(null);
@@ -448,7 +449,7 @@ window.initApp = function () {
           if (transitionTimeoutRef.current) {
             clearTimeout(transitionTimeoutRef.current);
           }
-        } catch (e) {}
+        } catch (e) { }
       };
     }, []);
     // Autofocus prompt input when it appears
@@ -456,7 +457,7 @@ window.initApp = function () {
       if (prompt && inputRef.current) {
         try {
           inputRef.current.focus();
-        } catch (e) {}
+        } catch (e) { }
       }
     }, [prompt]);
     // Measure container so it's anchored to the bottom with a tiny gap and grows upward as content increases
@@ -501,17 +502,14 @@ window.initApp = function () {
         }
       };
     }, []);
-    // Warn before closing/refreshing if there are unsaved changes
+    // Warn before closing/refreshing every time (desktop & mobile). Browsers may override custom text.
     useEffect(() => {
       if (typeof window === 'undefined') return;
       const handler = e => {
-        // Only warn if unsaved progress and not in the middle of a save
-        if (unsavedRef.current && !savingRef.current) {
-          const msg = 'You have unsaved progress! Do you really want to leave?';
-          e.preventDefault();
-          e.returnValue = msg; // Chrome/Edge/Firefox legacy support
-          return msg;
-        }
+        const msg = 'Remember to save before closing';
+        e.preventDefault();
+        e.returnValue = msg; // Chrome/Edge/Firefox legacy support
+        return msg;
       };
       window.addEventListener('beforeunload', handler);
       return () => window.removeEventListener('beforeunload', handler);
@@ -548,7 +546,8 @@ window.initApp = function () {
     const isMonster = bg => typeof bg === 'string' && bg.toLowerCase().includes('/monsters/') || typeof bg === 'string' && bg.toLowerCase().startsWith('monsters/');
     const currentObjPos = isMonster(background) ? 'top center' : 'center';
     const nextObjPos = isMonster(nextBackground) ? 'top center' : 'center';
-    const fadeMs = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 600 : 800;
+    // Shorter fade: 2/3 previous (mobile 400ms, desktop 500ms)
+    const fadeMs = typeof window !== 'undefined' && window.innerWidth <= 1024 && ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) ? 400 : 500;
 
     // Preload helper for smoother transitions
     const preloadImage = (path, cb) => {
@@ -568,15 +567,15 @@ window.initApp = function () {
     }
     // Prefer grouping by action IDs for robustness; labels are fallbacks
     const MAIN_ID_ORDER = ['town:enter',
-    // Labyrinth
-    'town:shop', 'town:inventory', 'town:companion',
-    // ensure Companion is in Main
-    'town:quests', 'town:level', 'town:save', 'town:quit', 'town:sleep'];
+      // Labyrinth
+      'town:shop', 'town:inventory', 'town:companion',
+      // ensure Companion is in Main
+      'town:quests', 'town:level', 'town:save', 'town:quit', 'town:sleep'];
     const INNER_ID_ORDER = ['town:gamble', 'town:remove_curses', 'town:repair', 'town:train', 'town:rest',
-    // Inn
-    'town:tavern', 'town:pray',
-    // Temple
-    'town:eat', 'town:healer'];
+      // Inn
+      'town:tavern', 'town:pray',
+      // Temple
+      'town:eat', 'town:healer'];
     // Label-based fallback synonyms (used only if IDs are missing/unexpected)
     const MAIN_ORDER = ['labyrinth', 'shop', 'inventory', 'companion', 'quest', 'quests', 'level up', 'save', 'quit', 'sleep'];
     const INNER_ORDER = ['gamble', 'remove curses', 'curses', 'repair', 'train', 'training', 'inn', 'tavern', 'temple', 'eat', 'healer'];
@@ -643,7 +642,7 @@ window.initApp = function () {
           const btn = document.querySelector('.options .option-btn');
           if (btn) btn.focus();
         }, 0);
-      } catch (e) {}
+      } catch (e) { }
     }
     // Shorten labels for buttons for better fit while preserving meaning
     function shortenLabel(id, label) {
