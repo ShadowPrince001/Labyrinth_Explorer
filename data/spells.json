@@ -55,5 +55,12 @@
 		"uses": 1,
 		"effect": "Summon a companion to fight for you",
 		"availability": "labyrinth"
+	},
+	{
+		"name": "Summon Companion",
+		"cost": 500,
+		"uses": 1,
+		"effect": "Summon a travelling companion",
+		"availability": "shop"
 	}
 ]

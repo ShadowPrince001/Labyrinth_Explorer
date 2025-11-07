@@ -103,6 +103,7 @@ Typical trap chance on room entry: 20% (see Labyrinth generation). Specific trap
 - Vulnerability: enemy AC −2 for this combat
 - Weakness / Slowness: enemy damage −2 for this combat
 - Summon Creature: attempt based on roll(5d4); on success, a companion acts after you each round
+- Summon Companion: identical to Summon Creature but purchasable in the shop; cost 500g, 1 use
 - Teleport to Town / Magic Portal: escape combat to town (no rewards)
 
 Note: “Spell resistance” in combat reduces incoming spell damage by a flat amount when present.
@@ -124,7 +125,7 @@ Note: “Spell resistance” in combat reduces incoming spell damage by a flat a
     - Effects with `_bonus` grant a random +2 to +5 to that attribute
     - Effects with `_penalty` apply a random −1 to −3
     - Constitution changes also adjust Max HP by ±5 per attribute point; current HP is clamped to new max
-  - Labyrinth gear rewards (weapons/armors) are added to inventory and are unsellable.
+  - All magic items are bound (cannot be sold). Labyrinth gear rewards (weapons/armors) are added to inventory and are unsellable.
 - Leveling:
   - Total XP to reach level L: 50 * (L - 1) * L / 2
   - On level‑up: +1 unspent stat point; spending a point increases an attribute by +1 (if you increase CON, max HP +5)
@@ -169,7 +170,9 @@ Actions (cost / attribute used / limits):
 - Sleep (Inn / Constitution / once per visit): Free; success heals; failure yields no heal. sets used_sleep.
 - Rest (Inn “rest” flow / Constitution / cost 10g): If available, 5d4+CON vs 25 → heal ceil(MaxHP/3).
 - Healer (40g): Full heal to max HP and removes debuff_* persistent effects (no roll).
-- Remove Curses (10g): Presents list of cursed magic items; selecting removes the curse (no roll) – items become sellable.
+- Remove Curses (20g): Presents a list of cursed magic items; selecting removes the curse (no roll).
+  - Cursed rings are cleansed and immediately vanish; any ring effects are undone.
+  - All magic items are bound and cannot be sold at the shop.
 - Weaponsmith Repair (30g each): Restores full effectiveness (weapon) or protection (armor).
 
 Utilities reset on death (revival) for next depth attempt.
@@ -196,9 +199,10 @@ Buying (UI engine):
 
 Selling (Two Implementations):
 1. Web Engine Haggle (engine internal):
-  - Base price: original shop price (weapons/armor) or nominal 100 for magic items.
+  - Base price: original shop price (weapons/armor).
   - Offer formula: start at 50% base; apply Charisma tier (>=15 +20%, <=6 −20%); apply random variance * (0.9–1.1); round down; minimum 1.
   - Confirm sale adds gold; equipped or damaged items can’t be sold; cursed items excluded.
+  - Only weapons and armors that are standard shop stock (availability = `shop` in data) can be sold. Magic items cannot be sold.
 2. CLI Appraisal (shop.py):
   - Roll appraisal = 5d4 + CHA.
   - Percent = (roll + CHA) * 0.025.
@@ -208,7 +212,7 @@ Selling (Two Implementations):
 
 Repair Differences: Both flows rely on weaponsmith (30g) for damaged equipment before selling; damaged items blocked from sale.
 
-Magic Items: Engine assigns nominal base 100g (if uncursed) for haggle; cursed items must be cleansed (10g) before sale.
+Magic Items: All magic items are bound and cannot be sold. Cursed rings, when cleansed (20g), vanish immediately and their effects are removed.
 
 ---
 ## Side Quests
@@ -267,9 +271,11 @@ Invalid inputs re-prompt; back returns to previous menu.
 ---
 ## Curses & Removal
 
-Magic items may carry `cursed` flag (loaded from data). Effects block selling; removal menu costs 10g and lists only cursed items.
-- Selecting an item (after paying) clears its cursed status making it sellable.
-- If none cursed: message and return to town.
+Magic items may carry a `cursed` flag (loaded from data). The removal menu costs 20g and lists only cursed items.
+- Selecting a cursed ring removes the curse and the ring vanishes; any ring effects are undone automatically.
+- Other cursed magic items simply have their curse lifted.
+- All magic items are bound and cannot be sold.
+- If none are cursed: a message is shown and you return to town.
 
 ---
 ## Healing & Consumables Summary
@@ -291,7 +297,7 @@ Demonstrates appraisal can exceed original price; engine haggle caps implicitly 
 
 - Minimum sale value always ≥1g.
 - Damaged or equipped gear blocked from sale until repaired/unequipped.
-- Cursed items blocked until curse removed (10g).
+- Cursed items blocked until curse removed (20g).
 - Revival penalties cannot reduce attributes below 3.
 - Training costs escalate rapidly; consider timing before late-game deaths.
 - Depth multiplier applies equally to XP and gold (except charm at 25%).

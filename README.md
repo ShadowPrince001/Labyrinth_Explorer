@@ -10,7 +10,9 @@ A compact Python labyrinth crawler with a modern browser UI. The app uses a stru
 * Leaderboard of winners: From the main menu select "Leaderboard" to view recent characters who defeated the Dragon. Entries show level, date, and a detail view with run statistics (monsters defeated, quests completed, potions/spells used, gold earned/spent, equipment, and companion). The game auto‑saves on victory and auto‑wipes the save on permanent death.
 
 - Equipment damage: Weapons/armor can be damaged (5% on relevant events). Repairs cost 30g at the weaponsmith.
-- Magic gear drops: 25% chance after victories. Rings bind and apply attribute changes immediately; labyrinth gear (weapons/armor) is unsellable.
+- Magic gear drops: 25% chance after victories. All magic items are bound (cannot be sold). Rings bind and apply attribute changes immediately; labyrinth gear (weapons/armor) is unsellable; only shop-stock weapons/armors can be sold.
+- Curse removal: The healer can remove curses for 20g. Cleansed rings vanish immediately and their effects are undone.
+* Spells: "Summon Companion" (shop, 500g, 1 use) is identical to the labyrinth-only "Summon Creature" spell; both summon a companion that acts after you each round.
 
 ### Review submission environment variables
 

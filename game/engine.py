@@ -520,44 +520,57 @@ class GameEngine:
             self.s.subphase = "review:rating"
             self.s.review_draft = {}
             self._emit_clear()
-            self._emit_dialogue(
-                "Rate the game (1-5). Rating is required. Enter a number 1-5:"
-            )
-            self._emit_prompt("review_rating", "Rating (1-5)")
-            self._emit_menu([("prompt:submit", "Submit Rating"), ("main:menu", "Back")])
-            self._emit_state()
-            return self._flush()
-        # Capture rating
-        if sd == "review:rating" and action == "prompt:submit":
-            val = (payload.get("value") or "").strip()
-            try:
-                rating = int(val)
-            except Exception:
-                rating = -1
-            if rating < 1 or rating > 5:
-                self._emit_dialogue("Invalid rating. Please enter a number 1-5:")
-                self._emit_prompt("review_rating", "Rating (1-5)")
-                self._emit_menu(
-                    [("prompt:submit", "Submit Rating"), ("main:menu", "Back")]
-                )
-                self._emit_state()
-                return self._flush()
-            self.s.review_draft["rating"] = rating
-            self.s.subphase = "review:text"
-            self._emit_clear()
-            self._emit_dialogue(
-                "Optional: enter a short text review (or leave blank and press Submit)."
-            )
-            self._emit_prompt("review_text", "Review text (optional)")
+            self._emit_dialogue("Rate the game (1-5). Tap a rating:")
             self._emit_menu(
                 [
-                    ("prompt:submit", "Submit Text"),
-                    ("review:skip_text", "Skip Text"),
+                    ("review:rate:1", "1"),
+                    ("review:rate:2", "2"),
+                    ("review:rate:3", "3"),
+                    ("review:rate:4", "4"),
+                    ("review:rate:5", "5"),
                     ("main:menu", "Back"),
                 ]
             )
             self._emit_state()
             return self._flush()
+        # Capture rating
+        if sd == "review:rating" and action.startswith("review:rate:"):
+            try:
+                rating = int(action.rsplit(":", 1)[-1])
+            except Exception:
+                rating = -1
+            if 1 <= rating <= 5:
+                self.s.review_draft["rating"] = rating
+                self.s.subphase = "review:text"
+                self._emit_clear()
+                self._emit_dialogue(
+                    "Optional: enter a short text review (or skip this step)."
+                )
+                self._emit_prompt("review_text", "Review text (optional)")
+                self._emit_menu(
+                    [
+                        ("prompt:submit", "Submit Text"),
+                        ("review:skip_text", "Skip Text"),
+                        ("main:menu", "Back"),
+                    ]
+                )
+                self._emit_state()
+                return self._flush()
+            else:
+                # Re-render rating buttons on invalid
+                self._emit_dialogue("Please choose a rating 1–5:")
+                self._emit_menu(
+                    [
+                        ("review:rate:1", "1"),
+                        ("review:rate:2", "2"),
+                        ("review:rate:3", "3"),
+                        ("review:rate:4", "4"),
+                        ("review:rate:5", "5"),
+                        ("main:menu", "Back"),
+                    ]
+                )
+                self._emit_state()
+                return self._flush()
         # Capture text
         if sd == "review:text" and action == "prompt:submit":
             txt = (payload.get("value") or "").strip()
@@ -1493,19 +1506,25 @@ class GameEngine:
             # Healer background (curse removal)
             self._emit_scene("town_menu/healer.png")
             return self._remove_curses_menu()
-        # Handle selecting an item to remove its curse (10g)
+        # Handle selecting an item to remove its curse (20g)
         if action.startswith("curse:"):
             c = self.s.character
             try:
                 idx = int(action.split(":", 1)[1]) - 1
             except Exception:
                 return self._remove_curses_menu()
-            cursed = [item for item in getattr(c, "magic_items", []) if getattr(item, "cursed", False)]
+            cursed = [
+                item
+                for item in getattr(c, "magic_items", [])
+                if getattr(item, "cursed", False)
+            ]
             if not cursed or idx < 0 or idx >= len(cursed):
                 return self._remove_curses_menu()
-            COST = 10
+            COST = 20
             if c.gold < COST:
-                self._emit_dialogue(f"Removing a curse costs {COST}g; you don't have enough.")
+                self._emit_dialogue(
+                    f"Removing a curse costs {COST}g; you don't have enough."
+                )
                 try:
                     self._emit_dialogue(f"You need {COST}g but have {c.gold}g.")
                 except Exception:
@@ -1521,16 +1540,31 @@ class GameEngine:
             except Exception:
                 pass
             item = cursed[idx]
-            try:
-                setattr(item, "cursed", False)
-            except Exception:
-                pass
-            self._emit_dialogue(f"The curse on {getattr(item, 'name', 'the item')} is lifted. You feel the weight fade.")
-            # Hint about selling (unless it's a bound artifact)
-            if not getattr(item, "bound", False):
-                self._emit_dialogue("You can now sell it in the shop if you wish.")
+            # If the cursed item is a ring, it vanishes upon cleansing and its effects are removed.
+            if str(getattr(item, "type", "")).lower() == "ring":
+                # Reverse any previously applied ring effect if tracked, then remove the item.
+                try:
+                    self._remove_ring_effect(item)
+                except Exception:
+                    pass
+                # Remove from inventory entirely; no need to store extra state
+                try:
+                    c.magic_items.remove(item)
+                except Exception:
+                    # Fallback: rebuild list without the item
+                    c.magic_items = [mi for mi in c.magic_items if mi is not item]
+                self._emit_dialogue(
+                    f"The curse on {getattr(item, 'name', 'the ring')} is lifted. The ring shatters and vanishes."
+                )
             else:
-                self._emit_dialogue("It remains bound to you and cannot be sold.")
+                # Non-ring magic items simply have their curse lifted
+                try:
+                    setattr(item, "cursed", False)
+                except Exception:
+                    pass
+                self._emit_dialogue(
+                    f"The curse on {getattr(item, 'name', 'the item')} is lifted. You feel the weight fade."
+                )
             self._emit_pause()
             self._emit_menu([("town", "Continue")])
             self._emit_state()
@@ -2107,6 +2141,7 @@ class GameEngine:
                             bonus=0,
                             penalty=0,
                             description="An unknown artifact.",
+                            bound=True,
                         )
                     )
                 except Exception:
@@ -3447,6 +3482,12 @@ class GameEngine:
         old_val = int(c.attributes.get(attr, 10))
         new_val = max(1, old_val + delta)
         c.attributes[attr] = new_val
+        # Track applied delta for clean reversal on ring removal without persisting extra save state
+        try:
+            setattr(mi, "applied_attr", attr)
+            setattr(mi, "applied_delta", int(delta))
+        except Exception:
+            pass
         # Constitution changes affect max HP (+/- 5 per point)
         if attr == "Constitution":
             try:
@@ -3462,6 +3503,27 @@ class GameEngine:
             )
         except Exception:
             self._emit_combat_update(f"A ring binds to you. {attr} {sign}{delta}.")
+
+    def _remove_ring_effect(self, mi) -> None:
+        """Reverse a ring's applied effect if known. Safe if nothing to undo."""
+        c = self.s.character
+        if not c:
+            return
+        attr = getattr(mi, "applied_attr", None)
+        delta = int(getattr(mi, "applied_delta", 0) or 0)
+        if not attr or delta == 0:
+            return
+        try:
+            cur = int(c.attributes.get(attr, 10))
+            c.attributes[attr] = max(1, cur - delta)
+        except Exception:
+            pass
+        if attr == "Constitution":
+            try:
+                c.max_hp = max(1, int(c.max_hp) - (5 * delta))
+                c.hp = min(c.hp, c.max_hp)
+            except Exception:
+                pass
 
     # --- Potions ---
     def _combat_use_potion(self, action: Optional[str]) -> List[Event]:
@@ -3681,7 +3743,7 @@ class GameEngine:
             return max(0, dmg - resist)
 
         lname = name.lower()
-        if lname == "summon creature":
+        if lname == "summon creature" or lname == "summon companion":
             roll = roll_damage("5d4")
             self._emit_combat_update(
                 f"You attempt to summon a companion... Roll {roll}"
@@ -4047,7 +4109,7 @@ class GameEngine:
             ("town:repair", g("menu_repair", "15) Repair (30g)")),
             (
                 "town:remove_curses",
-                g("menu_remove_curses", "16) Remove Curses (10g)"),
+                g("menu_remove_curses", "16) Remove Curses (20g)"),
             ),
             ("town:save", g("menu_save", "17) Save")),
             ("town:quit", g("menu_quit", "18) Quit")),
@@ -4187,9 +4249,15 @@ class GameEngine:
         self._emit_dialogue(
             get_dialogue("system", "companion_header", None, c) or "=== Companion ==="
         )
+        if not c or not getattr(c, "companion", None):
+            self._emit_dialogue("You have no travelling companion.")
+            self._emit_menu([("town", "1) Back")])
+            self._emit_state()
+            return self._flush()
+        # Companion present: allow rename and heal
         self._emit_menu(
             [
-                ("comp:name", "1) Name companion"),
+                ("comp:name", "1) Rename companion"),
                 ("comp:heal", "2) Heal companion (uses a healing potion)"),
                 ("town", "3) Back"),
             ]
@@ -4655,7 +4723,27 @@ class GameEngine:
         self._emit_dialogue(f"Gold: {c.gold}g")
         # Build sellable lists (exclude equipped/damaged)
         sellable: List[Tuple[str, int, str]] = []  # (kind, index, label)
-        # Weapons (exclude unsellable)
+
+        # Helper: check if an item name is shop-stock (available in shop)
+        def _is_shop_stock_weapon(name: str) -> bool:
+            try:
+                return any(
+                    (w.get("name") == name and str(w.get("availability")) == "shop")
+                    for w in load_weapons()
+                )
+            except Exception:
+                return False
+
+        def _is_shop_stock_armor(name: str) -> bool:
+            try:
+                return any(
+                    (a.get("name") == name and str(a.get("availability")) == "shop")
+                    for a in load_armors()
+                )
+            except Exception:
+                return False
+
+        # Weapons (exclude unsellable; only shop-stock can be sold)
         for i, w in enumerate(c.weapons):
             if getattr(w, "damaged", False):
                 continue
@@ -4663,8 +4751,10 @@ class GameEngine:
                 continue
             if i == c.equipped_weapon_index:
                 continue
+            if not _is_shop_stock_weapon(getattr(w, "name", "")):
+                continue
             sellable.append(("w", i, w.name))
-        # Armors (owned and not currently equipped; exclude unsellable)
+        # Armors (owned and not currently equipped; exclude unsellable; only shop-stock)
         for i, a in enumerate(c.armors_owned):
             if getattr(a, "damaged", False):
                 continue
@@ -4672,14 +4762,13 @@ class GameEngine:
                 continue
             if c.armor and a.name == c.armor.name:
                 continue
+            if not _is_shop_stock_armor(getattr(a, "name", "")):
+                continue
             sellable.append(("a", i, a.name))
-        # Magic items (non-cursed and not bound)
-        for i, mi in enumerate(c.magic_items):
-            if getattr(mi, "cursed", False):
-                continue
-            if getattr(mi, "bound", False):
-                continue
-            sellable.append(("m", i, getattr(mi, "name", "Mysterious Item")))
+        # Magic items: all are bound and cannot be sold
+        self._emit_dialogue(
+            "Note: Magic items are bound to you and cannot be sold. Only shop-bought weapons and armor may be sold."
+        )
 
         if not sellable:
             self._emit_dialogue(
@@ -4757,6 +4846,21 @@ class GameEngine:
                     or "You cannot sell that item."
                 )
                 return self._shop_sell_menu()
+            # Only shop-stock weapons can be sold
+            try:
+                if not any(
+                    (
+                        w0.get("name") == getattr(w, "name", "")
+                        and str(w0.get("availability")) == "shop"
+                    )
+                    for w0 in load_weapons()
+                ):
+                    self._emit_dialogue(
+                        "The shop only buys standard stock (shop weapons)."
+                    )
+                    return self._shop_sell_menu()
+            except Exception:
+                pass
             name = w.name
         elif kind == "a":
             if index < 0 or index >= len(c.armors_owned):
@@ -4774,14 +4878,26 @@ class GameEngine:
                     or "You cannot sell that item."
                 )
                 return self._shop_sell_menu()
+            # Only shop-stock armors can be sold
+            try:
+                if not any(
+                    (
+                        a0.get("name") == getattr(a, "name", "")
+                        and str(a0.get("availability")) == "shop"
+                    )
+                    for a0 in load_armors()
+                ):
+                    self._emit_dialogue(
+                        "The shop only buys standard stock (shop armor)."
+                    )
+                    return self._shop_sell_menu()
+            except Exception:
+                pass
             name = a.name
         else:
-            if index < 0 or index >= len(c.magic_items):
-                return self._shop_sell_menu()
-            mi = c.magic_items[index]
-            if getattr(mi, "cursed", False) or getattr(mi, "bound", False):
-                return self._shop_sell_menu()
-            name = getattr(mi, "name", "Mysterious Item")
+            # Magic items cannot be sold
+            self._emit_dialogue("Magic items are bound and cannot be sold.")
+            return self._shop_sell_menu()
         base = self._shop_item_base_price(kind, name)
         offer = self._shop_haggle_price(base)
         info = (
@@ -5745,6 +5861,11 @@ class GameEngine:
             self._emit_dialogue("You have no cursed items.")
             # Show town header + summary before presenting town options
             return self._render_town_menu()
+        # Note cost and behavior
+        try:
+            self._emit_dialogue("Remove curses (20g each). Cleansed rings vanish.")
+        except Exception:
+            pass
         items = [("town", "1) Back")]
         for i, item in enumerate(cursed, 2):
             items.append((f"curse:{i-1}", f"{i}) {item.name}"))

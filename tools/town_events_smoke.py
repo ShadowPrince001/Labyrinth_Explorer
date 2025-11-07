@@ -119,7 +119,7 @@ def run_smoke() -> None:
         e.get("type") == "dialogue" for e in emit.events
     ), "remove_curses must emit dialogue"
     st = [e for e in emit.events if e.get("type") == "state"]
-    assert st and st[-1].get("gold") == start_gold - 10, "remove_curses must deduct 10g"
+    assert st and st[-1].get("gold") == start_gold - 20, "remove_curses must deduct 20g"
     # Item should be removed from inventory if helper succeeded
     assert not any(
         mi.name == "Ring of Pain" and mi.cursed for mi in c3.magic_items

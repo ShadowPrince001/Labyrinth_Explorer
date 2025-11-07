@@ -358,7 +358,7 @@ def town_menu(character: Character) -> None:
 13) Sleep 
 14) Companion
 15) Repair (30g)
-16) Remove Curses (10g)
+16) Remove Curses (20g)
 17) Save
 18) Quit"""
         )
